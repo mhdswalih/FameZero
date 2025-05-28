@@ -7,30 +7,38 @@ import { deleteOtp, sendOtp, storeOtp } from '../../utils/otp';
 import { generateOTP } from '../../utils/otputils';
 import { verifyOtp } from '../../utils/otp';
 import { createHttpError } from '../../utils/httperr';
-import hashPassword from '../../utils/hashPassword';
+import  {comparePassword, hashPassword } from '../../utils/hashPassword';
+import { genrateAccessToken, genrateRefreshToken, veryfyAccessToken } from '../../utils/jwt';
+
 
 export class UserService implements IUserService  {
     constructor(private _userRepository: IUserRepository) {}
 
     async registerUser(userData: Partial<IUser>): Promise<{status:number,messege:string}> {
-        try {
             if (!userData.email) {
                 throw new Error(Messages.MESSAGES_REQUIRED);
             }
             const existingUser = await this._userRepository.findByEmail(userData.email);
+            const commonPattern: RegExp = /^(123456|123456789|12345678|12345|111111|123123|qwerty|abc123|password|password1)$/i;
+
             if (existingUser) {
-                throw new Error(Messages.USER_EXISTS);
+                throw createHttpError(HttpStatus.BAD_REQUEST,Messages.USER_EXISTS);
             }
-            if (!userData.name || !userData.password) {
-                throw new Error(Messages.USER_NOT_FOUND);
+            if (!userData.name || !userData.password ) {
+               throw createHttpError(HttpStatus.BAD_REQUEST,Messages.USER_NOT_FOUND);
             }
+            if(userData.password.length < 8){
+                throw createHttpError(HttpStatus.BAD_REQUEST,Messages.PASSWORD_LENGTH)
+            }
+            if(commonPattern.test(userData.password)){
+                throw createHttpError(HttpStatus.BAD_REQUEST,Messages.PASSWORD_COMMEN)
+            }
+
             const otp = generateOTP();
             await sendOtp(userData?.email,otp)
             await storeOtp(userData?.email,otp)
             return {status:HttpStatus.OK,messege:Messages.OTP_SENT}
-        } catch (error: any) {
-            throw new Error(`Error registering user: ${error instanceof Error ? error.message : String(error)}`);
-        }
+        
     }
 
     async getUserById(id: string): Promise<IUser> {
@@ -54,7 +62,7 @@ export class UserService implements IUserService  {
         if(!userData.password){
             throw new Error('Password Requird')
         }
-         userData.password = await hashPassword(userData.password)
+        userData.password = await hashPassword(userData.password)
         const user = await this._userRepository.create(userData as IUser);
         await deleteOtp(email)
         return {status:HttpStatus.CREATED,messege:Messages.USER_CREATED}
@@ -66,5 +74,41 @@ export class UserService implements IUserService  {
         await sendOtp(email,newOTP)
         await storeOtp(email,newOTP)
         return {status:HttpStatus.OK,messege:Messages.OTP_SENT}
+    }
+    async loginUser(email: string, password: string): Promise<{
+        status: number;
+        message: string;  
+        accessToken: string;
+        refreshToken: string;
+        user?: {
+            id: string,
+            name: string,
+            email: string,
+        }
+    }> {
+        const user = await this._userRepository.findByEmail(email)
+        if (!user) throw createHttpError(HttpStatus.BAD_REQUEST, Messages.USER_NOT_FOUND)
+
+        const isValid = await comparePassword(password, user.password)
+        if (!isValid) {
+            
+            throw createHttpError(HttpStatus.UNAUTHORIZED, Messages.INVALID_PASSWORD)
+        }
+
+        
+        const accessToken = genrateAccessToken(user.id.toString())
+        const refreshToken = genrateRefreshToken(user.id.toString())
+
+        return {
+            status: HttpStatus.OK,
+            message: Messages.LOGIN_SUCCESS,  
+            accessToken,
+            refreshToken,
+            user: {
+                id: user.id.toString(),
+                name: user.name,  
+                email: user.email,
+            }
+        }
     }
 }

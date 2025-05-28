@@ -1,14 +1,27 @@
 import React, { useState } from "react";
+import { loginUser } from "../Api/userApi";
+import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleSubmit = (e) => {
+  const navigate = useNavigate()
+
+  const handleSubmit = async(e:any) => {
     e.preventDefault();
-    // Handle form submission here
-    console.log("Email:", email);
-    console.log("Password:", password);
+    try {
+    const response = await loginUser(email,password)
+    toast.success(response.message)
+    setTimeout(()=>{
+      navigate('/')
+    },1000)
+    } catch (error:any) {
+      toast.error(error.error);
+      
+    }
+
   };
 
   return (

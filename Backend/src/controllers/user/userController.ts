@@ -38,8 +38,19 @@ export class UserController implements IUserController {
     }
     async login(req: Request, res: Response,next:NextFunction): Promise<void> {
         try {
-            // Implement login logic here
-            throw new Error('Method not implemented.');
+            const {email,password} = req.body;
+            const response = await this._userService.loginUser(email,password)
+              res.cookie("refreshToken", response.refreshToken, {
+                httpOnly: true,
+                sameSite: "none",
+                maxAge: 7 * 24 * 60 * 60 * 1000,
+            });
+    
+            res.status(HttpStatus.OK).json({
+                message: response.message,
+                accessToken: response.accessToken,
+                user: response.user, 
+            });
         } catch (error) {
           next(error)
         }

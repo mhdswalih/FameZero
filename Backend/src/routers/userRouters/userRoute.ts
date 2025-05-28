@@ -13,6 +13,7 @@ const userController = new UserController(userService)
 userRoute.post('/create-user', userController.createUser.bind(userController))
 userRoute.post('/veryfy-otp',userController.verifyOtp.bind(userController))
 userRoute.post('/resend-otp',userController.resendOtp.bind(userController))
+userRoute.post('/login-user',userController.login.bind(userController))
 
 
 export default userRoute

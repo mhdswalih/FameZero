@@ -1,3 +1,4 @@
+import toast from "react-hot-toast";
 import { IUserData } from "../userSide/SignIn";
 import { axiosInstance } from "./axiosInstance";
 
@@ -5,8 +6,8 @@ export const RegisteUser = async(userData:IUserData) =>{
     try {
         const response = await axiosInstance.post('/create-user',userData)
         return response.data
-    } catch (error) {
-        console.log(error);
+    } catch (error:any) {
+       throw error.response?.data || 'Register user failed'
     }
 }
 
@@ -25,5 +26,15 @@ export const resendOtp = async(email: string) =>{
     return response.data
   } catch (error : any) {
       throw error.response?.data || 'Failed to resend OTP '; 
+  }
+}
+
+
+export const loginUser = async(email:string,password:string)=>{
+  try {
+    const response = await axiosInstance.post('/login-user',{email,password})
+    return response.data
+  } catch (error: any) {
+    throw error.response?.data || 'Failed to login user'
   }
 }

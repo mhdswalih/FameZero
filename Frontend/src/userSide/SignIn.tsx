@@ -32,6 +32,8 @@ const Signup = () => {
         navigate('/otp',{state:{email :formData.email ,userData:formData}})
       }
     } catch (error:any) {
+      console.log(error);
+      
       toast.error(error.error);
     }
   }
