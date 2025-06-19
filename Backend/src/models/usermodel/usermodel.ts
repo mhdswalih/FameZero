@@ -30,7 +30,7 @@ const userSchema = new mongoose.Schema<IUser>({
         type: String,
         required: true,
         default: 'user',
-        enum: ['user', 'admin']  
+        enum: ['user', 'Hotel']  
     },
   
     isVerified: {

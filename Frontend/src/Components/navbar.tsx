@@ -1,9 +1,15 @@
 import React, { useState, createContext, useContext, useEffect } from "react";
 import { motion, AnimatePresence, useScroll, useMotionValueEvent } from "framer-motion";
-import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { useNavigate, Link } from "react-router-dom";
 import { X } from "lucide-react";
 import { MenuItem, Avatar, Button, Typography } from "@material-tailwind/react";
 import { UserCircleIcon, Cog6ToothIcon, InboxArrowDownIcon, LifebuoyIcon, PowerIcon } from "@heroicons/react/24/solid";
+import { RootState } from "../Redux/store";
+import { useDispatch } from "react-redux";
+import { logout } from "../Redux/Slice/userSlice";
+import toast from "react-hot-toast";
+
 
 // Custom Sheet Component Implementation
 const SheetContext = createContext<{
@@ -11,7 +17,7 @@ const SheetContext = createContext<{
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }>({
   open: false,
-  setOpen: () => {},
+  setOpen: () => { },
 });
 
 const Sheet = ({ children }: { children: React.ReactNode }) => {
@@ -33,7 +39,7 @@ const useSheet = () => {
 
 const SheetTrigger = ({ children }: { children: React.ReactNode }) => {
   const { setOpen } = useSheet();
-  
+
   // if (React.isValidElement(children)) {
   //   return React.cloneElement(children, {
   //     onClick: (e: React.MouseEvent) => {
@@ -97,7 +103,7 @@ const SheetContent = ({
             exit={{ opacity: 0 }}
             onClick={() => setOpen(false)}
           />
-          
+
           <motion.div
             className={`fixed z-50 bg-white p-6 shadow-lg ${className}`}
             style={{
@@ -110,9 +116,9 @@ const SheetContent = ({
             initial={variants[side]}
             animate={{ x: 0, y: 0 }}
             exit={variants[side]}
-            transition={{ 
-              type: "spring", 
-              stiffness: 400, 
+            transition={{
+              type: "spring",
+              stiffness: 400,
               damping: 30,
               mass: 0.5
             }}
@@ -139,18 +145,70 @@ const SheetContent = ({
 interface ProfileMenuItem {
   label: string;
   icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
+  path: string,
+  onClick?: () => void;
 }
 
-const profileMenuItems: ProfileMenuItem[] = [
-  { label: "My Profile", icon: UserCircleIcon },
-  { label: "Edit Profile", icon: Cog6ToothIcon },
-  { label: "Inbox", icon: InboxArrowDownIcon },
-  { label: "Help", icon: LifebuoyIcon },
-  { label: "Sign Out", icon: PowerIcon },
-];
 
 // Profile Sheet Component
 const ProfileSheet = () => {
+  const user = useSelector((state: RootState) => state.user)
+  // const token = useSelector((state: RootState) => state.user.token)
+  const dispatch = useDispatch()
+  const {setOpen} = useSheet()
+  const profileMenuItems: ProfileMenuItem[] = [
+    {
+      label: "My Profile",
+      icon: UserCircleIcon,
+      path: "/profile-details",
+      onClick: () => {
+         navigate('/profile-details')
+      }
+    },
+    {
+      label: "Edit Profile",
+      icon: Cog6ToothIcon,
+      path: '',
+      onClick: () => {
+        // Handle edit profile action
+        console.log("Open edit profile");
+      }
+    },
+    {
+      label: "Inbox",
+      icon: InboxArrowDownIcon,
+      path: '',
+      onClick: () => {
+        // Handle inbox action
+        console.log("Open inbox");
+      }
+    },
+    {
+      label: "Help",
+      icon: LifebuoyIcon,
+      path: '',
+      onClick: () => {
+        // Handle help action
+        console.log("Open help");
+      }
+    },
+    {
+      label: "Sign Out",
+      icon: PowerIcon,
+      path: '',
+      onClick: () => handleLogout()
+    }
+
+  ];
+  const navigate = useNavigate()
+  const handleLogout = () => {
+    dispatch(logout());
+    setOpen(false)
+    navigate('/');
+    toast.success('Logged out successfully');
+    
+  };
+
   return (
     <Sheet>
       <SheetTrigger>
@@ -187,10 +245,10 @@ const ProfileSheet = () => {
           />
           <div>
             <Typography variant="h6" className="font-semibold">
-              John Doe
+              {user.name}
             </Typography>
             <Typography variant="small" color="gray">
-              john.doe@gmail.com
+              {user.email}
             </Typography>
           </div>
         </motion.div>
@@ -205,35 +263,48 @@ const ProfileSheet = () => {
           <Typography variant="small" className="font-semibold text-gray-700 px-2 mb-2">
             Profile Menu
           </Typography>
-          
-          <motion.div 
+
+          <motion.div
             initial={{ scaleX: 0 }}
             animate={{ scaleX: 1 }}
             transition={{ duration: 0.3, delay: 0.15 }}
             className="h-px bg-orange-400 mb-3"
           />
-
           <ul className="space-y-1">
-            {profileMenuItems.map(({ label, icon: Icon }, index) => (
+            {profileMenuItems.map(({ label, icon: Icon, path, onClick }, index) => (
               <motion.li
                 key={label}
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ 
+                transition={{
                   delay: 0.05 * index + 0.2,
                   type: "spring",
                   stiffness: 500,
                   damping: 20
                 }}
               >
-                <MenuItem 
-                  className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors duration-200"
-                >
-                  <Icon className="h-5 w-5 text-gray-700" />
-                  <Typography as="span" variant="small" className="font-medium">
-                    {label}
-                  </Typography>
-                </MenuItem>
+                {onClick ? (
+                  <button
+                    onClick={onClick}
+                    className="w-full text-left"
+                  >
+                    <MenuItem className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors duration-200">
+                      <Icon className="h-5 w-5 text-gray-700" />
+                      <Typography as="span" variant="small" className="font-medium">
+                        {label}
+                      </Typography>
+                    </MenuItem>
+                  </button>
+                ) : (
+                  <Link to={path}>
+                    <MenuItem className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors duration-200">
+                      <Icon className="h-5 w-5 text-gray-700" />
+                      <Typography as="span" variant="small" className="font-medium">
+                        {label}
+                      </Typography>
+                    </MenuItem>
+                  </Link>
+                )}
               </motion.li>
             ))}
           </ul>
@@ -248,36 +319,36 @@ const Navbar = () => {
   const navigate = useNavigate();
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [isHovered, setIsHovered] = useState(false);
   const { scrollY } = useScroll();
 
   useMotionValueEvent(scrollY, "change", (latest) => {
     setScrolled(latest > 10);
   });
-
+ 
+  const isLoggIn = useSelector((state: RootState) => state.user.isLoggedIn)
+  const user = useSelector((state : RootState) => state.user)
   return (
     <>
-    <motion.nav
-  initial={{ y: -100, opacity: 0 }}  // Start from above (-100px)
-  animate={{ 
-    y: 0, 
-    opacity: 1,
-    transition: { 
-      type: "spring",
-      stiffness: 80,
-      damping: 10,
-      mass: 0.2,
-      delay: 0.6
-    }
-  }}
-  exit={{ y: -100, opacity: 0 }}  // Exit upwards
-  className={`block w-full max-w-screen-xl px-5 py-2 mx-auto text-white bg-white shadow-md rounded-md lg:px-8 lg:py-3 mt-4  top-10 z-30 ${
-    scrolled ? "shadow-lg" : "shadow-md"
-  }`}
->
+      <motion.nav
+        initial={{ y: -100, opacity: 0 }}  // Start from above (-100px)
+        animate={{
+          y: 0,
+          opacity: 1,
+          transition: {
+            type: "spring",
+            stiffness: 80,
+            damping: 10,
+            mass: 0.2,
+            delay: 0.6
+          }
+        }}
+        exit={{ y: -100, opacity: 0 }}  
+        className={`block w-full max-w-screen-xl px-5 py-2 mx-auto text-white bg-white shadow-md rounded-md lg:px-8 lg:py-3 mt-4  top-10 z-30 ${scrolled ? "shadow-lg" : "shadow-md"
+          }`}
+      >
         <div className="container flex flex-wrap items-center justify-between mx-auto text-slate-800">
-          <motion.a 
-            href="/" 
+          <motion.a
+            href="/"
             className="mr-4 block cursor-pointer py-1.5 text-base text-slate-800 font-semibold"
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
@@ -292,18 +363,18 @@ const Navbar = () => {
             <ul className="flex flex-col gap-2 mt-2 mb-4 lg:mb-0 lg:mt-0 lg:flex-row lg:items-center lg:gap-6">
               {[
                 { name: "Home", path: "/" },
-                { name: "Food", path: "/FoodSection" },
+                { name: "Food", path: "/food-section" },
                 { name: "Blocks", path: "#" },
-                { name: "About", path: "/About" },
+                { name: "About", path: "/about-page" },
               ].map((item, index) => (
-                <motion.li 
+                <motion.li
                   key={index}
                   className="flex items-center p-1 text-sm gap-x-2 text-slate-600"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                  <a 
-                    href={item.path} 
+                  <a
+                    href={item.path}
                     className="flex items-center hover:text-orange-500 transition-colors duration-200"
                   >
                     {item.name}
@@ -312,16 +383,18 @@ const Navbar = () => {
               ))}
             </ul>
           </div>
-          <div className="flex items-center gap-4">
-            <Button 
-              onClick={() => navigate("/login")} 
-              size="sm" 
-              variant="text"
-              className="focus:outline-none"
-              aria-label="Log in"
-            >
-              <span>Log In</span>
-            </Button>
+          <div className="flex items-center gap-4"><span className="italic font-bold ">Hey.. {user.name}</span>
+            {!isLoggIn && (
+              <Button
+                onClick={() => navigate("/login")}
+                size="sm"
+                variant="text"
+                className="focus:outline-none"
+                aria-label="Log in"
+              >
+                <span>Log In</span>
+              </Button>
+            )}
             <ProfileSheet />
           </div>
         </div>
@@ -331,8 +404,8 @@ const Navbar = () => {
       <motion.div
         initial={{ opacity: 0, y: 50 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ 
-          duration: 0.6, 
+        transition={{
+          duration: 0.6,
           delay: 0.5,
           type: "spring",
           stiffness: 100,
@@ -368,7 +441,7 @@ const Navbar = () => {
               initial={{ opacity: 0, y: 20, scale: 0.9 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 20, scale: 0.9 }}
-              transition={{ 
+              transition={{
                 duration: 0.2,
                 type: "spring",
                 stiffness: 300,

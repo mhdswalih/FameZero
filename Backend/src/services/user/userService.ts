@@ -2,7 +2,7 @@ import { HttpStatus } from '../../constants/HttpStatus';
 import { Messages } from '../../constants/Messeges';
 import { IUserRepository } from '../../interfaces/user/IUserRepository';
 import { IUserService } from '../../interfaces/user/IUserservice';
-import { IUser } from '../../models/usermodel/usermodel';
+import { IUser } from '../../models/usermodel/userModel';
 import { deleteOtp, sendOtp, storeOtp } from '../../utils/otp';
 import { generateOTP } from '../../utils/otputils';
 import { verifyOtp } from '../../utils/otp';
@@ -25,7 +25,7 @@ export class UserService implements IUserService  {
                 throw createHttpError(HttpStatus.BAD_REQUEST,Messages.USER_EXISTS);
             }
             if (!userData.name || !userData.password ) {
-               throw createHttpError(HttpStatus.BAD_REQUEST,Messages.USER_NOT_FOUND);
+               throw createHttpError(HttpStatus.BAD_REQUEST,Messages.INVALID_CREDENTIALS);
             }
             if(userData.password.length < 8){
                 throw createHttpError(HttpStatus.BAD_REQUEST,Messages.PASSWORD_LENGTH)
@@ -84,6 +84,7 @@ export class UserService implements IUserService  {
             id: string,
             name: string,
             email: string,
+            role:string,
         }
     }> {
         const user = await this._userRepository.findByEmail(email)
@@ -108,6 +109,7 @@ export class UserService implements IUserService  {
                 id: user.id.toString(),
                 name: user.name,  
                 email: user.email,
+                role:user.role
             }
         }
     }

@@ -1,10 +1,12 @@
 import  express ,{ Request,Response }from 'express';
 import userRouter from './routers/userRouters/userRoute'
+import hotelRoutes from './routers/hoteRoutes/hotelRoutes'
 import cors from 'cors';
 import './config/redisService';
 import dotenv from 'dotenv'
 import { connectDB } from './config/db';
 import { errorHandler } from './middleware/erorrMiddleware';
+import adminRoutes from './routers/adminRouters/adminRouters';
 dotenv.config()
 
 const app = express()
@@ -24,7 +26,8 @@ app.use(express.static('public'))
 
 
 app.use('/api',userRouter)
-
+app.use('/api/hotel',hotelRoutes)
+app.use('/api/admin',adminRoutes)
 app.use(errorHandler)
 
 connectDB().then(() => {

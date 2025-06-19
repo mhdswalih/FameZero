@@ -13,7 +13,7 @@ export const Messages = {
   LOGIN_SUCCESS: 'Login successful',
   INVALID_DATA_PROVIDED: 'Invalid data provided.',
   USER_ID_REQUIRED: 'User ID is required.',
-  PASSWORD_LENGTH:'Password must be at least 6 characters long.',
+  PASSWORD_LENGTH:'Password must be at least 8 characters long.',
   PASSWORD_COMMEN:'Password is too common or easily guessable.',
   APPLICATION_SUCCESSFUL: 'Application successful.',
   REFRESH_TOKEN_MISSING: 'Refresh token missing',
@@ -26,5 +26,7 @@ export const Messages = {
   MESSAGES_REQUIRED:'Both old and new passwords are required.',
   OTP_VERIFIED: 'OTP verified successfully',
   SERVER_ERR:'Internal server erorr',
-  INVALID_REQUST:'Invalid request'
+  INVALID_REQUST:'Invalid request',
+  EMAIL_REQUIRED:'Email required',
+INVALID_CREDENTIALS: 'Invalid credentials',
 };

@@ -1,5 +1,5 @@
-import {IUser} from '../../models/usermodel/usermodel'
-import { IBaseRepository } from '../BaseRepo/IbaseRepo';
+import {IUser} from '../../models/usermodel/userModel'
+import { IBaseRepository } from '../baserepo/IbaseRepo';
 
 
 export interface IUserRepository extends IBaseRepository<IUser> {
@@ -7,7 +7,7 @@ export interface IUserRepository extends IBaseRepository<IUser> {
     // findByEmail(email:string):Promise<IUser |null>;
     // createUser(userData: Partial<IUser>): Promise<IUser>;
     updateUser(id:string,userData:Partial<IUser>):Promise<IUser |null>;
-    findAllUsers():Promise<IUser[]>;
+    getAllUsers():Promise<IUser[]>;
     updateUserPassword(id:string,hashedPassword:string):Promise<IUser | null>;
     checkMobileExists(mobile:string):Promise<boolean>;
 }

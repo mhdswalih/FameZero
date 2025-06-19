@@ -1,4 +1,4 @@
-import { IUser, User } from "../../models/usermodel/usermodel";
+import { IUser, User } from "../../models/usermodel/userModel";
 import { BaseRepository } from "./baseRepository";
 import { IUserRepository } from "../../interfaces/user/IUserRepository";
 
@@ -23,7 +23,7 @@ export class UserRepository extends BaseRepository<IUser> implements IUserReposi
    //    return await this.findOne({ email });
    // }
 
-   async findAllUsers(): Promise<IUser[]> {
+   async getAllUsers(): Promise<IUser[]> {
       return await this.findAll();
    }
 

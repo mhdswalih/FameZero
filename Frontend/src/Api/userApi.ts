@@ -1,6 +1,5 @@
-import toast from "react-hot-toast";
-import { IUserData } from "../userSide/SignIn";
-import { axiosInstance } from "./axiosInstance";
+import { IUserData } from "../../src/Components/User/SignIn";
+import { axiosInstance } from "./Instance/axiosInstance";
 
 export const RegisteUser = async(userData:IUserData) =>{
     try {
@@ -38,3 +37,4 @@ export const loginUser = async(email:string,password:string)=>{
     throw error.response?.data || 'Failed to login user'
   }
 }
+

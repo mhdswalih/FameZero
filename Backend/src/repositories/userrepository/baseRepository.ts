@@ -1,10 +1,10 @@
 import { Document, Model, FilterQuery, UpdateQuery, QueryOptions } from "mongoose";
-import { IBaseRepository } from "../../interfaces/BaseRepo/IbaseRepo";
+import { IBaseRepository } from "../../interfaces/baserepo/IbaseRepo";
 
 export class BaseRepository<T extends Document> implements IBaseRepository<T> {
     constructor(protected readonly model: Model<T>) {}
-    find(filter: FilterQuery<T>, option?: QueryOptions): Promise<T[]> {
-        throw new Error("Method not implemented.");
+   async find(filter: FilterQuery<T>, option?: QueryOptions): Promise<T[]> {  
+          return await this.model.find(filter, null, option);
     }
     countDocument(filter: FilterQuery<T>): Promise<number> {
         throw new Error("Method not implemented.");
