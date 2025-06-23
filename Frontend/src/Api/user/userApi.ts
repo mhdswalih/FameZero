@@ -1,5 +1,5 @@
-import { IUserData } from "../../src/Components/User/SignIn";
-import { axiosInstance } from "./Instance/axiosInstance";
+import { IUserData } from "../../Components/User/Signup";
+import { axiosInstance } from "../Instance/axiosInstance";
 
 export const RegisteUser = async(userData:IUserData) =>{
     try {
@@ -37,4 +37,7 @@ export const loginUser = async(email:string,password:string)=>{
     throw error.response?.data || 'Failed to login user'
   }
 }
+
+
+
 

@@ -2,13 +2,14 @@ import React, { useState, createContext, useContext, useEffect } from "react";
 import { motion, AnimatePresence, useScroll, useMotionValueEvent } from "framer-motion";
 import { useSelector } from "react-redux";
 import { useNavigate, Link } from "react-router-dom";
-import { X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { MenuItem, Avatar, Button, Typography } from "@material-tailwind/react";
 import { UserCircleIcon, Cog6ToothIcon, InboxArrowDownIcon, LifebuoyIcon, PowerIcon } from "@heroicons/react/24/solid";
-import { RootState } from "../Redux/store";
+import { RootState } from "../../Redux/store";
 import { useDispatch } from "react-redux";
-import { logout } from "../Redux/Slice/userSlice";
+import { logout } from "../../Redux/Slice/userSlice";
 import toast from "react-hot-toast";
+import { getUserDetails } from "../../Api/user/profileApi";
 
 
 // Custom Sheet Component Implementation
@@ -208,24 +209,65 @@ const ProfileSheet = () => {
     toast.success('Logged out successfully');
     
   };
+    interface UserProfile {
+  name: string;
+  profilepic: string;
+  email: string;
+  phone: string;
+  address1: string;
+  address2: string;
+}
+      const [userProfile, setUserProfile] = useState<UserProfile>({
+      name: '',
+      profilepic: "",
+      email: '',
+      phone: '',
+      address1: '',
+      address2: '',
+    });
+    let id = user._id 
+  const handleGetUser = async () => {
+    try {
+      const response = await getUserDetails(id);
+      if (response.data) {
+        const updatedProfile = {
+          name: response.data.name || userProfile.name,
+          profilepic: response.data.profilepic || userProfile.profilepic,
+          email: response.data.email || userProfile.email,
+          phone: response.data.phone || userProfile.phone,
+          address1: response.data.address1 || userProfile.address1,
+          address2: response.data.address2 || userProfile.address2,
+        };
+        setUserProfile(updatedProfile);
+      }
+    } catch (error: any) {
+      toast.error(error.error);
+    }
+  };
+
+  useEffect(() => {
+    if (id) {
+      handleGetUser();
+    }
+  }, [id]);
 
   return (
     <Sheet>
       <SheetTrigger>
-        <Button
-          variant="text"
-          color="blue-gray"
-          className="flex items-center gap-1 rounded-full py-0.5 pr-2 pl-0.5 lg:ml-auto focus:outline-none"
-          aria-label="User profile"
-        >
-          <Avatar
-            variant="circular"
-            size="sm"
-            alt="User Avatar"
-            className="border-2 border-gray-900 p-0.5 w-8 h-8 rounded-full object-cover"
-            src="https://images.unsplash.com/photo-1633332755192-727a05c4013d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1480&q=80"
-          />
-        </Button>
+    <motion.button 
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="flex items-center gap-2 rounded-full py-2 px-3 hover:bg-gray-100 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-offset-2"
+          >
+            <img
+              src={userProfile.profilepic ? userProfile.profilepic : "https://images.unsplash.com/photo-1633332755192-727a05c4013d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1480&q=80"}
+              alt="User Avatar"
+              className="w-8 h-8 rounded-full object-cover border-2 border-gray-300"
+            />
+            <span className="hidden sm:block text-sm font-medium text-gray-700">
+              Profile
+            </span>
+          </motion.button>
       </SheetTrigger>
 
       <SheetContent className="bg-white p-4 w-72">
@@ -241,14 +283,14 @@ const ProfileSheet = () => {
             size="lg"
             alt="User Avatar"
             className="border-2 border-gray-900 w-12 h-12 rounded-full object-cover"
-            src="https://images.unsplash.com/photo-1633332755192-727a05c4013d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1480&q=80"
+            src={userProfile.profilepic ? userProfile.profilepic : 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1480&q=80'}
           />
           <div>
             <Typography variant="h6" className="font-semibold">
-              {user.name}
+              {userProfile.name}
             </Typography>
             <Typography variant="small" color="gray">
-              {user.email}
+              {userProfile.email}
             </Typography>
           </div>
         </motion.div>
@@ -316,21 +358,63 @@ const ProfileSheet = () => {
 
 // Main Navbar Component
 const Navbar = () => {
+
+  interface UserProfile {
+  name: string;
+  profilepic: string;
+  email: string;
+  phone: string;
+  address1: string;
+  address2: string;
+}
   const navigate = useNavigate();
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const { scrollY } = useScroll();
+    const [userProfile, setUserProfile] = useState<UserProfile>({
+      name: '',
+      profilepic: "",
+      email: '',
+      phone: '',
+      address1: '',
+      address2: '',
+    });
 
   useMotionValueEvent(scrollY, "change", (latest) => {
     setScrolled(latest > 10);
   });
- 
   const isLoggIn = useSelector((state: RootState) => state.user.isLoggedIn)
   const user = useSelector((state : RootState) => state.user)
+  let id = user._id 
+  const handleGetUser = async () => {
+    try {
+      const response = await getUserDetails(id);
+      if (response.data) {
+        const updatedProfile = {
+          name: response.data.name || userProfile.name,
+          profilepic: response.data.profilepic || userProfile.profilepic,
+          email: response.data.email || userProfile.email,
+          phone: response.data.phone || userProfile.phone,
+          address1: response.data.address1 || userProfile.address1,
+          address2: response.data.address2 || userProfile.address2,
+        };
+        setUserProfile(updatedProfile);
+      }
+    } catch (error: any) {
+      toast.error(error.error);
+    }
+  };
+
+  useEffect(() => {
+    if (id) {
+      handleGetUser();
+    }
+  }, [id]);
+ 
   return (
     <>
       <motion.nav
-        initial={{ y: -100, opacity: 0 }}  // Start from above (-100px)
+        initial={{ y: -100, opacity: 0 }} 
         animate={{
           y: 0,
           opacity: 1,
@@ -344,9 +428,16 @@ const Navbar = () => {
         }}
         exit={{ y: -100, opacity: 0 }}  
         className={`block w-full max-w-screen-xl px-5 py-2 mx-auto text-white bg-white shadow-md rounded-md lg:px-8 lg:py-3 mt-4  top-10 z-30 ${scrolled ? "shadow-lg" : "shadow-md"
-          }`}
+        }`}
       >
         <div className="container flex flex-wrap items-center justify-between mx-auto text-slate-800">
+             
+              <button
+                className="lg:hidden  rounded-md hover:bg-gray-50"
+              >
+                <Menu className="h-5 w-5 text-gray-700" />
+              </button>
+            
           <motion.a
             href="/"
             className="mr-4 block cursor-pointer py-1.5 text-base text-slate-800 font-semibold"
@@ -383,7 +474,7 @@ const Navbar = () => {
               ))}
             </ul>
           </div>
-          <div className="flex items-center gap-4"><span className="italic font-bold ">Hey.. {user.name}</span>
+          <div className="flex items-center gap-4"><span className="italic font-bold ">Hey.. {userProfile.name}</span>
             {!isLoggIn && (
               <Button
                 onClick={() => navigate("/login")}

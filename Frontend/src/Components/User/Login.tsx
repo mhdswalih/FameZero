@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { loginUser } from "../../Api/userApi";
+import { loginUser } from "../../Api/user/userApi";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { useDispatch } from "react-redux";

@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom'; 
-import { RegisteUser } from '../../Api/userApi';
+import { RegisteUser } from '../../Api/user/userApi';
 import toast from 'react-hot-toast';
 
 export interface IUserData{
   name : string;
   email : string;
+  role:string;
   password:string;
 }
 
@@ -13,6 +14,7 @@ const Signup = () => {
   const [formData, setFormData] = useState<IUserData>({
     name: "",
     email:"",
+    role:"",
     password:""
   });  
   
@@ -21,6 +23,7 @@ const Signup = () => {
     const userData = {
       name : formData.name,
       email: formData.email,
+      role:formData.role,
       password : formData.password
     }
     try {
@@ -202,7 +205,16 @@ const Signup = () => {
                       value={formData.email}
                       onChange={(e) => setFormData({...formData,email:e.target.value})}
                     />
-                    
+                      <label className='text-white' htmlFor="Role">Role</label>
+                    <select
+                      name="Role"
+                      onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                      className="mr-2.5 mb-2 h-full min-h-[44px] w-full rounded-lg border bg-white text-black border-zinc-300 px-4 py-3 text-sm font-medium placeholder:text-zinc-400 focus:outline-none focus:border-orange-400"
+                    >
+                      <option value="">Select A Role</option>
+                      <option value="User">User</option>
+                      <option value="Hotel">Hotel</option>
+                    </select>
                     <label className="text-black mt-2" htmlFor="password">
                       Password
                     </label>

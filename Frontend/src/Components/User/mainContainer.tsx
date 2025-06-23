@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import React, { useState, useEffect, useRef } from "react";
 // import ProfileSheet from "../ui/sheet";
-import Navbar from "../Navbar";
+import Navbar from "../UserNav&Footer/Navbar";
 
 interface CarouselImage {
   src: string;

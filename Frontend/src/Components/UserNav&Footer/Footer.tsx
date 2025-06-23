@@ -19,11 +19,11 @@ export const FooterWithLogo: React.FC<FooterWithLogoProps> = () => {
         <div className="flex flex-col md:flex-row items-center justify-between gap-8">
           {/* Logo and company info */}
           <div className="flex flex-col items-center md:items-start gap-4">
-            <img
+            {/* <img
               src={footer_logo}
               alt="Company logo"
               className="w-40 h-12 rounded-sm"
-            />
+            /> */}
             <Typography variant="h5" className="font-bold italic">
               FameZero
             </Typography>

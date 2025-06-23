@@ -1,18 +1,20 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
-import { 
+import {
   Phone, MapPin, Edit3, Camera,
-  Settings, Bell, Shield, LogOut, Menu, Mail
+  Settings, Bell, Shield, LogOut, Mail
 } from 'lucide-react';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../../Redux/store';
 import { logout } from '../../Redux/Slice/userSlice';
 import toast from 'react-hot-toast';
 import UserEditModal from '../User/Modals/UserEditModeal';
+import { getUserDetails, updateUser } from '../../Api/user/profileApi';
 
 interface UserProfile {
   name: string;
+  profilepic: string;
   email: string;
   phone: string;
   address1: string;
@@ -27,21 +29,84 @@ const ProfilePage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
+  // Initialize userProfile state
+  const [userProfile, setUserProfile] = useState<UserProfile>({
+    name: '',
+    profilepic: "",
+    email: '',
+    phone: '',
+    address1: '',
+    address2: '',
+  });
+
+  const [editedProfile, setEditedProfile] = useState<UserProfile>({ ...userProfile });
+
   const handleLogout = () => {
     dispatch(logout());
     toast.success('Logged out successfully');
     navigate('/');
   };
-  
-  const [userProfile, setUserProfile] = useState<UserProfile>({
-    name: user.name,
-    email: user.email,
-    phone: '+1 (555) 123-4567',
-    address1: '123 Main Street, Apt 4B',
-    address2: 'Downtown, New York, NY 10001'
-  });
 
-  const [editedProfile, setEditedProfile] = useState<UserProfile>({ ...userProfile });
+  const id = user._id;
+
+
+  // Fixed handleEditUser function in ProfilePage component
+  const handleEditUser = async (selectedFile?: File) => {
+    console.log(editedProfile, selectedFile, 'this is edit profile and selected file');
+
+    try {
+      // Call updateUser with the correct parameters
+      const response = await updateUser(id, editedProfile, selectedFile);
+      
+
+      // Update local state with the response data
+      if (response.data) {
+        const updatedProfile = {
+          name: response.data.name || editedProfile.name,
+          profilepic: response.data.profilepic || editedProfile.profilepic,
+          email: response.data.email || editedProfile.email,
+          phone: response.data.phone || editedProfile.phone,
+          address1: response.data.address1 || editedProfile.address1,
+          address2: response.data.address2 || editedProfile.address2,
+        };
+
+        setUserProfile(updatedProfile);
+        setEditedProfile(updatedProfile);
+      }
+
+      toast.success('Profile updated successfully');
+      setIsEditModalOpen(false);
+
+    } catch (error: any) {
+      console.error('Error updating profile:', error);
+      toast.error(error.message || error.error || 'Failed to update profile');
+    }
+  };
+  const handleGetUser = async (id: string) => {
+    try {
+      const response = await getUserDetails(id);
+      if (response.data) {
+        const updatedProfile = {
+          name: response.data.name || userProfile.name,
+          profilepic: response.data.profilepic || userProfile.profilepic,
+          email: response.data.email || userProfile.email,
+          phone: response.data.phone || userProfile.phone,
+          address1: response.data.address1 || userProfile.address1,
+          address2: response.data.address2 || userProfile.address2,
+        };
+        setUserProfile(updatedProfile);
+        setEditedProfile(updatedProfile);
+      }
+    } catch (error:any) {
+       toast.error(error.message || error.error || 'Failed to get profile');
+    }
+  };
+
+  useEffect(() => {
+    if (id) {
+      handleGetUser(id);
+    }
+  }, [id]);
 
   // Profile menu items
   const profileMenuItems = [
@@ -60,7 +125,7 @@ const ProfilePage = () => {
     <div className="min-h-screen bg-gray-50 flex">
       {/* Overlay for mobile sidebar */}
       {isSidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
           onClick={() => setIsSidebarOpen(false)}
         />
@@ -71,20 +136,13 @@ const ProfilePage = () => {
         {/* Header */}
         <header className="bg-white shadow-sm border-b border-gray-100">
           <div className="flex items-center justify-between h-16 px-6">
-            <div className="flex items-center gap-4">
-              <button
-                onClick={() => setIsSidebarOpen(true)}
-                className="lg:hidden p-2 rounded-md hover:bg-gray-50"
-              >
-                <Menu className="h-5 w-5 text-gray-700" />
-              </button>
-              <h2 className="text-lg font-semibold text-gray-900">Profile Settings</h2>
-            </div>
-          
-            {/* Profile Display - No longer clickable */}
+
+            <h2 className="text-lg font-semibold text-gray-900">Profile Settings</h2>
+
+            {/* Profile Display */}
             <div className="flex items-center gap-2 rounded-full py-1 pr-3 pl-1">
               <img
-                src="https://images.unsplash.com/photo-1633332755192-727a05c4013d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1480&q=80"
+                src={userProfile.profilepic || "https://images.unsplash.com/photo-1633332755192-727a05c4013d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1480&q=80"}
                 alt="User Avatar"
                 className="border-2 border-gray-900 p-0.5 w-8 h-8 rounded-full object-cover"
               />
@@ -92,16 +150,16 @@ const ProfilePage = () => {
             </div>
           </div>
         </header>
-         
+
         {/* Main Content Area */}
         <main className="p-6">
           <div onClick={() => navigate(-1)} className="cursor-pointer mb-4">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="icon-arrow-left">
-              <line x1="19" y1="12" x2="5" y2="12"/>
-              <polyline points="12 5 5 12 12 19"/>
+              <line x1="19" y1="12" x2="5" y2="12" />
+              <polyline points="12 5 5 12 12 19" />
             </svg>
           </div>
-          
+
           <div className="max-w-4xl mx-auto">
             {/* Profile Overview Card */}
             <motion.div
@@ -113,7 +171,7 @@ const ProfilePage = () => {
                 <div className="flex items-center gap-4">
                   <div className="relative">
                     <img
-                      src="https://images.unsplash.com/photo-1633332755192-727a05c4013d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1480&q=80"
+                      src={userProfile.profilepic || "https://images.unsplash.com/photo-1633332755192-727a05c4013d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1480&q=80"}
                       alt="Profile"
                       className="w-16 h-16 rounded-full object-cover border-2 border-gray-900 p-0.5"
                     />
@@ -156,7 +214,7 @@ const ProfilePage = () => {
                       </div>
                     </div>
                   </div>
-                  
+
                   <div>
                     <h4 className="text-sm font-semibold text-gray-700 mb-3">Address</h4>
                     <div className="space-y-2">
@@ -200,13 +258,14 @@ const ProfilePage = () => {
       </div>
 
       {/* User Edit Modal */}
-      <UserEditModal 
+      <UserEditModal
         isEditModalOpen={isEditModalOpen}
         setIsEditModalOpen={setIsEditModalOpen}
         userProfile={userProfile}
         setUserProfile={setUserProfile}
         editedProfile={editedProfile}
         setEditedProfile={setEditedProfile}
+        handleEditUser={handleEditUser}
       />
     </div>
   );

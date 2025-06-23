@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ChefHat, Clock, Star, MapPin, Phone, Mail, ArrowRight, Menu, X } from 'lucide-react';
+import NavBar from '../HotelNav&Footer/NavBar';
 
 export default function RestaurantLanding() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -25,52 +26,11 @@ export default function RestaurantLanding() {
   ];
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen  bg-orange-50">
       {/* Floating Navigation */}
-      <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${
-        scrollY > 50 ? 'bg-white/95 backdrop-blur-md shadow-lg' : 'bg-transparent'
-      }`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center space-x-2">
-              <ChefHat className="h-8 w-8 text-orange-400" />
-              <span className="text-2xl font-bold text-gray-900">Saveur</span>
-            </div>
-            
-            <div className="hidden md:flex items-center space-x-8">
-              <a href="#menu" className="text-gray-700 hover:text-orange-400 transition-colors">Menu</a>
-              <a href="#about" className="text-gray-700 hover:text-orange-400 transition-colors">About</a>
-              <a href="#reviews" className="text-gray-700 hover:text-orange-400 transition-colors">Reviews</a>
-              <a href="#contact" className="text-gray-700 hover:text-orange-400 transition-colors">Contact</a>
-              <button className="bg-orange-400 text-white px-6 py-2 rounded-full hover:bg-orange-500 transition-all duration-300 transform hover:scale-105">
-                Reserve Table
-              </button>
-            </div>
-
-            <button 
-              className="md:hidden"
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-            >
-              {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-            </button>
-          </div>
-        </div>
-
-        {/* Mobile Menu */}
-        {isMenuOpen && (
-          <div className="md:hidden bg-white border-t">
-            <div className="px-4 py-4 space-y-4">
-              <a href="#menu" className="block text-gray-700">Menu</a>
-              <a href="#about" className="block text-gray-700">About</a>
-              <a href="#reviews" className="block text-gray-700">Reviews</a>
-              <a href="#contact" className="block text-gray-700">Contact</a>
-              <button className="w-full bg-orange-400 text-white py-2 rounded-full">
-                Reserve Table
-              </button>
-            </div>
-          </div>
-        )}
-      </nav>
+    <div className="fixed top-0 left-0 w-full z-50">
+  <NavBar />
+</div>
 
       {/* Hero Section */}
       <section className="relative h-screen flex items-center justify-center overflow-hidden">

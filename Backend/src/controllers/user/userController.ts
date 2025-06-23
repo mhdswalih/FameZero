@@ -55,6 +55,21 @@ export class UserController implements IUserController {
           next(error)
         }
     }
+    async getUserDetails(req: Request, res: Response, next: NextFunction): Promise<void> {
+        try {
+            const {id} = req.params
+            console.log(id,'this is id from fontend');
+
+            const profile = await this._userService.getUserDetails(id)
+            if(!profile){
+                res.status(HttpStatus.BAD_REQUEST).json({message:Messages.USER_NOT_FOUND})
+            }
+            res.status(HttpStatus.OK).json({profile})
+        } catch (error) {
+            next(error)
+        }
+    }
+    
 
     async refreshToken(req: Request, res: Response,next:NextFunction): Promise<void> {
         try {
@@ -89,8 +104,12 @@ export class UserController implements IUserController {
 
     async updateUser(req: Request, res: Response ,next:NextFunction): Promise<void> {
         try {
-            // Implement update user logic here
-            throw new Error('Method not implemented.');
+            const {id} = req.params;
+            const {userProfile} = req.body
+            console.log(userProfile,'this is from contrrollerererere');
+            
+             const profile = await this._userService.updateUser(id,userProfile)
+             res.status(HttpStatus.OK).json({data:profile})
         } catch (error) {
             res.status(HttpStatus.BAD_REQUEST).json({
                 message: error instanceof Error ? error.message : Messages.UNKNOWN_ERROR,

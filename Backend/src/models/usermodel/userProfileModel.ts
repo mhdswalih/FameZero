@@ -1,47 +1,62 @@
-import mongoose, { Document } from "mongoose";
+import mongoose, { Document, Schema} from "mongoose";
 import { IUser } from "./userModel";
 
 export interface IUserProfile extends Document {
-    _id:string;
-    userId : IUser;
-    profilePic:string;
-    address1:string;
-    address2:string;
-    city:string;
-    phone:string;
+    _id: string;
+    userId: Schema.Types.ObjectId | IUser;
+    name:string;
+    email:string;
+    zipcode:string;
+    profilepic: string;
+    address1: string;
+    address2: string;
+    city: string;
+    phone: string;
 }
-
+ 
 const userProfileSchema = new mongoose.Schema<IUserProfile>({
-    userId:{
-        type : String,
-        ref : 'users',
-        required : true
+    userId: {
+        type:Schema.Types.ObjectId,
+        ref: 'Users',
+        required: true
     },
-    profilePic:{
-        type : String,
-        required:true,
-    },
-    address1 : {
-        type : String,
-        required : true,
-        trim:true
-    },
-    address2 : {
-        type : String,
-        required : true,
-        trim:true
-    },
-    city : {
-        type : String,
-        required : true,
-        trim:true
-    },
-    phone : {
+    name : {
         type:String,
-        trim : true,
-        required : true
+       
+    },
+    profilepic: {
+        type: String,
+       
+    },
+    email:{
+        type:String,
+        trim:true
+    },
+    zipcode:{
+        type:String,
+        trim:true
+    },
+    address1: {
+        type: String,
+        
+        trim: true
+    },
+    address2: {
+        type: String,
+     
+        trim: true
+    },
+    city: {
+        type: String,
+     
+        trim: true
+    },
+    phone: {
+        type: String,
+        trim: true,
+     
     }
-})
+});
 
-const userProfile = mongoose.model<IUserProfile>('userprofile',userProfileSchema,'userprofile')
-export default userProfile
+const userProfile = mongoose.model<IUserProfile>('userprofile', userProfileSchema, 'userprofile');
+export default userProfile;

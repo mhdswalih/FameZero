@@ -2,7 +2,7 @@ import React from 'react';
 
 const ProductPage = () => {
   return (
-    <section className="font-['Poppins'] flex items-center justify-center bg-orange-350 bg-opacity-20 h-[100vh] pt-10 ">
+    <section className="font-['Poppins']  flex items-center justify-center bg-orange-350 bg-opacity-20 h-[100vh] pt-10 ">
       <div className="flex w-full h-full p-10 bg-orange-350 border-orange-350  rounded-xl">
         <div className="flex flex-col gap-14 items-center">
           {/* SVG and Images */}

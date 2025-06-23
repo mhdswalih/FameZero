@@ -2,13 +2,13 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import { RootState } from '../Redux/store'
 import Landing from '../Components/Landing/Landing'
-import Signup from '../Components/User/SignIn'
+import Signup from '../Components/User/Signup'
 import LoginPage from '../Components/User/Login'
 import OTPVerificationPage from '../Components/User/Otp'
 import ProfilePage from '../Components/User/ProfileDetailPage'
 import NewspaperPage from '../Components/User/AboutPage'
 import { ReactElement } from 'react'
-import Navbar from '../Components/Navbar'
+import Navbar from '../Components/UserNav&Footer/Navbar'
 
 const ProtectedRoute = ({ children }: { children:ReactElement }) => {
   const user = useSelector((state: RootState) => state.user);
@@ -51,9 +51,9 @@ const AuthRoutes = () => {
           </>
         }/>
       <Route path='otp' element={
-        <ProtectedRoute>
+        <PublicRoute>
           <OTPVerificationPage />
-        </ProtectedRoute>
+        </PublicRoute>
       } />
     </Routes>
   );

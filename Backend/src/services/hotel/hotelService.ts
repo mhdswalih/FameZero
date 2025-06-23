@@ -43,7 +43,7 @@ export class HotelService implements IHotelService{
                
            }
            if(!userData.password){
-               throw new Error('Password Requird')
+               throw new Error(Messages.INVALID_CREDENTIALS)
            }
            userData.password = await hashPassword(userData.password)
            const hotel = await this._hotelRepository.create(userData as IUser);

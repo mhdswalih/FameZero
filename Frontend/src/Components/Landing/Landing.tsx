@@ -2,7 +2,7 @@
 import CarouselWithText from '../User/mainContainer'
 import AboutSection from '../User/AboutSection'
 import ServicesSection from '../User/findFood'
-import { FooterWithLogo } from '../Footer'
+import { FooterWithLogo } from '../UserNav&Footer/Footer'
 // import ProfileSheet from '../ui/sheet'
 
 const Landing = () => {

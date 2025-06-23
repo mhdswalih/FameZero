@@ -1,35 +1,30 @@
 import { IUser, User } from "../../models/usermodel/userModel";
 import { BaseRepository } from "./baseRepository";
 import { IUserRepository } from "../../interfaces/user/IUserRepository";
+import userProfile, { IUserProfile } from "../../models/usermodel/userProfileModel";
 
 export class UserRepository extends BaseRepository<IUser> implements IUserRepository {
    constructor() {
       super(User);
    }
-
-   // async createUser(userData: Partial<IUser>): Promise<IUser> {
-   //    try {
-   //       return await this.create(userData); // Fixed recursive call
-   //    } catch (error) {
-   //       throw new Error(`Error creating user: ${error instanceof Error ? error.message : String(error)}`);
-   //    }
-   // }
-
-   // async findById(id: string): Promise<IUser | null> {
-   //    return await super.findById(id);
-   // }
-
-   // async findByEmail(email: string): Promise<IUser | null> {
-   //    return await this.findOne({ email });
-   // }
+   async getUserProfile(id:string):Promise<IUserProfile | null>{
+   return await userProfile.findOne({userId: id}).populate('userId')
+   }
 
    async getAllUsers(): Promise<IUser[]> {
       return await this.findAll();
    }
 
-   async updateUser(id: string, userData: Partial<IUser>): Promise<IUser | null> {
-      return await this.update(id, userData);
-   }
+      async updateUser(id: string, userData: Partial<IUserProfile>): Promise<void> {
+      // console.log(userData, 'this is user data from repository');
+      
+      const update = await userProfile.updateOne(
+         {userId: id},
+         {$set: userData}
+      );
+
+      }
+
 
    async updateUserPassword(id: string, hashedPassword: string): Promise<IUser | null> {
       return await this.update(id, { password: hashedPassword });

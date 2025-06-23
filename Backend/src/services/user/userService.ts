@@ -9,10 +9,12 @@ import { verifyOtp } from '../../utils/otp';
 import { createHttpError } from '../../utils/httperr';
 import  {comparePassword, hashPassword } from '../../utils/hashPassword';
 import { genrateAccessToken, genrateRefreshToken, veryfyAccessToken } from '../../utils/jwt';
+import { IUserProfile } from '../../models/usermodel/userProfileModel';
+import { IProfileRepositer } from '../../interfaces/user/profile/IProfileRepository';
 
 
 export class UserService implements IUserService  {
-    constructor(private _userRepository: IUserRepository) {}
+    constructor(private _userRepository: IUserRepository,private _profileUserRepository:IProfileRepositer ) {}
 
     async registerUser(userData: Partial<IUser>): Promise<{status:number,messege:string}> {
             if (!userData.email) {
@@ -63,10 +65,22 @@ export class UserService implements IUserService  {
             throw new Error('Password Requird')
         }
         userData.password = await hashPassword(userData.password)
-        const user = await this._userRepository.create(userData as IUser);
+        const user = await this._userRepository.create(userData as IUser) as IUser;
         await deleteOtp(email)
+        if(user.role === 'user'){  
+            await this._profileUserRepository.create({
+                userId: user._id as any,
+                name : user.name,
+                email:user.email,
+                profilepic: '',
+                address1:'',
+                address2:'',
+                city:'',
+                phone:'',
+                zipcode:'',
+            })
+        }
         return {status:HttpStatus.CREATED,messege:Messages.USER_CREATED}
-        // throw new Error('Method not implemented.');
     }
     async resendOtp (email: string): Promise<{ status: number; messege: string; }> {
         await deleteOtp(email)
@@ -113,4 +127,21 @@ export class UserService implements IUserService  {
             }
         }
     }
+    async getUserDetails(id: string): Promise<IUser> {
+        const profile = await this._userRepository.findById(id)
+         if(!profile){
+                throw createHttpError(HttpStatus.BAD_REQUEST,Messages.USER_NOT_FOUND)
+            }
+            return profile 
+    }
+    async updateUser(id: string, userProfile: Partial<IUserProfile>): Promise<void> {
+        // console.log(userProfile,'this is user profile from service');
+        
+        const userId = await this._userRepository.findById(id)
+        if(!userId){
+            throw createHttpError(HttpStatus.BAD_REQUEST,Messages.INVALID_USER_ID)
+        }
+        return await this._userRepository.updateUser(id,userProfile)
+    }
+
 }
