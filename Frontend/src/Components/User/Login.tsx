@@ -26,7 +26,7 @@ const LoginPage = () => {
       }))
       toast.success(response.message)
       setTimeout(() => {
-        if(response.user?.role === 'Hotel'){
+        if(response.user?.role === 'hotel'){
           navigate('/hotel/hotel-landing-page')
         }else if (response.user?.role === 'user'){
           navigate('/')

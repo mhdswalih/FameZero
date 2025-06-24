@@ -1,7 +1,7 @@
 import mongoose, { Document } from "mongoose";
 
 export interface IUser extends Document {
-    id: string;
+    _id: string;
     name: string;
     email: string;
     password: string;
@@ -30,7 +30,7 @@ const userSchema = new mongoose.Schema<IUser>({
         type: String,
         required: true,
         default: 'user',
-        enum: ['user', 'Hotel']  
+        enum: ['user', 'hotel']  
     },
   
     isVerified: {

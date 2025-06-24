@@ -134,6 +134,7 @@ const UserEditModal = ({
                     <input
                       type="file"
                       accept="image/*"
+                      value={selectedFile?.name}
                       onChange={handleFileChange}
                       className="hidden"
                       disabled={isSubmitting}

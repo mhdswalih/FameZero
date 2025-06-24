@@ -212,8 +212,8 @@ const Signup = () => {
                       className="mr-2.5 mb-2 h-full min-h-[44px] w-full rounded-lg border bg-white text-black border-zinc-300 px-4 py-3 text-sm font-medium placeholder:text-zinc-400 focus:outline-none focus:border-orange-400"
                     >
                       <option value="">Select A Role</option>
-                      <option value="User">User</option>
-                      <option value="Hotel">Hotel</option>
+                      <option value="user">User</option>
+                      <option value="hotel">Hotel</option>
                     </select>
                     <label className="text-black mt-2" htmlFor="password">
                       Password

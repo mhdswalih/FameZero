@@ -8,17 +8,7 @@ export class HotelRepository extends BaseRepository<IUser> implements IHotelRepo
       super(User);
    }
 
-//    async registerHotel(userData: Partial<IUser>): Promise<IUser> {
-//       try {
-//          return await this.create(userData); // Fixed recursive call
-//       } catch (error) {
-//          throw new Error(`Error creating user: ${error instanceof Error ? error.message : String(error)}`);
-//       }
-//    }
-
-   // async findById(id: string): Promise<IUser | null> {
-   //    return await super.findById(id);
-   // }
+  
 
    async findByEmail(email: string): Promise<IUser | null> {
       return await this.findOne({ email });

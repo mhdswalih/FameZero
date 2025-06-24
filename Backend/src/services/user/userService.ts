@@ -11,10 +11,13 @@ import  {comparePassword, hashPassword } from '../../utils/hashPassword';
 import { genrateAccessToken, genrateRefreshToken, veryfyAccessToken } from '../../utils/jwt';
 import { IUserProfile } from '../../models/usermodel/userProfileModel';
 import { IProfileRepositer } from '../../interfaces/user/profile/IProfileRepository';
+import { IHotelRepository } from '../../interfaces/hotel/IHotelRepository';
+import { IHotelProfile } from '../../models/hotelModel/hotelProfileModel';
+import { IProfileHotelRepositer } from '../../interfaces/hotel/profile/IProfileHotelRepository';
 
 
 export class UserService implements IUserService  {
-    constructor(private _userRepository: IUserRepository,private _profileUserRepository:IProfileRepositer ) {}
+    constructor(private _userRepository: IUserRepository,private _profileUserRepository:IProfileRepositer,private _profileHotelRepository:IProfileHotelRepositer) {}
 
     async registerUser(userData: Partial<IUser>): Promise<{status:number,messege:string}> {
             if (!userData.email) {
@@ -69,7 +72,7 @@ export class UserService implements IUserService  {
         await deleteOtp(email)
         if(user.role === 'user'){  
             await this._profileUserRepository.create({
-                userId: user._id as any,
+                userId: user.id as any,
                 name : user.name,
                 email:user.email,
                 profilepic: '',
@@ -80,6 +83,22 @@ export class UserService implements IUserService  {
                 zipcode:'',
             })
         }
+       
+        if(user.role === 'hotel'){
+            await this._profileHotelRepository.create({
+                userId : user.id,
+                name : user.name,
+                email:user.email,
+                profilepic : '',
+                address:'',
+                foodlicensepic:'',
+                city:'',
+                phone:'',
+                zipcode:'',
+                
+            })
+        }    
+
         return {status:HttpStatus.CREATED,messege:Messages.USER_CREATED}
     }
     async resendOtp (email: string): Promise<{ status: number; messege: string; }> {

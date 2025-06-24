@@ -3,12 +3,14 @@ import { UserService } from '../../services/user/userService'
 import { UserRepository } from '../../repositories/userrepository/userRepository'
 import { UserController } from '../../controllers/user/userController';
 import { ProfileRepository } from '../../repositories/userrepository/profileRepository';
+import { HotelProfileRepository } from '../../repositories/hotelRepository/hotelProfileRepository';
 
 const userRoute = Router()
 
 const userRepository = new UserRepository();
 const profileRepository = new ProfileRepository();
-const userService = new UserService(userRepository, profileRepository);
+const hotelProfileRepository = new HotelProfileRepository()
+const userService = new UserService(userRepository, profileRepository,hotelProfileRepository);
 const userController = new UserController(userService)
  
 

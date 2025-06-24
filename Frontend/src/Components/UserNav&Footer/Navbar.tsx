@@ -9,8 +9,8 @@ import { RootState } from "../../Redux/store";
 import { useDispatch } from "react-redux";
 import { logout } from "../../Redux/Slice/userSlice";
 import toast from "react-hot-toast";
-import { getUserDetails } from "../../Api/user/profileApi";
-
+import { getUserDetails, updateUser } from "../../Api/user/profileApi";
+import UserEditModal from "../User/Modals/UserEditModeal";
 
 // Custom Sheet Component Implementation
 const SheetContext = createContext<{
@@ -18,7 +18,7 @@ const SheetContext = createContext<{
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }>({
   open: false,
-  setOpen: () => { },
+  setOpen: () => {},
 });
 
 const Sheet = ({ children }: { children: React.ReactNode }) => {
@@ -41,21 +41,8 @@ const useSheet = () => {
 const SheetTrigger = ({ children }: { children: React.ReactNode }) => {
   const { setOpen } = useSheet();
 
-  // if (React.isValidElement(children)) {
-  //   return React.cloneElement(children, {
-  //     onClick: (e: React.MouseEvent) => {
-  //       children.props.onClick?.(e);
-  //       e.stopPropagation();
-  //       setOpen(true);
-  //     }
-  //   });
-  // }
-
   return (
-    <div onClick={(e) => {
-      e.stopPropagation();
-      setOpen(true);
-    }}>
+    <div onClick={() => setOpen(true)}>
       {children}
     </div>
   );
@@ -81,17 +68,17 @@ const SheetContent = ({
     bottom: { y: "100%" },
   };
 
-  // Prevent body scroll when sheet is open
   useEffect(() => {
     if (open) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = 'auto';
     }
-    return () => {
-      document.body.style.overflow = 'auto';
-    };
   }, [open]);
+
+  const handleClose = () => {
+    setOpen(false);
+  };
 
   return (
     <AnimatePresence>
@@ -102,7 +89,7 @@ const SheetContent = ({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={() => setOpen(false)}
+            onClick={handleClose}
           />
 
           <motion.div
@@ -125,10 +112,7 @@ const SheetContent = ({
             }}
           >
             <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setOpen(false);
-              }}
+              onClick={handleClose}
               className="absolute right-4 top-4 rounded-sm opacity-70 hover:opacity-100 focus:outline-none"
               aria-label="Close menu"
             >
@@ -142,103 +126,111 @@ const SheetContent = ({
   );
 };
 
-// Profile Menu Items
-interface ProfileMenuItem {
-  label: string;
-  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
-  path: string,
-  onClick?: () => void;
-}
-
-
 // Profile Sheet Component
 const ProfileSheet = () => {
-  const user = useSelector((state: RootState) => state.user)
-  // const token = useSelector((state: RootState) => state.user.token)
-  const dispatch = useDispatch()
-  const {setOpen} = useSheet()
-  const profileMenuItems: ProfileMenuItem[] = [
+  const user = useSelector((state: RootState) => state.user);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  
+  interface UserProfile {
+    name: string;
+    profilepic: string;
+    email: string;
+    phone: string;
+    address1: string;
+    address2: string;
+  }
+
+  const [userProfile, setUserProfile] = useState<UserProfile>({
+    name: '',
+    profilepic: "",
+    email: '',
+    phone: '',
+    address1: '',
+    address2: '',
+  });
+
+  const [editedProfile, setEditedProfile] = useState<UserProfile>({ ...userProfile });
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate('/');
+    toast.success('Logged out successfully');
+  };
+
+  const profileMenuItems = [
     {
       label: "My Profile",
       icon: UserCircleIcon,
       path: "/profile-details",
-      onClick: () => {
-         navigate('/profile-details')
-      }
+      onClick: () => navigate('/profile-details')
     },
     {
       label: "Edit Profile",
       icon: Cog6ToothIcon,
       path: '',
-      onClick: () => {
-        // Handle edit profile action
-        console.log("Open edit profile");
-      }
+      onClick: () => handleEdit()
     },
     {
       label: "Inbox",
       icon: InboxArrowDownIcon,
       path: '',
-      onClick: () => {
-        // Handle inbox action
-        console.log("Open inbox");
-      }
+      onClick: () => console.log("Open inbox")
     },
     {
       label: "Help",
       icon: LifebuoyIcon,
       path: '',
-      onClick: () => {
-        // Handle help action
-        console.log("Open help");
-      }
+      onClick: () => console.log("Open help")
     },
     {
       label: "Sign Out",
       icon: PowerIcon,
       path: '',
-      onClick: () => handleLogout()
+      onClick: handleLogout
     }
-
   ];
-  const navigate = useNavigate()
-  const handleLogout = () => {
-    dispatch(logout());
-    setOpen(false)
-    navigate('/');
-    toast.success('Logged out successfully');
-    
+
+  const handleEdit = () => {
+    setEditedProfile({ ...userProfile });
+    setIsEditModalOpen(true);
   };
-    interface UserProfile {
-  name: string;
-  profilepic: string;
-  email: string;
-  phone: string;
-  address1: string;
-  address2: string;
-}
-      const [userProfile, setUserProfile] = useState<UserProfile>({
-      name: '',
-      profilepic: "",
-      email: '',
-      phone: '',
-      address1: '',
-      address2: '',
-    });
-    let id = user._id 
-  const handleGetUser = async () => {
+
+  const handleEditUser = async (selectedFile?: File) => {
     try {
-      const response = await getUserDetails(id);
+      const response = await updateUser(user._id, editedProfile, selectedFile);
       if (response.data) {
         const updatedProfile = {
-          name: response.data.name || userProfile.name,
-          profilepic: response.data.profilepic || userProfile.profilepic,
-          email: response.data.email || userProfile.email,
-          phone: response.data.phone || userProfile.phone,
-          address1: response.data.address1 || userProfile.address1,
-          address2: response.data.address2 || userProfile.address2,
+          name: response.data.name || editedProfile.name,
+          profilepic: response.data.profilepic || editedProfile.profilepic,
+          email: response.data.email || editedProfile.email,
+          phone: response.data.phone || editedProfile.phone,
+          address1: response.data.address1 || editedProfile.address1,
+          address2: response.data.address2 || editedProfile.address2,
         };
         setUserProfile(updatedProfile);
+        setEditedProfile(updatedProfile);
+      }
+      toast.success('Profile updated successfully');
+      setIsEditModalOpen(false);
+    } catch (error: any) {
+      toast.error(error.message || error.error || 'Failed to update profile');
+    }
+  };
+
+  const handleGetUser = async () => {
+    try {
+      const response = await getUserDetails(user._id);
+      if (response.data) {
+        setUserProfile({
+          name: response.data.name || '',
+          profilepic: response.data.profilepic || "",
+          email: response.data.email || '',
+          phone: response.data.phone || '',
+          address1: response.data.address1 || '',
+          address2: response.data.address2 || '',
+        });
       }
     } catch (error: any) {
       toast.error(error.error);
@@ -246,32 +238,31 @@ const ProfileSheet = () => {
   };
 
   useEffect(() => {
-    if (id) {
+    if (user._id) {
       handleGetUser();
     }
-  }, [id]);
+  }, [user._id]);
 
   return (
     <Sheet>
       <SheetTrigger>
-    <motion.button 
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="flex items-center gap-2 rounded-full py-2 px-3 hover:bg-gray-100 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-offset-2"
-          >
-            <img
-              src={userProfile.profilepic ? userProfile.profilepic : "https://images.unsplash.com/photo-1633332755192-727a05c4013d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1480&q=80"}
-              alt="User Avatar"
-              className="w-8 h-8 rounded-full object-cover border-2 border-gray-300"
-            />
-            <span className="hidden sm:block text-sm font-medium text-gray-700">
-              Profile
-            </span>
-          </motion.button>
+        <motion.button 
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          className="flex items-center gap-2 rounded-full py-2 px-3 hover:bg-gray-100 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-offset-2"
+        >
+          <img
+            src={userProfile.profilepic || "https://images.unsplash.com/photo-1633332755192-727a05c4013d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1480&q=80"}
+            alt="User Avatar"
+            className="w-8 h-8 rounded-full object-cover border-2 border-gray-300"
+          />
+          <span className="hidden sm:block text-sm font-medium text-gray-700">
+            Profile
+          </span>
+        </motion.button>
       </SheetTrigger>
 
       <SheetContent className="bg-white p-4 w-72">
-        {/* Profile Header */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -283,7 +274,7 @@ const ProfileSheet = () => {
             size="lg"
             alt="User Avatar"
             className="border-2 border-gray-900 w-12 h-12 rounded-full object-cover"
-            src={userProfile.profilepic ? userProfile.profilepic : 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1480&q=80'}
+            src={userProfile.profilepic || 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1480&q=80'}
           />
           <div>
             <Typography variant="h6" className="font-semibold">
@@ -295,7 +286,6 @@ const ProfileSheet = () => {
           </div>
         </motion.div>
 
-        {/* Menu Section */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -325,80 +315,80 @@ const ProfileSheet = () => {
                   damping: 20
                 }}
               >
-                {onClick ? (
-                  <button
-                    onClick={onClick}
-                    className="w-full text-left"
-                  >
-                    <MenuItem className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors duration-200">
-                      <Icon className="h-5 w-5 text-gray-700" />
-                      <Typography as="span" variant="small" className="font-medium">
-                        {label}
-                      </Typography>
-                    </MenuItem>
-                  </button>
-                ) : (
-                  <Link to={path}>
-                    <MenuItem className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors duration-200">
-                      <Icon className="h-5 w-5 text-gray-700" />
-                      <Typography as="span" variant="small" className="font-medium">
-                        {label}
-                      </Typography>
-                    </MenuItem>
-                  </Link>
-                )}
+                <button
+                  onClick={onClick}
+                  className="w-full text-left"
+                >
+                  <MenuItem className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors duration-200">
+                    <Icon className="h-5 w-5 text-gray-700" />
+                    <Typography as="span" variant="small" className="font-medium">
+                      {label}
+                    </Typography>
+                  </MenuItem>
+                </button>
               </motion.li>
             ))}
           </ul>
         </motion.div>
       </SheetContent>
+      
+      <UserEditModal
+        isEditModalOpen={isEditModalOpen}
+        setIsEditModalOpen={setIsEditModalOpen}
+        userProfile={userProfile}
+        editedProfile={editedProfile}
+        setEditedProfile={setEditedProfile}
+        handleEditUser={handleEditUser}
+        setUserProfile={setUserProfile}
+      />
     </Sheet>
   );
 };
 
 // Main Navbar Component
 const Navbar = () => {
-
-  interface UserProfile {
-  name: string;
-  profilepic: string;
-  email: string;
-  phone: string;
-  address1: string;
-  address2: string;
-}
   const navigate = useNavigate();
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const { scrollY } = useScroll();
-    const [userProfile, setUserProfile] = useState<UserProfile>({
-      name: '',
-      profilepic: "",
-      email: '',
-      phone: '',
-      address1: '',
-      address2: '',
-    });
+  
+  interface UserProfile {
+    name: string;
+    profilepic: string;
+    email: string;
+    phone: string;
+    address1: string;
+    address2: string;
+  }
+
+  const [userProfile, setUserProfile] = useState<UserProfile>({
+    name: '',
+    profilepic: "",
+    email: '',
+    phone: '',
+    address1: '',
+    address2: '',
+  });
 
   useMotionValueEvent(scrollY, "change", (latest) => {
     setScrolled(latest > 10);
   });
-  const isLoggIn = useSelector((state: RootState) => state.user.isLoggedIn)
-  const user = useSelector((state : RootState) => state.user)
-  let id = user._id 
+
+  const isLoggedIn = useSelector((state: RootState) => state.user.isLoggedIn);
+  const user = useSelector((state: RootState) => state.user);
+
   const handleGetUser = async () => {
     try {
-      const response = await getUserDetails(id);
+      const response = await getUserDetails(user._id);
       if (response.data) {
-        const updatedProfile = {
-          name: response.data.name || userProfile.name,
-          profilepic: response.data.profilepic || userProfile.profilepic,
-          email: response.data.email || userProfile.email,
-          phone: response.data.phone || userProfile.phone,
-          address1: response.data.address1 || userProfile.address1,
-          address2: response.data.address2 || userProfile.address2,
-        };
-        setUserProfile(updatedProfile);
+        setUserProfile({
+          name: response.data.name || '',
+          profilepic: response.data.profilepic || "",
+          email: response.data.email || '',
+          phone: response.data.phone || '',
+          address1: response.data.address1 || '',
+          address2: response.data.address2 || '',
+        });
       }
     } catch (error: any) {
       toast.error(error.error);
@@ -406,15 +396,15 @@ const Navbar = () => {
   };
 
   useEffect(() => {
-    if (id) {
+    if (user._id) {
       handleGetUser();
     }
-  }, [id]);
- 
+  }, [user._id]);
+
   return (
     <>
       <motion.nav
-        initial={{ y: -100, opacity: 0 }} 
+        initial={{ y: -100, opacity: 0 }}
         animate={{
           y: 0,
           opacity: 1,
@@ -426,18 +416,14 @@ const Navbar = () => {
             delay: 0.6
           }
         }}
-        exit={{ y: -100, opacity: 0 }}  
-        className={`block w-full max-w-screen-xl px-5 py-2 mx-auto text-white bg-white shadow-md rounded-md lg:px-8 lg:py-3 mt-4  top-10 z-30 ${scrolled ? "shadow-lg" : "shadow-md"
-        }`}
+        exit={{ y: -100, opacity: 0 }}
+        className={`block w-full max-w-screen-xl px-5 py-2 mx-auto text-white bg-white shadow-md rounded-md lg:px-8 lg:py-3 mt-4 top-10 z-30 ${scrolled ? "shadow-lg" : "shadow-md"}`}
       >
         <div className="container flex flex-wrap items-center justify-between mx-auto text-slate-800">
-             
-              <button
-                className="lg:hidden  rounded-md hover:bg-gray-50"
-              >
-                <Menu className="h-5 w-5 text-gray-700" />
-              </button>
-            
+          <button className="lg:hidden rounded-md hover:bg-gray-50">
+            <Menu className="h-5 w-5 text-gray-700" />
+          </button>
+          
           <motion.a
             href="/"
             className="mr-4 block cursor-pointer py-1.5 text-base text-slate-800 font-semibold"
@@ -450,6 +436,7 @@ const Navbar = () => {
               alt="Logo"
             />
           </motion.a>
+          
           <div className="hidden lg:block">
             <ul className="flex flex-col gap-2 mt-2 mb-4 lg:mb-0 lg:mt-0 lg:flex-row lg:items-center lg:gap-6">
               {[
@@ -474,8 +461,10 @@ const Navbar = () => {
               ))}
             </ul>
           </div>
-          <div className="flex items-center gap-4"><span className="italic font-bold ">Hey.. {userProfile.name}</span>
-            {!isLoggIn && (
+          
+          <div className="flex items-center gap-4">
+            <span className="italic font-bold">Hey.. {userProfile.name}</span>
+            {!isLoggedIn && (
               <Button
                 onClick={() => navigate("/login")}
                 size="sm"
@@ -491,7 +480,6 @@ const Navbar = () => {
         </div>
       </motion.nav>
 
-      {/* Chat Bot - This should be outside the nav */}
       <motion.div
         initial={{ opacity: 0, y: 50 }}
         animate={{ opacity: 1, y: 0 }}
@@ -525,7 +513,6 @@ const Navbar = () => {
           </svg>
         </button>
 
-        {/* Chat Window */}
         <AnimatePresence>
           {isChatOpen && (
             <motion.div

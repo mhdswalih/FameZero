@@ -52,8 +52,6 @@ const ProfilePage = () => {
 
   // Fixed handleEditUser function in ProfilePage component
   const handleEditUser = async (selectedFile?: File) => {
-    console.log(editedProfile, selectedFile, 'this is edit profile and selected file');
-
     try {
       // Call updateUser with the correct parameters
       const response = await updateUser(id, editedProfile, selectedFile);
@@ -169,14 +167,14 @@ const ProfilePage = () => {
             >
               <div className="p-6 border-b border-gray-100">
                 <div className="flex items-center gap-4">
-                  <div className="relative">
+                 <div className="relative">
                     <img
                       src={userProfile.profilepic || "https://images.unsplash.com/photo-1633332755192-727a05c4013d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1480&q=80"}
                       alt="Profile"
-                      className="w-16 h-16 rounded-full object-cover border-2 border-gray-900 p-0.5"
+                      className="w-12 h-12 sm:w-16 sm:h-16 rounded-full object-cover border-2 border-gray-900 p-0.5"
                     />
                     <button className="absolute bottom-0 right-0 bg-orange-400 text-white p-1 rounded-full shadow-lg hover:bg-orange-500 transition-colors">
-                      <Camera className="h-3 w-3" />
+                      <Camera className="h-3 w-3 sm:h-4 sm:w-4" />
                     </button>
                   </div>
                   <div className="flex-1">
