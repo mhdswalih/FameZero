@@ -1,5 +1,5 @@
 import { useDispatch } from "react-redux";
-import { removeUser } from "../../Redux/Slice/userSlice";
+import { removeUser} from "../../Redux/Slice/userSlice";
 import toast from "react-hot-toast";
 import React, { useState, createContext, useContext, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -10,8 +10,7 @@ import { UserCircleIcon, Cog6ToothIcon, InboxArrowDownIcon, LifebuoyIcon, PowerI
 import { RootState } from "../../Redux/store";
 import { Avatar, MenuItem, Typography } from "@material-tailwind/react";
 import { Link } from "react-router-dom";
-import {  editHotelProfile, getHotels } from "../../Api/hotel/hotelProfileApi";
-import { addHotelProfile, removeHotelProfile } from "../../Redux/Slice/ProfileSlice/hotelProfileSlice";
+import { getUserDetails } from "../../Api/user/profileApi";
 
 // Simple Sheet Component
 const SheetContext = createContext<{
@@ -116,72 +115,66 @@ interface ProfileMenuItem {
 }
 
 // Profile Sheet Component
-const HotelProfileSheet = () => {
+export const UserProfileSheet = () => {
   const user = useSelector((state: RootState) => state.user);
-  const hotelprofile = useSelector((state:RootState)=> state.hotelProfile)
   const dispatch = useDispatch();
   const navigate = useNavigate();
   
   
-  interface HotelProfile {
+  interface UserProfile {
     name: string;
-    idProof:string;
     profilepic: string;
     phone: string;
-    location: string;
+    address: string;
     city: string;
   }
-  const [hotelProfile, setHotelProfile] = useState<HotelProfile>({
+  
+  const [userProfile, setUserProfile] = useState<UserProfile>({
     name: '',
-    idProof:'',
     profilepic: "",
     phone: '',
-    location: '',
+    address: '',
     city: '',
   });
-  const [editProfile,setEditProfile] = useState<HotelProfile>({...hotelProfile})
 
   const handleLogout = () => {
     dispatch(removeUser());
-    dispatch(removeHotelProfile())
     navigate('/hotel/landing-page');
     toast.success('Logged out successfully');
     
   
   };
   const id = user.id
-    const handleGetHotel = async () => {
+    const handleGetUser = async () => {
     try {
-      const response = await getHotels(id);
+      const response = await getUserDetails(id);
       if (response.data) {
         const updatedProfile = {
           name: response.data.name || '',
           profilepic: response.data.profilepic || '',
-          idProof:response.data.idProof || '',
-          phone: response.data.phone || '',
-          location: response.data.location || '',
+          phone: response.data.phone || '' ,
+          address: response.data.address ||'',
           city: response.data.city || '',
         };
-        setHotelProfile(updatedProfile);
-        dispatch(addHotelProfile(updatedProfile))
+        setUserProfile(updatedProfile);
       }
     } catch (error: any) {
       toast.error(error.error);
     }
   };
-
-
   useEffect(()=>{
-        handleGetHotel()
-  },[])
+    if(id){
+        handleGetUser
+    }
+  },[id])
 
   const profileMenuItems: ProfileMenuItem[] = [
     {
       label: "My Profile",
       icon: UserCircleIcon,
-      path: "/hotel-profile-page",
+      path: "/profile-details",
       onClick: () => {
-        navigate("/hotel/hotel-profile-page");
+        navigate("/profile-details");
       }
     },
     {
@@ -248,11 +241,11 @@ const HotelProfileSheet = () => {
               size="lg"
               alt="User Avatar"
               className="border-2 border-gray-900 w-12 h-12 rounded-full object-cover"
-              src={hotelProfile.profilepic ? hotelProfile.profilepic : 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1480&q=80'}
+              src={userProfile.profilepic ? userProfile.profilepic : 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1480&q=80'}
             />
             <div>
               <Typography variant="h6" className="font-semibold">
-                {hotelProfile.name}
+                {userProfile.name}
               </Typography>
               <Typography variant="small" color="gray">
                 {user.email}
@@ -321,4 +314,4 @@ const HotelProfileSheet = () => {
   );
 };
 
-export default HotelProfileSheet;
+export default UserProfileSheet;

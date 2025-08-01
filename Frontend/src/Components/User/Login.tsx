@@ -3,7 +3,9 @@ import { loginUser } from "../../Api/user/userApi";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { useDispatch } from "react-redux";
-import { login } from "../../Redux/Slice/userSlice";
+import { addUser} from "../../Redux/Slice/userSlice";
+import { addUserProfile } from "../../Redux/Slice/ProfileSlice/userProfileSlice";
+import { addHotelProfile } from "../../Redux/Slice/ProfileSlice/hotelProfileSlice";
 
 
 const LoginPage = () => {
@@ -16,18 +18,29 @@ const LoginPage = () => {
     e.preventDefault();
     try {
       const response = await loginUser(email, password)
-    
-      dispatch(login({
-        _id: response.user?.id || '',
-        name: response.user?.name || '',
+      dispatch(addUser({
+        id: response.user?.id || '',
         email: response.user?.email || '',
         role: response.user?.role || '',
         token: response?.accessToken || null
       }))
+      dispatch(addUserProfile({
+          profilepic:response.user?.profilepic || '',
+          phone:response.user?.phone || '',
+          address : response.user?.address || '',
+          city : response.user?.city || ''
+      }))
+      dispatch(addHotelProfile({
+         profilepic : response.user?.prifilepic || '',
+         idProof : response.user?.idProof || '',
+         phone: response.user?.phone || '',
+         location : response.user?.location || '',
+         city : response.user?.city || '',
+      }))
       toast.success(response.message)
       setTimeout(() => {
         if(response.user?.role === 'hotel'){
-          navigate('/hotel/hotel-landing-page')
+          navigate('/hotel/landing-page')
         }else if (response.user?.role === 'user'){
           navigate('/')
         }else{
@@ -36,10 +49,7 @@ const LoginPage = () => {
       }, 1000)
     } catch (error: any) {
       toast.error(error.error);
-
     }
-  
-
   };
 
   return (

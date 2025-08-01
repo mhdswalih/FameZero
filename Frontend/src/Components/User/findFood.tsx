@@ -58,7 +58,7 @@ function ServicesSection() {
           <h2 className="text-3xl font-bold mb-4 font-mono text-white">
             OUR SERVICE
           </h2>
-          <p className="text-gray-600">
+          <p className="text-white">
             We provide high-quality services to help your business grow. From
             web development to marketing strategies, we cover everything you
             need to succeed.

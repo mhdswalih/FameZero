@@ -6,10 +6,8 @@ export interface IUserProfile extends Document {
     userId: Schema.Types.ObjectId | IUser;
     name:string;
     email:string;
-    zipcode:string;
     profilepic: string;
-    address1: string;
-    address2: string;
+    address: string;
     city: string;
     phone: string;
 }
@@ -32,18 +30,9 @@ const userProfileSchema = new mongoose.Schema<IUserProfile>({
         type:String,
         trim:true
     },
-    zipcode:{
-        type:String,
-        trim:true
-    },
-    address1: {
+    address: {
         type: String,
         
-        trim: true
-    },
-    address2: {
-        type: String,
-     
         trim: true
     },
     city: {

@@ -1,27 +1,26 @@
 import { motion, AnimatePresence } from 'framer-motion';
 
 import {
-  User, Mail, Phone, MapPin, Save, X, Camera, Image,
+  User,  Phone, MapPin, Save, X, Camera, Image,
 } from 'lucide-react';
-import { useState } from 'react';
+import React, { useState } from 'react';
 
 
-interface UserProfile {
+interface userDetails {
   name: string;
   profilepic: string;
   phone: string;
-  email: string;
-  address1: string;
-  address2: string;
+  address: string;
+  city: string;
 }
 
 interface UserEditModalProps {
   isEditModalOpen: boolean;
   setIsEditModalOpen: (open: boolean) => void;
-  userProfile: UserProfile;
-  setUserProfile: (profile: UserProfile) => void;
-  editedProfile: UserProfile;
-  setEditedProfile: (profile: UserProfile) => void;
+  userProfile: userDetails;
+  setUserProfile: (profile: userDetails) => void;
+  editedProfile: userDetails;
+  setEditedProfile: (profile: userDetails) => void;
   handleEditUser: (selectedFile?: File) => void
 }
 
@@ -29,11 +28,11 @@ const UserEditModal = ({
   isEditModalOpen,
   setIsEditModalOpen,
   userProfile,
-  // setUserProfile,
   editedProfile,
   setEditedProfile,
   handleEditUser
 }: UserEditModalProps) => {
+
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -57,10 +56,7 @@ const UserEditModal = ({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-
       setSelectedFile(file);
-
-
       const reader = new FileReader();
       reader.onload = (event) => {
         const result = event.target?.result as string;
@@ -134,7 +130,7 @@ const UserEditModal = ({
                     <input
                       type="file"
                       accept="image/*"
-                      value={selectedFile?.name}
+                      // value={selectedFile?.name}
                       onChange={handleFileChange}
                       className="hidden"
                       disabled={isSubmitting}
@@ -179,7 +175,7 @@ const UserEditModal = ({
                     </div>
                   </motion.div>
 
-                  <motion.div
+                  {/* <motion.div
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.2 }}
@@ -198,7 +194,7 @@ const UserEditModal = ({
                         disabled={isSubmitting}
                       />
                     </div>
-                  </motion.div>
+                  </motion.div> */}
 
                   <motion.div
                     initial={{ opacity: 0, x: -20 }}
@@ -254,12 +250,12 @@ const UserEditModal = ({
                     <MapPin className="h-5 w-5 text-gray-700 flex-shrink-0" />
                     <div className="flex-1">
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Address Line 1
+                        Address 
                       </label>
                       <input
                         type="text"
-                        value={editedProfile.address1 || ''}
-                        onChange={(e) => handleInputChange('address1', e.target.value)}
+                        value={editedProfile.address || ''}
+                        onChange={(e) => handleInputChange('address', e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-400 focus:border-transparent transition-all"
                         disabled={isSubmitting}
                       />
@@ -275,12 +271,12 @@ const UserEditModal = ({
                     <MapPin className="h-5 w-5 text-gray-700 flex-shrink-0" />
                     <div className="flex-1">
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Address Line 2
+                        City
                       </label>
                       <input
                         type="text"
-                        value={editedProfile.address2 || ''}
-                        onChange={(e) => handleInputChange('address2', e.target.value)}
+                        value={editedProfile.city || ''}
+                        onChange={(e) => handleInputChange('city', e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-400 focus:border-transparent transition-all"
                         disabled={isSubmitting}
                       />

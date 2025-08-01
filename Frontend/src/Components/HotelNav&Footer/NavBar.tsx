@@ -93,7 +93,7 @@ const NavBar = () => {
               </button>
             
           <motion.a
-            href="/"
+            href="/hotel/landing-page"
             className="mr-4 block cursor-pointer py-1.5 text-base text-slate-800 font-semibold"
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
@@ -107,7 +107,7 @@ const NavBar = () => {
           <div className="hidden lg:block">
             <ul className="flex flex-col gap-2 mt-2 mb-4 lg:mb-0 lg:mt-0 lg:flex-row lg:items-center lg:gap-6">
               {[
-                { name: "Home", path: "/" },
+                { name: "Home", path: "/hotel/landing-page" },
                 { name: "Food", path: "/food-section" },
                 { name: "Blocks", path: "#" },
                 { name: "About", path: "/about-page" },

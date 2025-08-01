@@ -9,6 +9,7 @@ import ProfilePage from '../Components/User/ProfileDetailPage'
 import NewspaperPage from '../Components/User/AboutPage'
 import { ReactElement } from 'react'
 import Navbar from '../Components/UserNav&Footer/Navbar'
+import FoodSection from '../Components/User/FoodPage'
 
 const ProtectedRoute = ({ children }: { children:ReactElement }) => {
   const user = useSelector((state: RootState) => state.user);
@@ -17,9 +18,7 @@ const ProtectedRoute = ({ children }: { children:ReactElement }) => {
 };
 
 const PublicRoute = ({ children }: { children: ReactElement }) => {
-  const user = useSelector((state: RootState) => state.user);
-  console.log(user,'this is user from user side');
-  
+  const user = useSelector((state: RootState) => state.user);  
   const isAuthenticated = !!user.token;
   
   return !isAuthenticated ? children : <Navigate to='/' replace />;
@@ -41,13 +40,19 @@ const AuthRoutes = () => {
       } />
           <Route path='profile-details' element={
             // <ProtectedRoute>
-              <ProfilePage/>
+              <ProfilePage />
             // </ProtectedRoute>
               } />
         <Route path='about-page' element={
           <>
-          <Navbar />
+          {/* <Navbar /> */}
             <NewspaperPage/>
+          </>
+        }/>
+        <Route path='food-section' element={
+          <>
+            {/* <Navbar /> */}
+            <FoodSection />
           </>
         }/>
       <Route path='otp' element={

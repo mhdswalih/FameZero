@@ -11,6 +11,8 @@ export class ProfileRepository extends BaseRepository<IUserProfile> implements I
         return await this.model.create(data)
     };
     async findByUserId(userId: string): Promise<IUserProfile | null>  {
+     
+      
          const profile = await this.model.findOne({ userId })
                 .populate({
                     path: 'userId',
@@ -21,26 +23,40 @@ export class ProfileRepository extends BaseRepository<IUserProfile> implements I
         return profile
         
     };
-   async updateProfile(userId: string, profileData: Partial<IUserProfile>): Promise<IUserProfile | null> {
-       try { 
-           const existingProfile = await this.model.findOne({userId})
-            const updateProfile = {
-                name : profileData.name,
-                profilepic: profileData.profilepic,
-                city:profileData.city,
-                address1:profileData.address1,
-                address2:profileData.address2,
-                zipcode:profileData.zipcode,
-                phone:profileData.phone
+ async updateProfile(
+  userId: string, 
+  profileData: Partial<IUserProfile>
+): Promise<IUserProfile> {
+  try { 
+    // Validate userId exists
+    if (!userId) {
+      throw new Error('User ID is required');
+    }
 
-            }
-              return await this.model.findOneAndUpdate(
-            { userId }, 
-            { $set: updateProfile },
-            { new: true, upsert: true, runValidators: true }
-        );
-       } catch (error:any) {
-         throw new Error(error)
-       }
-   }
+    // Prepare update object
+    const updateProfile = {
+      name: profileData.name,
+      email: profileData.email,
+      profilepic: profileData.profilepic,
+      city: profileData.city,
+      address: profileData.address,
+      phone: profileData.phone
+    };
+
+    // Perform update and return the updated document
+    const updatedProfile = await this.model.updateOne(
+      { userId },
+      { $set: updateProfile },
+    );
+    // if (updatedProfile.modifiedCount <  0) {
+    //   throw new Error(`Profile Alredyy updated`);
+    // }
+
+    const newProfile = await this.model.findOne({userId})
+
+    return newProfile as IUserProfile;
+  } catch (error: any) {
+    throw new Error(`Failed to update profile: ${error.message}`);
+  }
+}
 }

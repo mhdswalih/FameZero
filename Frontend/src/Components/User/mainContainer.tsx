@@ -78,7 +78,7 @@ const CarouselWithText: React.FC = () => {
 
   return (
     <>
-    <div className="fixed top-10 w-full flex justify-center z-20 px-4">
+    <div className="fixed top-5 w-full flex justify-center z-20 px-4">
       <div className="w-full max-w-screen-xl">
         <Navbar />
       </div>

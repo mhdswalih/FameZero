@@ -1,6 +1,8 @@
 import { axiosInstance } from "../Instance/axiosInstance";
 
 export const getUserDetails = async (id: string) => {
+ 
+  
   try {
     const response = await axiosInstance.get(`/get-user-details/${id}`) 
     return response.data
@@ -9,13 +11,11 @@ export const getUserDetails = async (id: string) => {
   }
 }
 
-
 export const updateUser = async (
   id: string, 
   userProfile: any, 
   profileImage?: File 
-) => {
-  
+) => {  
   try {
     let response;
     
@@ -27,8 +27,7 @@ export const updateUser = async (
           formData.append(key, userProfile[key]);
         }
       });
-      
-    
+         
       formData.append("profilepic", profileImage);
       
       response = await axiosInstance.post(

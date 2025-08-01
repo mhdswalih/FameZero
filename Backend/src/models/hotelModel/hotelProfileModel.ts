@@ -7,10 +7,9 @@ export interface IHotelProfile extends Document {
     userId: Schema.Types.ObjectId | IUser;
     name:string;
     email:string;
-    zipcode:string;
+    idProof : string;
     profilepic: string;
-    address: string;
-    foodlicensepic:string;
+    location: string;
     city: string;
     phone: string;
 }
@@ -29,25 +28,19 @@ const hotelProfileSchema = new mongoose.Schema<IHotelProfile>({
         type: String,
        
     },
-    foodlicensepic: {
-        type:String,
-    },
     email:{
         type:String,
         trim:true
     },
-    zipcode:{
-        type:String,
-        trim:true
+    idProof:{
+        type : String,
     },
-    address: {
+    location: {
         type: String,
-        
         trim: true
     },
     city: {
         type: String,
-     
         trim: true
     },
     phone: {

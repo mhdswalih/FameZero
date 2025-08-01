@@ -1,9 +1,18 @@
-import React from 'react';
-import { motion } from 'framer-motion';
+import { motion, useScroll } from 'framer-motion';
+import { FooterWithLogo } from '../UserNav&Footer/Footer';
+import Navbar from '../UserNav&Footer/Navbar';
 
 function NewspaperPage() {
+    const { scrollYProgress } = useScroll();
   return (
-    <div className="font-serif bg-orange-350 text-white p-6 ms-2">
+    <>
+     <div className="fixed top-5 w-full flex justify-center z-20 px-4">
+      <div className="w-full max-w-screen-xl">
+        <Navbar />
+      </div>
+    </div>
+
+    <div className="font-serif bg-orange-350 text-white m-20 mt-40 ">
       {/* Header Section */}
       <motion.div
         initial={{ opacity: 0, x: -50 }}
@@ -158,7 +167,27 @@ function NewspaperPage() {
           </p>
         </motion.div>
       </div>
+      <motion.div>
+           <svg
+        width="50"
+        height="50"
+        viewBox="0 0 50 50"
+        className="fixed top-4 right-4 z-50"
+      >
+        <motion.circle
+          cx="25"
+          cy="25"
+          r="20"
+          stroke="white"
+          strokeWidth="4"
+          fill="transparent"
+          style={{ pathLength: scrollYProgress }}
+        />
+      </svg>
+      </motion.div>
     </div>
+      <FooterWithLogo />
+    </>
   );
 }
 

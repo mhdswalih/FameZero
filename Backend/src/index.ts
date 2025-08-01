@@ -8,6 +8,7 @@ import { connectDB } from './config/db';
 import { errorHandler } from './middleware/erorrMiddleware';
 import adminRoutes from './routers/adminRouters/adminRouters';
 import profileRouter from './routers/userRouters/ProfileRoutes/profileRoutes';
+import hotelProfileRoutes from './routers/hoteRoutes/hotelProfileRoutes';
 dotenv.config()
 
 const app = express()
@@ -29,6 +30,7 @@ app.use(express.static('public'))
 app.use('/api',userRouter)
 app.use('/api',profileRouter)
 app.use('/api/hotel',hotelRoutes)
+app.use('/api/hotel',hotelProfileRoutes)
 app.use('/api/admin',adminRoutes)
 app.use(errorHandler)
 

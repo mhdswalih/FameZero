@@ -72,15 +72,13 @@ export class UserService implements IUserService  {
         await deleteOtp(email)
         if(user.role === 'user'){  
             await this._profileUserRepository.create({
-                userId: user.id as any,
+                userId: user.id,
                 name : user.name,
                 email:user.email,
                 profilepic: '',
-                address1:'',
-                address2:'',
+                address:'',
                 city:'',
                 phone:'',
-                zipcode:'',
             })
         }
        
@@ -90,12 +88,10 @@ export class UserService implements IUserService  {
                 name : user.name,
                 email:user.email,
                 profilepic : '',
-                address:'',
-                foodlicensepic:'',
+                location:'',
+                idProof:'',
                 city:'',
                 phone:'',
-                zipcode:'',
-                
             })
         }    
 

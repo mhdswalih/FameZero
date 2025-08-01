@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { HotelverifyOtp, resendOtp } from '../../Api/HotelsApis';
+import { HotelverifyOtp, resendOtp } from '../../Api/hotel/HotelsApis';
 import { useLocation, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 

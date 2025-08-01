@@ -1,6 +1,6 @@
 import toast from "react-hot-toast";
-import { IHotelUserData } from "../Components/Hotel/HotelSignup";
-import { axiosInstance } from "./Instance/axiosInstance";
+import { IHotelUserData } from "../../Components/Hotel/HotelSignup";
+import { axiosInstance } from "../Instance/axiosInstance";
 
 
 export const registerHotel = async(userData:IHotelUserData)=>{
@@ -32,3 +32,4 @@ export const resendOtp = async(email: string) =>{
       throw error.response?.data || 'Failed to resend OTP '; 
   }
 }
+

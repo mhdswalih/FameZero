@@ -45,7 +45,7 @@ function AboutSection() {
     <h2 className="text-3xl font-bold mb-4 font-mono text-white">
       THE IMPORTANCE OF FOOD
     </h2>
-    <p className="text-gray-600">
+    <p className="text-white">
       Food is more than just sustenance; it’s a source of joy, culture, and connection. 
       Embracing food positivity means celebrating all foods without guilt and understanding 
       the role they play in nourishing our bodies and minds. Let’s promote a healthy 

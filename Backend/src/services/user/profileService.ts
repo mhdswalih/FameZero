@@ -1,6 +1,6 @@
 import { Messages } from "../../constants/Messeges";
 import { IProfileService } from "../../interfaces/user/profile/IProfileService";
-import { IUserProfile } from "../../models/usermodel/userProfileModel";
+import userProfile, { IUserProfile } from "../../models/usermodel/userProfileModel";
 import { ProfileRepository } from "../../repositories/userrepository/profileRepository";
 
 
@@ -10,10 +10,35 @@ export class ProfileService implements IProfileService {
     async getProfile(userId: string): Promise<IUserProfile | null> { 
         return await this._profileRepository.findByUserId(userId);
     }
-    async updateUserProfile(userId: string, profileData: Partial<IUserProfile>): Promise<IUserProfile | null> {        
-        if(!userId){
-            throw new Error(Messages.USER_ID_REQUIRED)
-        }
-        return await this._profileRepository.updateProfile(userId,profileData)
+  async updateUserProfile(
+  userId: string, 
+  profileData: Partial<IUserProfile>
+): Promise<IUserProfile> {    
+  try {
+    // Validate inputs
+    if (!userId) {
+      throw new Error(Messages.USER_ID_REQUIRED);
     }
+      
+    // Validate profile data structure
+    if (!profileData || typeof profileData !== 'object') {
+      throw new Error(Messages.INVALID_DATA_PROVIDED);
+    }
+    
+    // Update profile
+    const updatedProfile = await this._profileRepository.updateProfile(
+      userId, 
+      profileData
+    );
+       
+    if (!updatedProfile) {
+      throw new Error(Messages.USER_NOT_FOUND);
+    }
+
+    return updatedProfile;
+  } catch (error) {
+    console.error(`Failed to update profile for user ${userId}:`, error);
+    throw error; 
+  }
+}
 }

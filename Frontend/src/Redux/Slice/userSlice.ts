@@ -1,49 +1,46 @@
+// loginSlice.ts
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import Cookies from 'js-cookie';
+
 interface UserState {
-    _id: string;
-    name: string;
+    id: string;
     email: string;
-    role:string;
+    role: string;
     token: string | null;
-    isLoggedIn: boolean;
 }
 
 const initialState: UserState = {
-    _id: '',
-    name: '',
+    id: '',
     email: '',
-    role:'',
+    role: '',
     token: null,
-    isLoggedIn: false
 }
 
 const loginSlice = createSlice({
     name: 'login',
     initialState,
     reducers: {
-        login: (
-            state, action: PayloadAction<{ name: string; email: string; role:string, token: string, _id: string }>
+        addUser: (
+            state, 
+            action: PayloadAction<{ 
+                id: string
+                email: string; 
+                role: string; 
+                token: string; 
+            }>
         ) => {
-            state._id = action.payload._id
-            state.name = action.payload.name
-            state.email = action.payload.email
-            state.token = action.payload.token
-            state.role = action.payload.role
-            state.isLoggedIn = true
+            state.id = action.payload.id;
+            state.email = action.payload.email;
+            state.role = action.payload.role;
+            state.token = action.payload.token;
+            Cookies.set('token', action.payload.token, { expires: 7 });
         },
-        logout: (state) => {
-            state._id = ''
-            state.name = ''
-            state.email = ''
-            state.role = ''
-            state.token = null
-            state.isLoggedIn = false
-            Cookies.remove('token')
+        removeUser: () => {
+            Cookies.remove('token');
+            return initialState;
         }
     }
 })
 
-export const { login, logout } = loginSlice.actions
-
-export default loginSlice.reducer
+export const { addUser, removeUser } = loginSlice.actions;
+export default loginSlice.reducer;

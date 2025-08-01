@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { registerHotel } from '../../Api/HotelsApis';
+import { registerHotel } from '../../Api/hotel/HotelsApis';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 

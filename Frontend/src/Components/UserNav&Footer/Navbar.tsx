@@ -1,16 +1,18 @@
-import React, { useState, createContext, useContext, useEffect } from "react";
+import React, { useState, createContext, useContext, useEffect, use } from "react";
 import { motion, AnimatePresence, useScroll, useMotionValueEvent } from "framer-motion";
 import { useSelector } from "react-redux";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { MenuItem, Avatar, Button, Typography } from "@material-tailwind/react";
 import { UserCircleIcon, Cog6ToothIcon, InboxArrowDownIcon, LifebuoyIcon, PowerIcon } from "@heroicons/react/24/solid";
 import { RootState } from "../../Redux/store";
 import { useDispatch } from "react-redux";
-import { logout } from "../../Redux/Slice/userSlice";
+import { removeUser } from "../../Redux/Slice/userSlice";
 import toast from "react-hot-toast";
 import { getUserDetails, updateUser } from "../../Api/user/profileApi";
-import UserEditModal from "../User/Modals/UserEditModeal";
+import UserEditModal from "../User/Modals/User/UserEditModal";
+import { addUserProfile, removeUserProfile } from '../../Redux/Slice/ProfileSlice/userProfileSlice'
+
 
 // Custom Sheet Component Implementation
 const SheetContext = createContext<{
@@ -40,12 +42,7 @@ const useSheet = () => {
 
 const SheetTrigger = ({ children }: { children: React.ReactNode }) => {
   const { setOpen } = useSheet();
-
-  return (
-    <div onClick={() => setOpen(true)}>
-      {children}
-    </div>
-  );
+  return <div onClick={() => setOpen(true)}>{children}</div>;
 };
 
 interface SheetContentProps {
@@ -60,7 +57,6 @@ const SheetContent = ({
   className = "",
 }: SheetContentProps) => {
   const { open, setOpen } = useSheet();
-
   const variants = {
     left: { x: "-100%" },
     right: { x: "100%" },
@@ -69,16 +65,10 @@ const SheetContent = ({
   };
 
   useEffect(() => {
-    if (open) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'auto';
-    }
+    document.body.style.overflow = open ? 'hidden' : 'auto';
   }, [open]);
 
-  const handleClose = () => {
-    setOpen(false);
-  };
+  const handleClose = () => setOpen(false);
 
   return (
     <AnimatePresence>
@@ -91,7 +81,6 @@ const SheetContent = ({
             exit={{ opacity: 0 }}
             onClick={handleClose}
           />
-
           <motion.div
             className={`fixed z-50 bg-white p-6 shadow-lg ${className}`}
             style={{
@@ -128,120 +117,124 @@ const SheetContent = ({
 
 // Profile Sheet Component
 const ProfileSheet = () => {
+  const userprofile = useSelector((state: RootState) => state.userProfile);
   const user = useSelector((state: RootState) => state.user);
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  
-  interface UserProfile {
-    name: string;
-    profilepic: string;
-    email: string;
-    phone: string;
-    address1: string;
-    address2: string;
+  const { setOpen } = useSheet();
+
+    interface UserProfile  {
+     name:string;
+     profilepic:string;
+     phone:string;
+     address:string;
+     city:string
+
   }
-
-  const [userProfile, setUserProfile] = useState<UserProfile>({
-    name: '',
-    profilepic: "",
-    email: '',
-    phone: '',
-    address1: '',
-    address2: '',
-  });
-
+ 
+  const [userProfile,setUserProfile] = useState<UserProfile>({
+      name:'',
+      profilepic:'',
+      phone:'',
+      address:'',
+      city:'',
+    })
+  
   const [editedProfile, setEditedProfile] = useState<UserProfile>({ ...userProfile });
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   const handleLogout = () => {
-    dispatch(logout());
-    navigate('/');
+    dispatch(removeUser());
+    dispatch(removeUserProfile());
     toast.success('Logged out successfully');
+    setOpen(false);
+    navigate('/');
   };
 
   const profileMenuItems = [
     {
       label: "My Profile",
       icon: UserCircleIcon,
-      path: "/profile-details",
-      onClick: () => navigate('/profile-details')
+      onClick: () => {
+        navigate('/profile-details');
+        setOpen(false);
+      }
     },
     {
       label: "Edit Profile",
       icon: Cog6ToothIcon,
-      path: '',
-      onClick: () => handleEdit()
+      onClick: () => {
+        setEditedProfile({ ...userProfile });
+        setIsEditModalOpen(true);
+      }
     },
     {
       label: "Inbox",
       icon: InboxArrowDownIcon,
-      path: '',
       onClick: () => console.log("Open inbox")
     },
     {
       label: "Help",
       icon: LifebuoyIcon,
-      path: '',
       onClick: () => console.log("Open help")
     },
     {
       label: "Sign Out",
       icon: PowerIcon,
-      path: '',
       onClick: handleLogout
     }
   ];
 
-  const handleEdit = () => {
-    setEditedProfile({ ...userProfile });
-    setIsEditModalOpen(true);
-  };
+
+  const handleGetUser = async() =>{
+    try {
+      const response = await getUserDetails(user.id)
+      if(response.data){
+        const userDetails = {
+          name: response.data.name || '',
+          profilepic: response.data.profilepic || '',
+          phone: response.data.phone || '',
+          address: response.data.address || '',
+          city: response.data.city || '',
+        }
+        setUserProfile(userDetails)
+        dispatch(addUserProfile(userDetails))
+      }
+    } catch (error:any) {
+      toast.error(error.message || error.error)
+    }
+  }
+
 
   const handleEditUser = async (selectedFile?: File) => {
     try {
-      const response = await updateUser(user._id, editedProfile, selectedFile);
+      const response = await updateUser(user.id, editedProfile, selectedFile);
       if (response.data) {
         const updatedProfile = {
-          name: response.data.name || editedProfile.name,
+          name:response.data.name || editedProfile.name,
           profilepic: response.data.profilepic || editedProfile.profilepic,
-          email: response.data.email || editedProfile.email,
-          phone: response.data.phone || editedProfile.phone,
-          address1: response.data.address1 || editedProfile.address1,
-          address2: response.data.address2 || editedProfile.address2,
+          address: response.data.address || editedProfile.address,
+          city: response.data.city || editedProfile.city,
+          phone:response.data.phone || editedProfile.phone
         };
-        setUserProfile(updatedProfile);
-        setEditedProfile(updatedProfile);
+        dispatch(addUserProfile(updatedProfile))
+        setEditedProfile(updatedProfile)
+        setUserProfile(updatedProfile)
+        toast.success('Profile updated successfully');
+        setIsEditModalOpen(false);
       }
-      toast.success('Profile updated successfully');
-      setIsEditModalOpen(false);
     } catch (error: any) {
       toast.error(error.message || error.error || 'Failed to update profile');
     }
   };
 
-  const handleGetUser = async () => {
-    try {
-      const response = await getUserDetails(user._id);
-      if (response.data) {
-        setUserProfile({
-          name: response.data.name || '',
-          profilepic: response.data.profilepic || "",
-          email: response.data.email || '',
-          phone: response.data.phone || '',
-          address1: response.data.address1 || '',
-          address2: response.data.address2 || '',
-        });
-      }
-    } catch (error: any) {
-      toast.error(error.error);
+  useEffect(()=>{
+    if(user.id){
+      handleGetUser()
     }
-  };
+  },[user.id])
 
-  useEffect(() => {
-    if (user._id) {
-      handleGetUser();
-    }
-  }, [user._id]);
+
 
   return (
     <Sheet>
@@ -252,7 +245,7 @@ const ProfileSheet = () => {
           className="flex items-center gap-2 rounded-full py-2 px-3 hover:bg-gray-100 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-offset-2"
         >
           <img
-            src={userProfile.profilepic || "https://images.unsplash.com/photo-1633332755192-727a05c4013d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1480&q=80"}
+            src={userprofile.profilepic || "https://images.unsplash.com/photo-1633332755192-727a05c4013d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1480&q=80"}
             alt="User Avatar"
             className="w-8 h-8 rounded-full object-cover border-2 border-gray-300"
           />
@@ -274,14 +267,14 @@ const ProfileSheet = () => {
             size="lg"
             alt="User Avatar"
             className="border-2 border-gray-900 w-12 h-12 rounded-full object-cover"
-            src={userProfile.profilepic || 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1480&q=80'}
+            src={userprofile.profilepic || 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1480&q=80'}
           />
           <div>
             <Typography variant="h6" className="font-semibold">
-              {userProfile.name}
+              {userprofile?.name || "No Name Available"}
             </Typography>
             <Typography variant="small" color="gray">
-              {userProfile.email}
+              {user?.email || "No Email Provided"}
             </Typography>
           </div>
         </motion.div>
@@ -295,7 +288,6 @@ const ProfileSheet = () => {
           <Typography variant="small" className="font-semibold text-gray-700 px-2 mb-2">
             Profile Menu
           </Typography>
-
           <motion.div
             initial={{ scaleX: 0 }}
             animate={{ scaleX: 1 }}
@@ -303,7 +295,7 @@ const ProfileSheet = () => {
             className="h-px bg-orange-400 mb-3"
           />
           <ul className="space-y-1">
-            {profileMenuItems.map(({ label, icon: Icon, path, onClick }, index) => (
+            {profileMenuItems.map(({ label, icon: Icon, onClick }, index) => (
               <motion.li
                 key={label}
                 initial={{ opacity: 0, x: -10 }}
@@ -315,17 +307,15 @@ const ProfileSheet = () => {
                   damping: 20
                 }}
               >
-                <button
+                <MenuItem
                   onClick={onClick}
-                  className="w-full text-left"
+                  className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors duration-200 w-full text-left"
                 >
-                  <MenuItem className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors duration-200">
-                    <Icon className="h-5 w-5 text-gray-700" />
-                    <Typography as="span" variant="small" className="font-medium">
-                      {label}
-                    </Typography>
-                  </MenuItem>
-                </button>
+                  <Icon className="h-5 w-5 text-gray-700" />
+                  <Typography as="span" variant="small" className="font-medium">
+                    {label}
+                  </Typography>
+                </MenuItem>
               </motion.li>
             ))}
           </ul>
@@ -336,10 +326,10 @@ const ProfileSheet = () => {
         isEditModalOpen={isEditModalOpen}
         setIsEditModalOpen={setIsEditModalOpen}
         userProfile={userProfile}
+        setUserProfile={setUserProfile}
         editedProfile={editedProfile}
         setEditedProfile={setEditedProfile}
         handleEditUser={handleEditUser}
-        setUserProfile={setUserProfile}
       />
     </Sheet>
   );
@@ -351,55 +341,48 @@ const Navbar = () => {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const { scrollY } = useScroll();
-  
-  interface UserProfile {
-    name: string;
-    profilepic: string;
-    email: string;
-    phone: string;
-    address1: string;
-    address2: string;
-  }
+  const dispatch = useDispatch();
 
-  const [userProfile, setUserProfile] = useState<UserProfile>({
-    name: '',
-    profilepic: "",
-    email: '',
-    phone: '',
-    address1: '',
-    address2: '',
-  });
+  
+  
+  const userData = useSelector((state: RootState) => state.user);
+  const user = useSelector((state: RootState) => state.userProfile);
 
   useMotionValueEvent(scrollY, "change", (latest) => {
     setScrolled(latest > 10);
   });
 
-  const isLoggedIn = useSelector((state: RootState) => state.user.isLoggedIn);
-  const user = useSelector((state: RootState) => state.user);
-
   const handleGetUser = async () => {
     try {
-      const response = await getUserDetails(user._id);
+    console.log(user,'this is user id');
+    
+      const response = await getUserDetails(userData.id);
       if (response.data) {
-        setUserProfile({
+           const userData = {
+          _id: response.data._id || '',
+          userId:response.data.userId || '',
           name: response.data.name || '',
           profilepic: response.data.profilepic || "",
           email: response.data.email || '',
           phone: response.data.phone || '',
+          role:response.data.role || '',
+          token:response.data.token || '',
           address1: response.data.address1 || '',
           address2: response.data.address2 || '',
-        });
+        }
+        dispatch(addUserProfile(userData))
       }
     } catch (error: any) {
-      toast.error(error.error);
+     
+      toast.error(error.message || 'Failed to load profile');
     }
   };
-
+  
   useEffect(() => {
-    if (user._id) {
+    if (user) {
       handleGetUser();
     }
-  }, [user._id]);
+  }, [user]);
 
   return (
     <>
@@ -442,7 +425,6 @@ const Navbar = () => {
               {[
                 { name: "Home", path: "/" },
                 { name: "Food", path: "/food-section" },
-                { name: "Blocks", path: "#" },
                 { name: "About", path: "/about-page" },
               ].map((item, index) => (
                 <motion.li
@@ -463,8 +445,10 @@ const Navbar = () => {
           </div>
           
           <div className="flex items-center gap-4">
-            <span className="italic font-bold">Hey.. {userProfile.name}</span>
-            {!isLoggedIn && (
+            { user && user.name && (
+              <span className="italic font-bold">Hey.. {user.name}</span>
+            )}
+            {!user.name && (
               <Button
                 onClick={() => navigate("/login")}
                 size="sm"

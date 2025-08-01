@@ -40,6 +40,7 @@ export class UserController implements IUserController {
         try {
             const {email,password} = req.body;
             const response = await this._userService.loginUser(email,password)
+            console.log(response, 'idddd')
               res.cookie("refreshToken", response.refreshToken, {
                 httpOnly: true,
                 sameSite: "none",
@@ -58,8 +59,6 @@ export class UserController implements IUserController {
     async getUserDetails(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
             const {id} = req.params
-            console.log(id,'this is id from fontend');
-
             const profile = await this._userService.getUserDetails(id)
             if(!profile){
                 res.status(HttpStatus.BAD_REQUEST).json({message:Messages.USER_NOT_FOUND})
@@ -102,20 +101,24 @@ export class UserController implements IUserController {
         }
     }
 
-    async updateUser(req: Request, res: Response ,next:NextFunction): Promise<void> {
-        try {
-            const {id} = req.params;
-            const {userProfile} = req.body
-            console.log(userProfile,'this is from contrrollerererere');
+    // async updateUser(req: Request, res: Response ,next:NextFunction): Promise<void> {
+    //     try {
+    //         const {id} = req.params;
+    //         console.log(id,'this is id from con');
             
-             const profile = await this._userService.updateUser(id,userProfile)
-             res.status(HttpStatus.OK).json({data:profile})
-        } catch (error) {
-            res.status(HttpStatus.BAD_REQUEST).json({
-                message: error instanceof Error ? error.message : Messages.UNKNOWN_ERROR,
-            });
-        }
-    }
+    //         const {userProfile} = req.body
+    //         console.log(userProfile,'this is from contrrollerererere');
+            
+    //          const profile = await this._userService.updateUser(id,userProfile)
+    //          console.log(profile);
+             
+    //          res.status(HttpStatus.OK).json({data:profile})
+    //     } catch (error) {
+    //         res.status(HttpStatus.BAD_REQUEST).json({
+    //             message: error instanceof Error ? error.message : Messages.UNKNOWN_ERROR,
+    //         });
+    //     }
+    // }
 
     async deleteUser(req: Request, res: Response): Promise<void> {
         try {
