@@ -13,15 +13,14 @@ const hotelProfileService = new HotelProfileService(hotelProfileRepository)
 const hotelProfileController = new HotelProfileController(hotelProfileService)
 
 hotelProfileRoutes.get('/get-hotel-profile/:id',hotelProfileController.getHotelProfile.bind(hotelProfileController))
-// Change this in your routes file
-hotelProfileRoutes.post(  // Changed from .post to .put
+hotelProfileRoutes.post( 
   '/update-hotelprofile/:id',
   upload.fields([
     { name: 'profilepic', maxCount: 1 },
     { name: 'idProof', maxCount: 1 }
   ]),
-  hotelProfileController.updateHotelProfile.bind(hotelProfileController)
-);
+  hotelProfileController.updateHotelProfile.bind(hotelProfileController));
+hotelProfileRoutes.post('/rerequst-profile/:id',hotelProfileController.reRequstProfile.bind(hotelProfileController))
 
 
 

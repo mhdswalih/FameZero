@@ -8,7 +8,7 @@ import { addUserProfile, removeUserProfile } from '../../Redux/Slice/ProfileSlic
 import { removeUser } from '../../Redux/Slice/userSlice';
 import toast from 'react-hot-toast';
 import UserEditModal from './Modals/User/UserEditModal';
-import { getUserDetails, updateUser } from '../../Api/user/profileApi';
+import { getUserDetails, updateUser } from '../../Api/userApiCalls/profileApi';
 
 
 interface userDetails {

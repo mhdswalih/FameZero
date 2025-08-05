@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { IAdminController } from "../../interfaces/admin/IAdminController";
 import { IAdminService } from "../../interfaces/admin/IAdminService";
 import { HttpStatus } from "../../constants/HttpStatus";
+import { IUser, User } from "../../models/usermodel/userModel";
 
 
 
@@ -9,7 +10,7 @@ export class adminController implements IAdminController {
     constructor(private _AdminService:IAdminService){}
    async login(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
-            const {email,password} = req.body;
+            const {email,password} = req.body;  
             const response = await this._AdminService.loginAdmin(email,password)
             res.cookie('refreshToken',response.refreshToken,{
                 httpOnly:true,
@@ -27,12 +28,37 @@ export class adminController implements IAdminController {
     }
     async getAllUsers(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
-            const users = await this._AdminService.getAllUsers()
-            console.log(users,'this is user for admin side');
-            
+            const users = await this._AdminService.getAllUsers()    
             res.status(HttpStatus.OK).json({success:true,data:users})
         } catch (error) {
             next(error)
         }
     }
+  async getAllHotels(req: Request, res: Response, next: NextFunction): Promise<void> {
+        try {
+            const hotels = await this._AdminService.getAllHotels() 
+            res.status(HttpStatus.OK).json({success:true,data:hotels})
+        } catch (error) {
+                next(error)
+        }
+    }
+    async acceptRequst(req: Request, res: Response, next: NextFunction): Promise<void> {
+        try {
+            const {id} = req.params
+            const status = await this._AdminService.acceptRequst(id)
+            res.status(HttpStatus.OK).json({success:true,data:status})
+        } catch (error) {
+         next(error)   
+        }
+    }
+    async rejectRequst(req: Request, res: Response, next: NextFunction): Promise<void> {
+        try {
+            const {id} = req.params
+            const status = await this._AdminService.rejectRequst(id)
+            res.status(HttpStatus.OK).json({success:true,data:status})
+        } catch (error) {
+            
+        }
+    }
+    
 }

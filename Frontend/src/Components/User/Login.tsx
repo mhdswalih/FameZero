@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { loginUser } from "../../Api/user/userApi";
+import { loginUser } from "../../Api/userApiCalls/userApi";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { useDispatch } from "react-redux";
@@ -32,6 +32,8 @@ const LoginPage = () => {
       }))
       dispatch(addHotelProfile({
          profilepic : response.user?.prifilepic || '',
+         role:response.user?.role || '',
+         status:response.user?.status || '',
          idProof : response.user?.idProof || '',
          phone: response.user?.phone || '',
          location : response.user?.location || '',

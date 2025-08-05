@@ -7,16 +7,27 @@ import {
 import { FaHotel, FaUserCircle } from 'react-icons/fa';
 import { useNavigate, Routes, Route } from 'react-router-dom';
 import UserTable from '../tables/Users';
+import { useDispatch } from 'react-redux';
+import { Logout } from '../../../Redux/Slice/adminSlice';
+import toast from 'react-hot-toast';
 
 const CombinedLayout: React.FC<React.PropsWithChildren<{}>> = ({ children }) => {
   const [activeItem, setActiveItem] = useState('');
   const [collapsed, setCollapsed] = useState(false);
   const navigate = useNavigate();
+  const dispatch = useDispatch()
 
   const handleItemClick = (itemName: string, path: string = '/admin/dashboard') => {
     setActiveItem(itemName);
     navigate(path);
   };
+
+  const handleLogout = async()=>{
+    dispatch(Logout())
+    navigate('/admin/login')
+
+    toast.success('logout successfully...')
+  }
 
   return (
     <div className="flex h-screen bg-black">
@@ -84,7 +95,7 @@ const CombinedLayout: React.FC<React.PropsWithChildren<{}>> = ({ children }) => 
           <SidebarItem
             icon={<FiLogOut size={20} className="text-white" />}
             text="Logout"
-            onClick={() => handleItemClick('Logout', '/admin-login')}
+            onClick={handleLogout}
             collapsed={collapsed}
           />
         </div>

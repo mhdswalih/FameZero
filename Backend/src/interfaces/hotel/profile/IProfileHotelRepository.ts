@@ -5,6 +5,7 @@ export interface IProfileHotelRepositer extends IBaseRepository<IHotelProfile> {
      create(date:Partial<IHotelProfile>):Promise<IHotelProfile>;
      findByHotelId(userId:string):Promise<IHotelProfile | null> 
      updateHotelProfile(userId:string,profileData:Partial<IHotelProfile>):Promise<IHotelProfile | null>;
+     reRequstHotelProfile(id:string):Promise<IHotelProfile | null>;
   
 }
 

@@ -21,4 +21,8 @@ export class HotelProfileRepository extends BaseRepository<IHotelProfile> implem
             { new: true, upsert: true, runValidators: true }
         );
     }
+    async reRequstHotelProfile(id: string): Promise<IHotelProfile | null> {
+         const cleanedId = id.replace(/^:/, '');
+        return await this.model.findByIdAndUpdate(cleanedId,{status:'Pending'},{new:true})
+    }
 }

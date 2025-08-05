@@ -10,7 +10,7 @@ import { UserCircleIcon, Cog6ToothIcon, InboxArrowDownIcon, LifebuoyIcon, PowerI
 import { RootState } from "../../Redux/store";
 import { Avatar, MenuItem, Typography } from "@material-tailwind/react";
 import { Link } from "react-router-dom";
-import { getUserDetails } from "../../Api/user/profileApi";
+import { getUserDetails } from "../../Api/userApiCalls/profileApi";
 
 // Simple Sheet Component
 const SheetContext = createContext<{

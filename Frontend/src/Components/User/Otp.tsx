@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { resendOtp, verifyOtpAndCreateUser } from '../../Api/user/userApi';
+import { resendOtp, verifyOtpAndCreateUser } from '../../Api/userApiCalls/userApi';
 import { useLocation, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 

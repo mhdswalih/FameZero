@@ -25,6 +25,8 @@ export class HotelProfileService implements IProfileHotelService {
         throw error
        }
     }
-    
+    async reqRequstProfile(id: string): Promise<IHotelProfile | null> {
+      return await this._hotelProfileRepository.reRequstHotelProfile(id)
+    }
     
 }

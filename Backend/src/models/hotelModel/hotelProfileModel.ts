@@ -8,6 +8,7 @@ export interface IHotelProfile extends Document {
     name:string;
     email:string;
     idProof : string;
+    status:string;
     profilepic: string;
     location: string;
     city: string;
@@ -38,6 +39,11 @@ const hotelProfileSchema = new mongoose.Schema<IHotelProfile>({
     location: {
         type: String,
         trim: true
+    },
+    status: {
+        type: String,
+        enum: ['Pending', 'Approved', 'Rejected'],
+        default:'Pending'
     },
     city: {
         type: String,

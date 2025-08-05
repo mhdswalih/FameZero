@@ -63,3 +63,11 @@ export const editHotelProfile = async (
     throw error.response?.data || { error: error.message || 'Failed to update hotel profile' };
   }
 };
+export const reRequstOption = async (id:string)=>{
+  try {
+     const response = await axiosInstance.post(`/hotel/rerequst-profile/:${id}`)
+     return response.data
+  } catch (error:any) {
+       throw error.response?.data || { error: error.message || 'Failed to ReRequst hotel profile' };
+  }
+}

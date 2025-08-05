@@ -7,21 +7,20 @@ import { RootState } from '../../Redux/store'
 import { useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import { useEffect } from 'react'
-// import ProfileSheet from '../ui/sheet'
+
 
 const Landing = () => {
     const navigate = useNavigate()
     const user = useSelector((state:RootState)=> state.user)
     useEffect(()=>{
-        if(user.role === 'hotel'){
-            navigate('/hotel/landing-page')
-        }else if(user.role === 'user'){
+        if(user.role === 'user'){
             navigate('/')
+        }else{
+            navigate('/hotel/landing-page')
         }
     },[user])
     return (
         <div>
-            {/* <Navbar  /> */}
             <CarouselWithText />
             <AboutSection />
             <ServicesSection />

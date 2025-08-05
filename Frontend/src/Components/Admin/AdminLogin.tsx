@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
-import { loginAdmin } from '../../Api/adminApi';
+import { loginAdmin } from '../../Api/adminApiCalls/adminApi';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { adLogin } from '../../Redux/Slice/adminSlice';
+import { Login } from '../../Redux/Slice/adminSlice';
 import toast from 'react-hot-toast';
 
 export default function AdminLoginPage() {
@@ -15,7 +15,7 @@ export default function AdminLoginPage() {
   const handleLogin = async() => {
      try {
       const response = await loginAdmin(email,password)
-       dispatch(adLogin({
+       dispatch(Login({
         _id:response.admin?.id || '',
         email:response.admin?.email|| '',
         token:response?.accessToken || null 
@@ -34,7 +34,7 @@ export default function AdminLoginPage() {
       {/* Header */}
       <div className="px-6 py-6">
         <div className=" mx-auto">
-          <h1 className="text-white text-2xl font-bold">FameZero</h1>
+          <h1 className="text-white text-2xl font-bold">FlameZero</h1>
         </div>
       </div>
 

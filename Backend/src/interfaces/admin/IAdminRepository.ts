@@ -4,5 +4,5 @@ import { IBaseRepository } from "../baserepo/IbaseRepo";
 
 
 export interface IAdminRepository extends IBaseRepository<IAdmin> {
-    getAllUsers():Promise<IAdmin[]>;
+  
 }

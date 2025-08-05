@@ -18,14 +18,14 @@ const adminLoginSlice = createSlice({
     name:'adminLogin',
     initialState,
     reducers:{
-        adLogin:(
+        Login:(
             state,action:PayloadAction<{email:string,token:string,_id:string}>
         ) => {
             state._id = action.payload._id
             state.email = action.payload.email
             state.token = action.payload.token
         },
-        adLogout:(state) => {
+        Logout:(state) => {
             state._id = ''
             state.email = ''
             state.token = null
@@ -34,6 +34,6 @@ const adminLoginSlice = createSlice({
     }
 })
 
-export const {adLogin,adLogout} = adminLoginSlice.actions
+export const {Login,Logout} = adminLoginSlice.actions
 
 export default adminLoginSlice.reducer

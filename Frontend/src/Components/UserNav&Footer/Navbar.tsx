@@ -9,7 +9,7 @@ import { RootState } from "../../Redux/store";
 import { useDispatch } from "react-redux";
 import { removeUser } from "../../Redux/Slice/userSlice";
 import toast from "react-hot-toast";
-import { getUserDetails, updateUser } from "../../Api/user/profileApi";
+import { getUserDetails, updateUser } from "../../Api/userApiCalls/profileApi";
 import UserEditModal from "../User/Modals/User/UserEditModal";
 import { addUserProfile, removeUserProfile } from '../../Redux/Slice/ProfileSlice/userProfileSlice'
 

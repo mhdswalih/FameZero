@@ -1,7 +1,8 @@
-import { IUser, User } from "../../models/usermodel/userModel";
+import { IUser,User} from "../../models/usermodel/userModel";
 import { BaseRepository } from "./baseRepository";
 import { IUserRepository } from "../../interfaces/user/IUserRepository";
 import userProfile, { IUserProfile } from "../../models/usermodel/userProfileModel";
+
 
 export class UserRepository extends BaseRepository<IUser> implements IUserRepository {
    constructor() {
@@ -12,12 +13,10 @@ export class UserRepository extends BaseRepository<IUser> implements IUserReposi
    }
 
    async getAllUsers(): Promise<IUser[]> {
-      return await this.findAll();
+      return  await User.find({role:'user'})
+     
    }
-
-      async updateUser(id: string, userData: Partial<IUserProfile>): Promise<void> {
-      // console.log(userData, 'this is user data from repository');
-      
+      async updateUser(id: string, userData: Partial<IUserProfile>): Promise<void> {      
       const update = await userProfile.updateOne(
          {userId: id},
          {$set: userData}

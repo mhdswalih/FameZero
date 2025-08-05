@@ -15,17 +15,17 @@ import {
   REGISTER,
 } from "redux-persist";
 
-// Separate persist configurations for each reducer
+
 const userPersistConfig = {
   key: "user",
   storage,
-  whitelist: ['id', 'email', 'isAuthenticated'], 
+  whitelist: ['id', 'email'], 
 };
 
 const adminPersistConfig = {
   key: "admin", 
   storage,
-  whitelist: ['id', 'email', 'isAuthenticated'], 
+  whitelist: ['id', 'email'], 
 };
 
 const userProfilePersistConfig = {
@@ -36,7 +36,7 @@ const userProfilePersistConfig = {
 const hotelProfilePersistConfig = {
   key : "hotelProfile",
   storage,
-  whitelist : ['name','profilepic','phone','locaton','city','idProof']
+  whitelist : ['_id','name','profilepic','phone','locaton','city','idProof','status']
 }
 
 // Persisted reducers with separate configs

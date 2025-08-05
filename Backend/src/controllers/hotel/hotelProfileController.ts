@@ -23,10 +23,7 @@ async updateHotelProfile(req: Request, res: Response, next: NextFunction): Promi
       [fieldname: string]: Express.Multer.File[];
     };
     const profilepicPath = files?.profilepic?.[0]?.path;
-    const idProofPath = files?.idProof?.[0]?.path;
-     console.log(id,'...................from hotel prfile side');
-     console.log(typeof id,'...................from hotel prfile side');
-     
+    const idProofPath = files?.idProof?.[0]?.path;     
     const hotelData = {
       ...req.body,
       ...(profilepicPath && { profilepic: profilepicPath }),
@@ -39,6 +36,15 @@ async updateHotelProfile(req: Request, res: Response, next: NextFunction): Promi
   } catch (error) {
     next(error);
   }
+}
+async reRequstProfile(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const {id} = req.params
+      const status = await this._hotelProfileService.reqRequstProfile(id)
+      res.status(HttpStatus.OK).json({success:true,data:status})
+    } catch (error) {
+      next(error)
+    }
 }
 
 }

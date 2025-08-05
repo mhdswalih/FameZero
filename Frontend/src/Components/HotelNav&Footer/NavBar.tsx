@@ -3,72 +3,30 @@ import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { RootState } from "../../Redux/store";
-import { getUserDetails } from "../../Api/user/profileApi";
+import { getUserDetails } from "../../Api/userApiCalls/profileApi";
 import toast from "react-hot-toast";
-import  {motion } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { Menu } from "lucide-react";
 import { Button } from "@material-tailwind/react";
 import HotelProfileSheet from "./SideSheet";
 
 
 const NavBar = () => {
-
-  interface UserProfile {
-  name: string;
-  profilepic: string;
-  email: string;
-  phone: string;
-  address1: string;
-  address2: string;
-}
   const navigate = useNavigate();
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const { scrollY } = useScroll();
-    const [userProfile, setUserProfile] = useState<UserProfile>({
-      name: '',
-      profilepic: "",
-      email: '',
-      phone: '',
-      address1: '',
-      address2: '',
-    });
 
   useMotionValueEvent(scrollY, "change", (latest) => {
     setScrolled(latest > 10);
   });
-  const isLoggIn = useSelector((state: RootState) => state.user.isLoggedIn)
-  const user = useSelector((state : RootState) => state.user)
-  let id = user._id 
-  const handleGetUser = async () => {
-    try {
-      const response = await getUserDetails(id);
-      if (response.data) {
-        const updatedProfile = {
-          name: response.data.name || userProfile.name,
-          profilepic: response.data.profilepic || userProfile.profilepic,
-          email: response.data.email || userProfile.email,
-          phone: response.data.phone || userProfile.phone,
-          address1: response.data.address1 || userProfile.address1,
-          address2: response.data.address2 || userProfile.address2,
-        };
-        setUserProfile(updatedProfile);
-      }
-    } catch (error: any) {
-      toast.error(error.error);
-    }
-  };
+  const isLoggIn = useSelector((state: RootState) => state.user.id)
+  const hotelProfile = useSelector((state: RootState) => state.hotelProfile)
 
-  useEffect(() => {
-    if (id) {
-      handleGetUser();
-    }
-  }, [id]);
- 
   return (
     <>
       <motion.nav
-        initial={{ y: -100, opacity: 0 }} 
+        initial={{ y: -100, opacity: 0 }}
         animate={{
           y: 0,
           opacity: 1,
@@ -80,18 +38,18 @@ const NavBar = () => {
             delay: 0.6
           }
         }}
-        exit={{ y: -100, opacity: 0 }}  
+        exit={{ y: -100, opacity: 0 }}
         className={`block w-full max-w-screen-xl px-5 py-2 mx-auto text-white bg-white shadow-md rounded-md lg:px-8 lg:py-3 mt-4  top-10 z-30 ${scrolled ? "shadow-lg" : "shadow-md"
-        }`}
+          }`}
       >
         <div className="container flex flex-wrap items-center justify-between mx-auto text-slate-800">
-             
-              <button
-                className="lg:hidden  rounded-md hover:bg-gray-50"
-              >
-                <Menu className="h-5 w-5 text-gray-700" />
-              </button>
-            
+
+          <button
+            className="lg:hidden  rounded-md hover:bg-gray-50"
+          >
+            <Menu className="h-5 w-5 text-gray-700" />
+          </button>
+
           <motion.a
             href="/hotel/landing-page"
             className="mr-4 block cursor-pointer py-1.5 text-base text-slate-800 font-semibold"
@@ -128,8 +86,11 @@ const NavBar = () => {
               ))}
             </ul>
           </div>
-          <div className="flex items-center gap-4"><span className="italic font-bold ">Hey.. {userProfile.name}</span>
-            {!isLoggIn && (
+          <div className="flex items-center gap-4">
+            {hotelProfile && hotelProfile.name && (
+              <span className="italic font-bold">Hey.. {hotelProfile.name}</span>
+            )}
+            {!hotelProfile.name && (
               <Button
                 onClick={() => navigate("/login")}
                 size="sm"
@@ -140,9 +101,9 @@ const NavBar = () => {
                 <span>Log In</span>
               </Button>
             )}
-             <HotelProfileSheet /> 
+            <HotelProfileSheet />
           </div>
-        </div>
+          </div>
       </motion.nav>
 
       {/* Chat Bot - This should be outside the nav */}

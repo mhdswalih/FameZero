@@ -1,7 +1,6 @@
 import { FilterQuery, UpdateQuery, Document, Model, QueryOptions } from "mongoose"
-
 export interface IBaseRepository<T extends Document> {
-    create(data: Partial<T>): Promise<T>;
+    create(data: Partial<T>): Promise<T>
     findById(id: string): Promise<T | null>;
     findOne(filter: FilterQuery<T>): Promise<T | null>;
     findByEmail(email:string):Promise<T | null> 

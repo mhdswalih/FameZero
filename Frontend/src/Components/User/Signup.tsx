@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom'; 
-import { RegisteUser } from '../../Api/user/userApi';
+import { RegisteUser } from '../../Api/userApiCalls/userApi';
 import toast from 'react-hot-toast';
 
 export interface IUserData{

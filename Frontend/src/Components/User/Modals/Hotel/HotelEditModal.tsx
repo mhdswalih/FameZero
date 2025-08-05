@@ -5,7 +5,9 @@ import {
 import React, { useState } from 'react';
 
 interface hotelDetails {
+  _id:string;
   name: string;
+  status:string;
   profilepic: string;
   phone: string;
   location: string;

@@ -1,6 +1,6 @@
 import { FaUserCircle, FaBan, FaEllipsisH } from 'react-icons/fa';
 import CombinedLayout from '../sidesheet/AdminSideSheet';
-import { fetchUser } from '../../../Api/adminApi';
+import { fetchUser } from '../../../Api/adminApiCalls/adminApi';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import LoadingSpinner from '../../../Components/ui/Loader'; 
@@ -11,6 +11,7 @@ interface User {
   email: string;
   avatar?: string;
   phone: string;
+  role:string;
   status: 'active' | 'blocked'; 
 }
 
@@ -23,6 +24,8 @@ const UserTable = () => {
     try {
       setLoading(true);
       const response = await fetchUser();
+      
+      
       setUsers(response.data);
     } catch (error: any) {
       setError(error.message || 'Failed to fetch users');
@@ -36,30 +39,7 @@ const UserTable = () => {
     fetchUsers();
   }, []);
 
-  const handleStatusChange = async (userId: string, currentStatus: 'active' | 'blocked') => {
-    try {
-    
-      const newStatus = currentStatus === 'active' ? 'blocked' : 'active';
-      toast.promise(
-     
-        new Promise((resolve) => {
-          setTimeout(() => {
-            setUsers(users.map(user => 
-              user.id === userId ? { ...user, status: newStatus } : user
-            ));
-            resolve('success');
-          }, 500);
-        }),
-        {
-          loading: 'Updating user status...',
-          success: `User ${newStatus === 'active' ? 'unblocked' : 'blocked'} successfully`,
-          error: 'Failed to update user status',
-        }
-      );
-    } catch (error) {
-      toast.error('Failed to update user status');
-    }
-  };
+   
 
   if (loading) return <CombinedLayout><LoadingSpinner /></CombinedLayout>;
   if (error) return <CombinedLayout><div className="text-red-500 p-4">{error}</div></CombinedLayout>;
@@ -139,7 +119,7 @@ const UserTable = () => {
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div className="flex justify-end space-x-2">
                       <button
-                        onClick={() => handleStatusChange(user.id, user.status)}
+    
                         className={`p-2 rounded-full ${
                           user.status === 'active' 
                             ? 'text-red-400 hover:bg-red-900' 

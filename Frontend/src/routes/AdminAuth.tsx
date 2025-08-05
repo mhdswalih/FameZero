@@ -9,11 +9,9 @@ import { ReactElement } from 'react';
 
 const AdminAuth = () => {
   const ProtectedRouteAdmin = ({children} : {children: ReactElement}) => {
-    const admin = useSelector((state:RootState)=> state.admin) 
-    console.log(admin,'this admin form ru');
-    
+    const admin = useSelector((state:RootState)=> state.admin)   
     const isAuthenticated = !!admin.token;
-    return isAuthenticated ? children : <Navigate to='login' replace />
+    return isAuthenticated ? children : <Navigate to='/admin/login' replace />
   }
 
   const PublicRouteAdmin = ({children} : {children:ReactElement}) => {

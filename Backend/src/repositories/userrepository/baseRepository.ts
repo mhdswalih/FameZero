@@ -1,6 +1,7 @@
 import { Document, Model, FilterQuery, UpdateQuery, QueryOptions } from "mongoose";
 import { IBaseRepository } from "../../interfaces/baserepo/IbaseRepo";
 
+
 export class BaseRepository<T extends Document> implements IBaseRepository<T> {
     constructor(protected readonly model: Model<T>) {}
    async find(filter: FilterQuery<T>, option?: QueryOptions): Promise<T[]> {  
@@ -57,14 +58,16 @@ export class BaseRepository<T extends Document> implements IBaseRepository<T> {
         }
     }
 
-    async update(id: string, data: UpdateQuery<T>): Promise<T | null> {
-        try {
-            const entity = await this.model.findByIdAndUpdate(id, data, { new: true }).exec();
-            return entity;
-        } catch (error: any) {
-            throw new Error(`Error updating entity ${error instanceof Error ? error.message : String(error)}`);
-        }
+  async update(id: string, data: UpdateQuery<T>): Promise<T | null> {
+    try {
+    
+        const entity = await this.model.findByIdAndUpdate(id, data, { new: true }).exec();
+        return entity;
+    } catch (error: any) {
+        throw new Error(`Error updating entity ${error instanceof Error ? error.message : String(error)}`);
     }
+}
+
     async delete(id: string): Promise<T | null> {
         try {
             return await this.model.findByIdAndDelete(id).exec();

@@ -10,8 +10,9 @@ import { UserCircleIcon, Cog6ToothIcon, InboxArrowDownIcon, LifebuoyIcon, PowerI
 import { RootState } from "../../Redux/store";
 import { Avatar, MenuItem, Typography } from "@material-tailwind/react";
 import { Link } from "react-router-dom";
-import {  editHotelProfile, getHotels } from "../../Api/hotel/hotelProfileApi";
+import { editHotelProfile, getHotels } from "../../Api/hotelApiCalls/hotelProfileApi";
 import { addHotelProfile, removeHotelProfile } from "../../Redux/Slice/ProfileSlice/hotelProfileSlice";
+import HotelEditModal from "../User/Modals/Hotel/HotelEditModal";
 
 // Simple Sheet Component
 const SheetContext = createContext<{
@@ -19,7 +20,7 @@ const SheetContext = createContext<{
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }>({
   open: false,
-  setOpen: () => {},
+  setOpen: () => { },
 });
 
 const Sheet = ({ children }: { children: React.ReactNode }) => {
@@ -52,7 +53,7 @@ const SheetContent = ({
   className?: string;
 }) => {
   const { open, setOpen } = useSheet();
-  
+
   useEffect(() => {
     if (open) {
       document.body.style.overflow = "hidden";
@@ -77,17 +78,17 @@ const SheetContent = ({
             className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
             onClick={() => setOpen(false)}
           />
-          
+
           {/* Sheet with highest z-index */}
           <motion.div
             initial={{ x: "100%" }}
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
-            transition={{ 
-              type: "spring", 
-              stiffness: 300, 
+            transition={{
+              type: "spring",
+              stiffness: 300,
               damping: 30,
-              duration: 0.3 
+              duration: 0.3
             }}
             className={`fixed top-0 right-0 h-full w-80 bg-white shadow-2xl z-[1000] ${className}`}
           >
@@ -118,14 +119,15 @@ interface ProfileMenuItem {
 // Profile Sheet Component
 const HotelProfileSheet = () => {
   const user = useSelector((state: RootState) => state.user);
-  const hotelprofile = useSelector((state:RootState)=> state.hotelProfile)
+  const hotelprofile = useSelector((state: RootState) => state.hotelProfile)
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  
-  
+
+
   interface HotelProfile {
     name: string;
-    idProof:string;
+    status:string;
+    idProof: string;
     profilepic: string;
     phone: string;
     location: string;
@@ -133,31 +135,33 @@ const HotelProfileSheet = () => {
   }
   const [hotelProfile, setHotelProfile] = useState<HotelProfile>({
     name: '',
-    idProof:'',
+    idProof: '',
+    status:'',
     profilepic: "",
     phone: '',
     location: '',
     city: '',
   });
-  const [editProfile,setEditProfile] = useState<HotelProfile>({...hotelProfile})
-
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editedProfile, setEditedProfile] = useState<HotelProfile>({ ...hotelprofile });
   const handleLogout = () => {
     dispatch(removeUser());
     dispatch(removeHotelProfile())
     navigate('/hotel/landing-page');
     toast.success('Logged out successfully');
-    
-  
+
+
   };
   const id = user.id
-    const handleGetHotel = async () => {
+  const handleGetHotel = async () => {
     try {
       const response = await getHotels(id);
       if (response.data) {
         const updatedProfile = {
           name: response.data.name || '',
+          status:response.data.status || '',
           profilepic: response.data.profilepic || '',
-          idProof:response.data.idProof || '',
+          idProof: response.data.idProof || '',
           phone: response.data.phone || '',
           location: response.data.location || '',
           city: response.data.city || '',
@@ -170,10 +174,41 @@ const HotelProfileSheet = () => {
     }
   };
 
+  const handleEditHotel = async (selectedFile?: File, selectedIdProofFile?: File) => {
+    try {
+      const response = await editHotelProfile(id, editedProfile, selectedFile, selectedIdProofFile);
+      // Check the actual response structure
+      if (response && response.success) {
+        const updatedProfile = {
+          name: response.name || editedProfile.name,
+          status:response.status || editedProfile.status,
+          profilepic: response.profilepic || editedProfile.profilepic,
+          phone: response.phone || editedProfile.phone,
+          location: response.location || editedProfile.location,
+          idProof: response.idProof || editedProfile.idProof,
+          city: response.city || editedProfile.city,
+        };
 
-  useEffect(()=>{
-        handleGetHotel()
-  },[])
+        setHotelProfile(updatedProfile);
+        dispatch(addHotelProfile(updatedProfile));
+        setEditedProfile(updatedProfile);
+
+        toast.success('Profile updated successfully');
+        setIsEditModalOpen(false);
+      }
+    } catch (error: any) {
+      console.error('Error in handleEditHotel:', error);
+      toast.error(error.message || error.error || 'Failed to update profile');
+    }
+  };
+
+  useEffect(() => {
+    handleGetHotel()
+  }, [])
+
+   useEffect(() => {
+    setEditedProfile({ ...hotelProfile });
+  }, [hotelProfile]);
 
   const profileMenuItems: ProfileMenuItem[] = [
     {
@@ -189,7 +224,7 @@ const HotelProfileSheet = () => {
       icon: Cog6ToothIcon,
       path: '',
       onClick: () => {
-        console.log("Open edit profile");
+        setIsEditModalOpen(true)
       }
     },
     {
@@ -217,107 +252,119 @@ const HotelProfileSheet = () => {
   ];
 
   return (
-   <Sheet>
-        <SheetTrigger>
-        <motion.button 
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="flex items-center gap-2 rounded-full py-2 px-3 hover:bg-gray-100 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-offset-2"
-              >
-                <img
-                  src="https://images.unsplash.com/photo-1633332755192-727a05c4013d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1480&q=80"
-                  alt="User Avatar"
-                  className="w-8 h-8 rounded-full object-cover border-2 border-gray-300"
-                />
-                <span className="hidden sm:block text-sm font-medium text-gray-700">
-                  Profile
-                </span>
-              </motion.button>
-        </SheetTrigger>
-  
-        <SheetContent className="bg-white p-4 w-72">
-          {/* Profile Header */}
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, ease: "easeOut" }}
-            className="flex items-center gap-4 pb-4 border-b border-gray-100"
-          >
-            <Avatar
-              variant="circular"
-              size="lg"
-              alt="User Avatar"
-              className="border-2 border-gray-900 w-12 h-12 rounded-full object-cover"
-              src={hotelProfile.profilepic ? hotelProfile.profilepic : 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1480&q=80'}
-            />
-            <div>
-              <Typography variant="h6" className="font-semibold">
-                {hotelProfile.name}
-              </Typography>
-              <Typography variant="small" color="gray">
-                {user.email}
-              </Typography>
-            </div>
-          </motion.div>
-  
-          {/* Menu Section */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.1, duration: 0.3 }}
-            className="mt-4"
-          >
-            <Typography variant="small" className="font-semibold text-gray-700 px-2 mb-2">
-              Profile Menu
+    <Sheet>
+      <SheetTrigger>
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          className="flex items-center gap-2 rounded-full py-2 px-3 hover:bg-gray-100 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-offset-2"
+        >
+          <img
+            src={hotelprofile.profilepic}
+            alt="User Avatar"
+            className="w-8 h-8 rounded-full object-cover border-2 border-gray-300"
+          />
+          <span className="hidden sm:block text-sm font-medium text-gray-700">
+            Profile
+          </span>
+        </motion.button>
+      </SheetTrigger>
+
+      <SheetContent className="bg-white p-4 w-72">
+        {/* Profile Header */}
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, ease: "easeOut" }}
+          className="flex items-center gap-4 pb-4 border-b border-gray-100"
+        >
+          <Avatar
+            variant="circular"
+            size="lg"
+            alt="User Avatar"
+            className="border-2 border-gray-900 w-12 h-12 rounded-full object-cover"
+            src={hotelprofile.profilepic ? hotelprofile.profilepic : 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1480&q=80'}
+          />
+          <div>
+            <Typography variant="h6" className="font-semibold">
+              {hotelprofile.name}
             </Typography>
-  
-            <motion.div
-              initial={{ scaleX: 0 }}
-              animate={{ scaleX: 1 }}
-              transition={{ duration: 0.3, delay: 0.15 }}
-              className="h-px bg-orange-400 mb-3"
-            />
-            <ul className="space-y-1">
-              {profileMenuItems.map(({ label, icon: Icon, path, onClick }, index) => (
-                <motion.li
-                  key={label}
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{
-                    delay: 0.05 * index + 0.2,
-                    type: "spring",
-                    stiffness: 500,
-                    damping: 20
-                  }}
-                >
-                  {onClick ? (
-                    <button
-                      onClick={onClick}
-                      className="w-full text-left"
-                    >
-                      <MenuItem className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors duration-200">
-                        <Icon className="h-5 w-5 text-gray-700" />
-                        <Typography as="span" variant="small" className="font-medium">
-                          {label}
-                        </Typography>
-                      </MenuItem>
-                    </button>
-                  ) : (
-                    <Link to={path}>
-                      <MenuItem className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors duration-200">
-                        <Icon className="h-5 w-5 text-gray-700" />
-                        <Typography as="span" variant="small" className="font-medium">
-                          {label}
-                        </Typography>
-                      </MenuItem>
-                    </Link>
-                  )}
-                </motion.li>
-              ))}
-            </ul>
-          </motion.div>
-        </SheetContent>
-      </Sheet>
+            <Typography variant="small" color="gray">
+              {user.email}
+            </Typography>
+          </div>
+        </motion.div>
+
+        {/* Menu Section */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.1, duration: 0.3 }}
+          className="mt-4"
+        >
+          <Typography variant="small" className="font-semibold text-gray-700 px-2 mb-2">
+            Profile Menu
+          </Typography>
+
+          <motion.div
+            initial={{ scaleX: 0 }}
+            animate={{ scaleX: 1 }}
+            transition={{ duration: 0.3, delay: 0.15 }}
+            className="h-px bg-orange-400 mb-3"
+          />
+          <ul className="space-y-1">
+            {profileMenuItems.map(({ label, icon: Icon, path, onClick }, index) => (
+              <motion.li
+                key={label}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{
+                  delay: 0.05 * index + 0.2,
+                  type: "spring",
+                  stiffness: 500,
+                  damping: 20
+                }}
+              >
+                {onClick ? (
+                  <button
+                    onClick={onClick}
+                    className="w-full text-left"
+                  >
+                    <MenuItem className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors duration-200">
+                      <Icon className="h-5 w-5 text-gray-700" />
+                      <Typography as="span" variant="small" className="font-medium">
+                        {label}
+                      </Typography>
+                    </MenuItem>
+                  </button>
+                ) : (
+                  <Link to={path}>
+                    <MenuItem className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors duration-200">
+                      <Icon className="h-5 w-5 text-gray-700" />
+                      <Typography as="span" variant="small" className="font-medium">
+                        {label}
+                      </Typography>
+                    </MenuItem>
+                  </Link>
+                )}
+              </motion.li>
+            ))}
+          </ul>
+        </motion.div>
+      <HotelEditModal
+        isEditModalOpen={isEditModalOpen}
+        setIsEditModalOpen={setIsEditModalOpen}
+        setHotelProfile={setHotelProfile}
+        hotelProfile={hotelProfile}
+        editedProfile={editedProfile}
+        setEditedProfile={setEditedProfile}
+        handleEditHotel={handleEditHotel}
+        />
+      </SheetContent>
+     
+
+      
+    </Sheet>
   );
 };
 
