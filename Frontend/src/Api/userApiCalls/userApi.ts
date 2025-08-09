@@ -38,6 +38,12 @@ export const loginUser = async(email:string,password:string)=>{
   }
 }
 
-
-
+export const refreshToken = async () =>{
+  try {    
+    const response = await axiosInstance.post('/refresh-token',{},{withCredentials:true}); 
+    return response.data
+  } catch (error:any) {
+     throw error.response?.data || 'Failed Refresh Token'
+  }
+}
 

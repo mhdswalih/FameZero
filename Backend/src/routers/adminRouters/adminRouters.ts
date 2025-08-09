@@ -20,6 +20,7 @@ adminRoutes.get('/get-users',AdminController.getAllUsers.bind(AdminController))
 adminRoutes.get('/get-hotels',AdminController.getAllHotels.bind(AdminController))
 adminRoutes.post('/accept-requst/:id',AdminController.acceptRequst.bind(AdminController))
 adminRoutes.post('/reject-requst/:id',AdminController.rejectRequst.bind(AdminController))
+adminRoutes.post('/block-hotel/:id',AdminController.blockHotel.bind(AdminController))
 
 
 export default adminRoutes

@@ -1,6 +1,8 @@
 
 
 export interface IHotelFullProfile {
+    id:string;
+    userId:string;
     name : string;
     email:string;
     status:string;

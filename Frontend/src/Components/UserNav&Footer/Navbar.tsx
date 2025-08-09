@@ -201,7 +201,6 @@ const ProfileSheet = () => {
         dispatch(addUserProfile(userDetails))
       }
     } catch (error:any) {
-      toast.error(error.message || error.error)
     }
   }
 
@@ -353,9 +352,7 @@ const Navbar = () => {
   });
 
   const handleGetUser = async () => {
-    try {
-    console.log(user,'this is user id');
-    
+    try {   
       const response = await getUserDetails(userData.id);
       if (response.data) {
            const userData = {
@@ -373,8 +370,6 @@ const Navbar = () => {
         dispatch(addUserProfile(userData))
       }
     } catch (error: any) {
-     
-      toast.error(error.message || 'Failed to load profile');
     }
   };
   

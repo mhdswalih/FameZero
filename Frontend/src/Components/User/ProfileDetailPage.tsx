@@ -29,13 +29,7 @@ const ProfilePage = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const user = useSelector((state: RootState) => state.user);
- console.log(user,'this si user from profile side');
- 
   const userDetails = useSelector((state: RootState) => state.userProfile);
-  
-  console.log(userDetails,'this is profile fir');
-  
-  // console.log(userprofile.userId, 'this is user profile ');
   const [userProfile,setUserProfile] = useState<userDetails>({
     name: '',
     profilepic:'',

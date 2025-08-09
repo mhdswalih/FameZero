@@ -1,0 +1,72 @@
+// import axios from "axios";
+// import store, { persistor } from "../../Redux/store";
+// import { refreshToken } from "../userApiCalls/userApi";
+// import { addUser, removeUser } from "../../Redux/Slice/userSlice";
+
+
+// export const axiosInstance = axios.create({
+//           baseURL:import.meta.env.VITE_BASE_URI,
+//           withCredentials:true,
+//           headers:{
+//             'Content-Type' : 'application/json'
+//           },
+// })
+
+// export const Axios = axios.create({
+//     baseURL:import.meta.env.VITE_BASE_URI,
+//     withCredentials:true,
+//      headers:{
+//        'Content-Type' : 'application/json'
+//      }
+// })
+
+
+//  axiosInstance.interceptors.request.use(
+//      (config) => {
+//         const token = store.getState().user.token
+//         if (token) {
+//             config.headers['Authorization'] = `Bearer ${token}`; 
+//         }
+//         return config;
+//     },
+//     (error) => {
+//         return Promise.reject(error);
+//     }
+// )
+
+// axiosInstance.interceptors.response.use(
+//   (response) => response,
+//   async(error) =>{
+//     const orginalReq = error.config;
+//     if(error.response?.status === 401 && !orginalReq._retry){
+//       orginalReq._retry = true;
+//       try {
+//         console.log('indrespecter try.....................');
+
+//         const response = await refreshToken()
+//         console.log(response,'................................');
+//         const newAccessToken = response.accessToken
+//         store.dispatch(addUser({
+//           id: response.user?.id || '',
+//           email: response.user?.email || '',
+//           role: response.user?.role || '',
+//           token: response.accessToken || ''
+//         }))
+//         orginalReq.headers['Authorization'] = `Bearer ${newAccessToken}`;
+//         return axiosInstance(orginalReq)
+//       } catch (error) {
+//         console.log('erroe',error)
+//         store.dispatch(removeUser())
+//         window.location.href = '/login'
+//         return Promise.reject(error)
+//       }
+//     }
+//     if(error.response?.status === 403){
+//       store.dispatch(removeUser());
+//       persistor.purge();
+//       window.location.href = '/login'
+//       return Promise.reject(error)
+//     }
+//     return Promise.reject(error)
+//   }
+// )

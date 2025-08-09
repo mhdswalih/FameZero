@@ -125,6 +125,7 @@ const HotelProfileSheet = () => {
 
 
   interface HotelProfile {
+    _id:string;
     name: string;
     status:string;
     idProof: string;
@@ -134,6 +135,7 @@ const HotelProfileSheet = () => {
     city: string;
   }
   const [hotelProfile, setHotelProfile] = useState<HotelProfile>({
+    _id:'',
     name: '',
     idProof: '',
     status:'',
@@ -143,7 +145,7 @@ const HotelProfileSheet = () => {
     city: '',
   });
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editedProfile, setEditedProfile] = useState<HotelProfile>({ ...hotelprofile });
+  const [editedProfile, setEditedProfile] = useState<HotelProfile>({ ...hotelProfile });
   const handleLogout = () => {
     dispatch(removeUser());
     dispatch(removeHotelProfile())
@@ -158,6 +160,7 @@ const HotelProfileSheet = () => {
       const response = await getHotels(id);
       if (response.data) {
         const updatedProfile = {
+          _id:response.data._id || '',
           name: response.data.name || '',
           status:response.data.status || '',
           profilepic: response.data.profilepic || '',
@@ -180,6 +183,7 @@ const HotelProfileSheet = () => {
       // Check the actual response structure
       if (response && response.success) {
         const updatedProfile = {
+          _id:response.data._id || editedProfile._id,
           name: response.name || editedProfile.name,
           status:response.status || editedProfile.status,
           profilepic: response.profilepic || editedProfile.profilepic,

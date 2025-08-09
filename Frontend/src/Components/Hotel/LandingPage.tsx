@@ -1,17 +1,27 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { ChefHat, Clock, Star, MapPin, Phone, Mail, ArrowRight, Menu, X } from 'lucide-react';
 import NavBar from '../HotelNav&Footer/NavBar';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../Redux/store';
+import { useNavigate } from 'react-router-dom';
 
 export default function RestaurantLanding() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrollY, setScrollY] = useState(0);
-
+  const navigate = useNavigate()
+ const user = useSelector((state:RootState) => state.user)
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+   useEffect(()=>{
+     if(user.role  === 'user'){
+       navigate('/')
+     }
+   },[])
+ 
   const menuItems = [
     { name: 'Truffle Risotto', price: '$28', desc: 'Creamy arborio rice with black truffle shavings' },
     { name: 'Grilled Salmon', price: '$24', desc: 'Atlantic salmon with herb butter and seasonal vegetables' },

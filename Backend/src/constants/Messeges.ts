@@ -1,6 +1,7 @@
 export const Messages = {
   USER_CREATED: 'User created. Please verify your email by entering the OTP sent to your email.',
   USER_EXISTS: 'User with this email already exists.',
+  USER_BLOCKED:'User Blocked..!',
   OTP_INVALID: 'Invalid OTP or OTP has expired.',
   OTP_SENT:     'OTP has been sent to your mail',
   USER_NOT_FOUND: 'User not found.',

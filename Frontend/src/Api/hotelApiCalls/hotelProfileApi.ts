@@ -1,4 +1,4 @@
-import { axiosInstance } from "../Instance/axiosInstance"
+import { Axios, axiosInstance} from "../Instance/axiosInstance"
 
 
 export const getHotels = async (id:string) =>{
@@ -23,7 +23,6 @@ export const editHotelProfile = async (
     if (imageFiles || imageProof) {
       const formData = new FormData();
 
-      // Append hotel data (avoid empty values)
       Object.keys(hotelData).forEach(key => {
         const value = hotelData[key];
         if (value !== null && value !== undefined && value !== '') {
@@ -39,11 +38,7 @@ export const editHotelProfile = async (
         formData.append('idProof', imageProof);
       }
 
-      // Debug: Log FormData contents
-      for (let [key, value] of formData.entries()) {
-        console.log(key, value);
-      }
-
+     
       response = await axiosInstance.post(`/hotel/update-hotelprofile/${id}`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
@@ -59,7 +54,6 @@ export const editHotelProfile = async (
     return response.data;
     
   } catch (error: any) {
-    console.error('Error updating hotel profile:', error);
     throw error.response?.data || { error: error.message || 'Failed to update hotel profile' };
   }
 };

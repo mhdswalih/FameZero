@@ -1,27 +1,78 @@
 import { AnimatePresence, useMotionValueEvent, useScroll } from "framer-motion";
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { RootState } from "../../Redux/store";
-import { getUserDetails } from "../../Api/userApiCalls/profileApi";
-import toast from "react-hot-toast";
 import { motion } from 'framer-motion'
 import { Menu } from "lucide-react";
 import { Button } from "@material-tailwind/react";
 import HotelProfileSheet from "./SideSheet";
+import { getHotels } from "../../Api/hotelApiCalls/hotelProfileApi";
+import { addHotelProfile } from "../../Redux/Slice/ProfileSlice/hotelProfileSlice";
+import toast from "react-hot-toast";
+import { useDispatch } from "react-redux";
 
 
 const NavBar = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch()
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const { scrollY } = useScroll();
+  interface HotelProfile {
+  _id:string;
+  name: string;
+  profilepic: string;
+  status:string;
+  idProof:string;
+  phone: string;
+  location: string;
+  city: string;
+}
 
   useMotionValueEvent(scrollY, "change", (latest) => {
     setScrolled(latest > 10);
   });
-  const isLoggIn = useSelector((state: RootState) => state.user.id)
-  const hotelProfile = useSelector((state: RootState) => state.hotelProfile)
+  
+  const user = useSelector((state:RootState)=> state.user)
+  const hotelprofile = useSelector((state:RootState)=> state.hotelProfile)
+  const [hotelProfile, setHotelProfile] = useState<HotelProfile>({
+    _id:'',
+    name: '',
+    profilepic: "",
+    status:'',
+    phone: '',
+    location: '',
+    idProof:'',
+    city: '',
+  });
+  const id = user.id
+  const handleGetHotel = async () => { 
+      try {
+        const response = await getHotels(id);    
+        if (response.data) {
+          const updatedProfile = {
+            _id:response.data._id || '',
+            name: response.data.name || '',
+            status : response.data.status || '',
+            profilepic: response.data.profilepic || '',
+            idProof :response.data.idProof || '',
+            phone: response.data.phone || '',
+            location: response.data.location || '',
+            city: response.data.city || '',
+          };
+          setHotelProfile(updatedProfile);
+          dispatch(addHotelProfile(updatedProfile))
+        }
+      } catch (error:any) {
+         toast.error(error.message || error.error || 'Failed to get profile');
+      }
+    };
+  
+    useEffect(() => {
+        handleGetHotel();
+    }, []);
+
 
   return (
     <>
@@ -87,10 +138,10 @@ const NavBar = () => {
             </ul>
           </div>
           <div className="flex items-center gap-4">
-            {hotelProfile && hotelProfile.name && (
-              <span className="italic font-bold">Hey.. {hotelProfile.name}</span>
+            {hotelprofile && hotelprofile.name && (
+              <span className="italic font-bold">Hey.. {hotelprofile.name}</span>
             )}
-            {!hotelProfile.name && (
+            {!hotelprofile.name && (
               <Button
                 onClick={() => navigate("/login")}
                 size="sm"

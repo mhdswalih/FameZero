@@ -20,4 +20,5 @@ export interface IUserService {
         }
     }>;
     updateUser(id:string,userProfile :Partial<IUserProfile>):Promise<void>
+    refreshToken(token:string):Promise<{accessToken: string; user: { id: string; email: string; role: string }}>;
 }

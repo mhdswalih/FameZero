@@ -6,6 +6,7 @@ export interface IUser extends Document {
     email: string;
     password: string;
     role: string;
+    isBlocked:boolean;
     isVerified: boolean;
     createdAt?: Date;
     updatedAt?: Date;
@@ -32,7 +33,10 @@ const userSchema = new mongoose.Schema<IUser>({
         default: 'user',
         enum: ['user', 'hotel']  
     },
-  
+    isBlocked : {
+        type : Boolean,
+        default : false
+    },
     isVerified: {
         type: Boolean,
         default: false

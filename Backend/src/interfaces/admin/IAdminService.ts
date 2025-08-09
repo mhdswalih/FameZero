@@ -16,4 +16,6 @@ export interface IAdminService  {
     getAllHotels():Promise<IHotelFullProfile[]>
     acceptRequst(id:string):Promise<IHotelFullProfile | null>
     rejectRequst(id:string):Promise<IHotelFullProfile | null>
+    blockHotel(id:string):Promise<IUser | null>;
+
 }

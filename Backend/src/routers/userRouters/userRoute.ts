@@ -4,6 +4,7 @@ import { UserRepository } from '../../repositories/userrepository/userRepository
 import { UserController } from '../../controllers/user/userController';
 import { ProfileRepository } from '../../repositories/userrepository/profileRepository';
 import { HotelProfileRepository } from '../../repositories/hotelRepository/hotelProfileRepository';
+import { authenticateToken } from '../../middleware/authMiddleware';
 
 const userRoute = Router()
 
@@ -14,10 +15,11 @@ const userService = new UserService(userRepository, profileRepository,hotelProfi
 const userController = new UserController(userService)
  
 
-userRoute.post('/create-user', userController.createUser.bind(userController))
+userRoute.post('/create-user',userController.createUser.bind(userController))
 userRoute.post('/veryfy-otp',userController.verifyOtp.bind(userController))
 userRoute.post('/resend-otp',userController.resendOtp.bind(userController))
 userRoute.post('/login-user',userController.login.bind(userController))
+userRoute.post('/refresh-token',userController.refreshToken.bind(userController))
 
 
 

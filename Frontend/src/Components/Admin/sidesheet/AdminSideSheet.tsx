@@ -1,33 +1,43 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   FiHome, FiUser, FiSettings, FiPieChart, FiLogOut, 
   FiChevronLeft, FiChevronRight, FiBell, 
   FiChevronDown
 } from 'react-icons/fi';
 import { FaHotel, FaUserCircle } from 'react-icons/fa';
-import { useNavigate, Routes, Route } from 'react-router-dom';
+import { useNavigate, Routes, Route, useLocation } from 'react-router-dom';
 import UserTable from '../tables/Users';
 import { useDispatch } from 'react-redux';
 import { Logout } from '../../../Redux/Slice/adminSlice';
 import toast from 'react-hot-toast';
 
 const CombinedLayout: React.FC<React.PropsWithChildren<{}>> = ({ children }) => {
+  const location = useLocation();
   const [activeItem, setActiveItem] = useState('');
   const [collapsed, setCollapsed] = useState(false);
   const navigate = useNavigate();
-  const dispatch = useDispatch()
+  const dispatch = useDispatch();
+
+  // Set active item based on current route
+  useEffect(() => {
+    const path = location.pathname;
+    if (path.includes('dashboard')) setActiveItem('Dashboard');
+    else if (path.includes('hotels-table')) setActiveItem('Food outlets');
+    else if (path.includes('user-table')) setActiveItem('Users');
+    else if (path.includes('analytics')) setActiveItem('Analytics');
+    else if (path.includes('settings')) setActiveItem('Settings');
+  }, [location]);
 
   const handleItemClick = (itemName: string, path: string = '/admin/dashboard') => {
     setActiveItem(itemName);
     navigate(path);
   };
 
-  const handleLogout = async()=>{
-    dispatch(Logout())
-    navigate('/admin/login')
-
-    toast.success('logout successfully...')
-  }
+  const handleLogout = async () => {
+    dispatch(Logout());
+    navigate('/admin/login');
+    toast.success('Logout successfully...');
+  };
 
   return (
     <div className="flex h-screen bg-black">
@@ -39,7 +49,7 @@ const CombinedLayout: React.FC<React.PropsWithChildren<{}>> = ({ children }) => 
       >
         {/* Sidebar Header */}
         <div className="p-4 border-b border-gray-800 flex items-center justify-between">
-          {!collapsed && <h1 className="text-xl font-bold text-white">FameZero</h1>}
+          {!collapsed && <h1 className="text-xl font-bold text-white">FlameZero</h1>}
           <button
             onClick={() => setCollapsed(!collapsed)}
             className="p-1 rounded-full hover:bg-orange-800 text-xl text-orange-400"
@@ -53,35 +63,35 @@ const CombinedLayout: React.FC<React.PropsWithChildren<{}>> = ({ children }) => 
         <nav className="flex-1 overflow-y-auto p-4">
           <ul className="space-y-2">
             <SidebarItem
-              icon={<FiHome size={20} className="text-white" />}
+              icon={FiHome}
               text="Dashboard"
               active={activeItem === 'Dashboard'}
               onClick={() => handleItemClick('Dashboard', '/admin/dashboard')}
               collapsed={collapsed}
             />
             <SidebarItem
-              icon={<FaHotel size={20} className="text-white" />}
-              text="Hotels/Resorts"
-              active={activeItem === 'Hotels'}
-              onClick={() => handleItemClick('Hotels', '/admin/hotels-table')}
+              icon={FaHotel}
+              text="Food outlets"
+              active={activeItem === 'Food outlets'}
+              onClick={() => handleItemClick('Food outlets', '/admin/hotels-table')}
               collapsed={collapsed}
             />
             <SidebarItem
-              icon={<FiUser size={20} className="text-white" />}
+              icon={FiUser}
               text="Users"
               active={activeItem === 'Users'}
               onClick={() => handleItemClick('Users', '/admin/user-table')}
               collapsed={collapsed}
             />
             <SidebarItem
-              icon={<FiPieChart size={20} className="text-white" />}
+              icon={FiPieChart}
               text="Analytics"
               active={activeItem === 'Analytics'}
               onClick={() => handleItemClick('Analytics', '/analytics')}
               collapsed={collapsed}
             />
             <SidebarItem
-              icon={<FiSettings size={20} className="text-white" />}
+              icon={FiSettings}
               text="Settings"
               active={activeItem === 'Settings'}
               onClick={() => handleItemClick('Settings', '/settings')}
@@ -93,7 +103,7 @@ const CombinedLayout: React.FC<React.PropsWithChildren<{}>> = ({ children }) => 
         {/* Sidebar Footer */}
         <div className="p-4 border-t border-gray-800">
           <SidebarItem
-            icon={<FiLogOut size={20} className="text-white" />}
+            icon={FiLogOut}
             text="Logout"
             onClick={handleLogout}
             collapsed={collapsed}
@@ -104,16 +114,14 @@ const CombinedLayout: React.FC<React.PropsWithChildren<{}>> = ({ children }) => 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Navbar */}
-        <header className="bg-black-200 text-white shadow-md">
+        <header className="bg-black text-white shadow-md">
           <div className="flex items-center justify-end h-16 px-6">
             <div className="flex items-center space-x-6">
-              {/* Notification Button */}
               <button className="relative p-2 rounded-full hover:bg-orange-800 transition-colors">
                 <FiBell size={20} className="text-white" />
                 <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-red-500"></span>
               </button>
               
-              {/* Admin Profile */}
               <div className="flex items-center space-x-2 cursor-pointer group">
                 <div className="flex items-center justify-center w-8 h-8 rounded-full bg-orange-200 text-orange-600">
                   <FaUserCircle size={20} />
@@ -141,24 +149,36 @@ const CombinedLayout: React.FC<React.PropsWithChildren<{}>> = ({ children }) => 
   );
 };
 
-// Updated SidebarItem Component with white text
+type SidebarIconProps = {
+  size?: number;
+  className?: string;
+};
+
 const SidebarItem: React.FC<{
-  icon: React.ReactNode;
+  icon: React.ComponentType<SidebarIconProps>;
   text: string;
   active?: boolean;
   onClick?: () => void;
   collapsed?: boolean;
-}> = ({ icon, text, active = false, onClick, collapsed = false }) => {
+}> = ({ icon: Icon, text, active = false, onClick, collapsed = false }) => {
   return (
     <li
       className={`flex items-center p-3 rounded-lg cursor-pointer transition-colors ${
-        active ? 'bg-orange-200 text-orange-600' : 'text-white hover:bg-orange-800 hover:text-white'
-      }`}
+        active 
+          ? 'bg-orange-500 text-white' 
+          : 'text-gray-300 hover:bg-orange-800 hover:text-white'
+      } ${collapsed ? 'justify-center' : ''}`}
       onClick={onClick}
       title={collapsed ? text : undefined}
     >
-      <span className={`${collapsed ? 'mx-auto' : 'mr-3'}`}>{icon}</span>
-      {!collapsed && <span className="font-medium">{text}</span>}
+      <span className={`${!collapsed ? 'mr-3' : ''}`}>
+        <Icon size={20} className={active ? 'text-white' : 'text-current'} />
+      </span>
+      {!collapsed && (
+        <span className={`font-medium ${active ? 'text-white' : 'text-current'}`}>
+          {text}
+        </span>
+      )}
     </li>
   );
 };

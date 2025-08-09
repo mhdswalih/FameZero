@@ -1,19 +1,17 @@
-// loginSlice.ts
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-import Cookies from 'js-cookie';
 
 interface UserState {
     id: string;
     email: string;
     role: string;
-    token: string | null;
+    token: string ;
 }
 
 const initialState: UserState = {
     id: '',
     email: '',
     role: '',
-    token: null,
+    token: '',
 }
 
 const loginSlice = createSlice({
@@ -33,10 +31,8 @@ const loginSlice = createSlice({
             state.email = action.payload.email;
             state.role = action.payload.role;
             state.token = action.payload.token;
-            Cookies.set('token', action.payload.token, { expires: 7 });
         },
         removeUser: () => {
-            Cookies.remove('token');
             return initialState;
         }
     }

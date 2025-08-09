@@ -19,7 +19,7 @@ import {
 const userPersistConfig = {
   key: "user",
   storage,
-  whitelist: ['id', 'email'], 
+  whitelist: ['id','role','token','email','isVerified'], 
 };
 
 const adminPersistConfig = {

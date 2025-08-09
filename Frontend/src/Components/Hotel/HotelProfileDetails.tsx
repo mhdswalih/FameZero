@@ -110,7 +110,6 @@ const handleGetHotel = async () => {
           location: response.data.location || '',
           city: response.data.city || '',
         };
-        console.log(response.data,'....................................................................hgf');
         setHotelProfile(updatedProfile);
         dispatch(addHotelProfile(updatedProfile))
         setEditedProfile(updatedProfile);

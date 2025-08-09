@@ -3,6 +3,8 @@ import { BaseRepository } from "../../repositories/userrepository/baseRepository
 import { IHotelRepository } from "../../interfaces/hotel/IHotelRepository";
 import { IHotelFullProfile } from "./hotelInterface";
 import hotelProfile from "../../models/hotelModel/hotelProfileModel";
+import redisClient from "../../config/redisService";
+import { unBlackListUser } from "../../utils/blockuser";
 
 
 export class HotelRepository extends BaseRepository<IUser> implements IHotelRepository {
@@ -27,6 +29,7 @@ export class HotelRepository extends BaseRepository<IUser> implements IHotelRepo
          },
          {
             $project: {
+               userId:'$userDetails._id',
                name: '$name',
                email: '$userDetails.email',
                status: '$status',
@@ -59,6 +62,14 @@ export class HotelRepository extends BaseRepository<IUser> implements IHotelRepo
          { status: 'Rejected' },
          { new: true }
       );
+   }
+   async blockHotel(id: string): Promise<IUser | null> {
+       const cleanedId = id.replace(/^:/, '');        
+       const blockedHotels =  await User.findByIdAndUpdate(cleanedId,{isBlocked:true},{new:true})
+       if(blockedHotels){
+         await redisClient.sAdd('blacklisted_users', cleanedId)
+       }
+       return blockedHotels
    }
    async updateHotelPassword(id: string, hashedPassword: string): Promise<IUser | null> {
       return await this.update(id, { password: hashedPassword });

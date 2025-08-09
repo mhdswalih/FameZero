@@ -8,4 +8,5 @@ export interface IHotelRepository extends IBaseRepository<IUser> {
     findByEmail(email: string): Promise<IUser | null>;
     acceptRequstHotel(id:string):Promise<IHotelFullProfile | null>
     rejectRequstHotel(id:string):Promise<IHotelFullProfile | null>
+    blockHotel(id:string):Promise<IUser | null>
 }   

@@ -45,3 +45,13 @@ export const rejectrequst = async(id:string) => {
          throw error.response?.data || 'Failed to Reject Requst'
     }
 }
+
+export const blockHotel = async (id:string) =>{
+    
+  try {
+    const response = await axiosInstance.post(`/admin/block-hotel/:${id}`)
+    return response.data
+  } catch (error:any) {
+     throw error.response?.data || 'Failed to Block user'
+  }
+}

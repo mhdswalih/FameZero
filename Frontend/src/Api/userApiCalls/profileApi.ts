@@ -1,8 +1,6 @@
-import { axiosInstance } from "../Instance/axiosInstance";
+import { Axios, axiosInstance } from "../Instance/axiosInstance";
 
 export const getUserDetails = async (id: string) => {
- 
-  
   try {
     const response = await axiosInstance.get(`/get-user-details/${id}`) 
     return response.data

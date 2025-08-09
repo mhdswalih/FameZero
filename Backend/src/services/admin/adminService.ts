@@ -17,7 +17,7 @@ export class AdminService implements IAdminService {
         if(password !== admin.password){
             throw createHttpError(HttpStatus.UNAUTHORIZED,Messages.INVALID_CREDENTIALS)
         }
-        const accessToken = genrateAccessToken(admin.id.toString())
+        const accessToken = genrateAccessToken(admin.id.toString(),admin.role)
         const refreshToken = genrateRefreshToken(admin.id.toString())
 
         return {
@@ -44,4 +44,8 @@ export class AdminService implements IAdminService {
     async rejectRequst(id: string): Promise<IHotelFullProfile | null> {
         return await this.__HotelRepository.rejectRequstHotel(id)
     }
+    async blockHotel (id:string):Promise<IUser | null>{
+        return await this.__HotelRepository.blockHotel(id)
+    }
 }
+

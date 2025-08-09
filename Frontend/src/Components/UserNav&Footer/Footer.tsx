@@ -25,7 +25,7 @@ export const FooterWithLogo: React.FC<FooterWithLogoProps> = () => {
               className="w-40 h-12 rounded-sm"
             /> */}
             <Typography variant="h5" className="font-bold italic">
-              FameZero
+              FlameZero
             </Typography>
             <Typography className="text-center md:text-left max-w-md">
               Creating amazing experiences through quality products and services.

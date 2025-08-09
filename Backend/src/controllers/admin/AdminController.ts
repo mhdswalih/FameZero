@@ -2,9 +2,6 @@ import { Request, Response, NextFunction } from "express";
 import { IAdminController } from "../../interfaces/admin/IAdminController";
 import { IAdminService } from "../../interfaces/admin/IAdminService";
 import { HttpStatus } from "../../constants/HttpStatus";
-import { IUser, User } from "../../models/usermodel/userModel";
-
-
 
 export class adminController implements IAdminController {
     constructor(private _AdminService:IAdminService){}
@@ -57,7 +54,16 @@ export class adminController implements IAdminController {
             const status = await this._AdminService.rejectRequst(id)
             res.status(HttpStatus.OK).json({success:true,data:status})
         } catch (error) {
-            
+            next(error)
+        }
+    }
+    async blockHotel(req: Request, res: Response, next: NextFunction): Promise<void> {
+        try {
+            const {id} = req.params
+            const status = await this._AdminService.blockHotel(id)
+            res.status(HttpStatus.OK).json({success:true,data:status})
+        } catch (error) {
+            next(error)
         }
     }
     

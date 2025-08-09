@@ -1,25 +1,28 @@
 import { useEffect, useState } from 'react';
 import { FaUserCircle} from 'react-icons/fa';
 import CombinedLayout from '../sidesheet/AdminSideSheet';
-import { fetchHotels, accptRequst, rejectrequst } from '../../../Api/adminApiCalls/adminApi'; 
+import { fetchHotels, accptRequst, rejectrequst, blockHotel } from '../../../Api/adminApiCalls/adminApi'; 
 import toast from 'react-hot-toast';
 
-interface HotelDetails { 
-  _id: string;
-  name: string;
-  email: string;
-  phone: string;
-  idProof: string;
-  profilepic: string;
-  status: string;
-  location: string;
-  city: string; 
+
+ interface IHotelProfile {
+    _id: string;
+    userId: string; 
+    name:string;
+    email:string;
+    idProof : string;
+    status:string;
+    profilepic: string;
+    location: string;
+    city: string;
+    phone: string;
 }
 
 const HotelsTable = () => {
-  const [hotels, setHotels] = useState<HotelDetails[]>([]);
+  const [hotels, setHotels] = useState<IHotelProfile[]>([]);
   const [loading, setLoading] = useState(false);
-    
+  console.log(hotels,'......................');
+  
   const getHotels = async () => {
     try {
       const response = await fetchHotels(); 
@@ -54,12 +57,18 @@ const HotelsTable = () => {
       setLoading(false)
     }
   }
+  const blockuser = async(id:string) =>{
+    try {
+        await blockHotel(id)
+        toast.success('blocked user ')
+    } catch (error) {
+         toast.error('Failed to Block Hotel..!');
+    }
+  }
 
   useEffect(() => {
     getHotels();
   }, []);
-
-
 
   return (
     <div>
@@ -169,6 +178,7 @@ const HotelsTable = () => {
                       {hotel.status === 'Approved' && (
                         <div>
                           <button 
+                          onClick={()=> blockuser(hotel.userId)}
                             className='bg-red-600 hover:bg-red-700 px-3 py-1 rounded-md text-white text-sm transition-colors'
                           >
                             Block

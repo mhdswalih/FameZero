@@ -1,8 +1,10 @@
 import { motion, AnimatePresence } from 'framer-motion';
+import {isDeepEqual} from'../../../../utils/is-equal'
 import {
   Building2, Phone, MapPin, Save, X, Camera, Image, FileText, Hotel
 } from 'lucide-react';
 import React, { useState } from 'react';
+import toast from 'react-hot-toast';
 
 interface hotelDetails {
   _id:string;
@@ -81,11 +83,31 @@ const HotelEditModal = ({
       reader.readAsDataURL(file);
     }
   };
-  console.log(selectedFile,selectedIdProofFile,'this is select file images ');
   
-  const handleSubmit = async () => {
+const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
+       if(hotelProfile){
+      
+        const currentFormState = {
+          _id:editedProfile._id,
+          name : editedProfile.name,
+          phone:editedProfile.phone,
+          status:editedProfile.status,
+          idProof:editedProfile.idProof,
+          profilepic : editedProfile.profilepic, 
+          location:editedProfile.location,
+          city:editedProfile.city,
+        }
+          
+          if (isDeepEqual(hotelProfile,currentFormState) && 
+                !selectedFile && 
+                !selectedIdProofFile) {
+                toast.error("Hotel profile already updated - no changes detected!");
+                return;
+            } 
+        }
+      // rest of your code...
       await handleEditHotel(selectedFile || undefined, selectedIdProofFile || undefined);
       setSelectedFile(null);
       setSelectedIdProofFile(null);
@@ -93,12 +115,11 @@ const HotelEditModal = ({
       setIdProofPreviewUrl('');
       setIsEditModalOpen(false);
     } catch (error) {
-      console.error('Submit failed:', error);
+     
     } finally {
       setIsSubmitting(false);
     }
   };
-
   const getImageSrc = () => {
     if (previewUrl) return previewUrl;
     if (editedProfile.profilepic) return editedProfile.profilepic;

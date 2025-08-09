@@ -2,13 +2,13 @@ import { HttpStatus } from '../../constants/HttpStatus';
 import { Messages } from '../../constants/Messeges';
 import { IUserRepository } from '../../interfaces/user/IUserRepository';
 import { IUserService } from '../../interfaces/user/IUserservice';
-import { IUser } from '../../models/usermodel/userModel';
+import { IUser, User } from '../../models/usermodel/userModel';
 import { deleteOtp, sendOtp, storeOtp } from '../../utils/otp';
 import { generateOTP } from '../../utils/otputils';
 import { verifyOtp } from '../../utils/otp';
 import { createHttpError } from '../../utils/httperr';
 import  {comparePassword, hashPassword } from '../../utils/hashPassword';
-import { genrateAccessToken, genrateRefreshToken, veryfyAccessToken } from '../../utils/jwt';
+import { genrateAccessToken, genrateRefreshToken, verifyRefreshToken, veryfyAccessToken } from '../../utils/jwt';
 import { IUserProfile } from '../../models/usermodel/userProfileModel';
 import { IProfileRepositer } from '../../interfaces/user/profile/IProfileRepository';
 import { IHotelRepository } from '../../interfaces/hotel/IHotelRepository';
@@ -126,7 +126,7 @@ export class UserService implements IUserService  {
         }
 
         
-        const accessToken = genrateAccessToken(user.id.toString())
+        const accessToken = genrateAccessToken(user.id.toString(),user.role)
         const refreshToken = genrateRefreshToken(user.id.toString())
 
         return {
@@ -158,5 +158,29 @@ export class UserService implements IUserService  {
         }
         return await this._userRepository.updateUser(id,userProfile)
     }
+async refreshToken(token: string): Promise<{ accessToken: string; user: { id: string; email: string; role: string } }> {
+  const decode = verifyRefreshToken(token);
+  if (!decode) {
+    throw createHttpError(HttpStatus.UNAUTHORIZED, Messages.INVALID_OR_EXPIRED_REFRESH_TOKEN);
+  }
+
+  // ✅ Fetch the user from DB
+  const user = await User.findById(decode.userId).select("_id email role");
+  if (!user) {
+    throw createHttpError(HttpStatus.UNAUTHORIZED, Messages.USER_NOT_FOUND);
+  }
+
+  // ✅ Generate new access token
+  const accessToken = genrateAccessToken(decode.userId, decode.role);
+
+  return {
+    accessToken,
+    user: {
+      id: user._id.toString(),
+      email: user.email,
+      role: user.role
+    }
+  };
+}
 
 }

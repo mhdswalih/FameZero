@@ -12,13 +12,18 @@ import { useEffect } from 'react'
 const Landing = () => {
     const navigate = useNavigate()
     const user = useSelector((state:RootState)=> state.user)
+    const admin = useSelector((state:RootState) => state.admin)
     useEffect(()=>{
-        if(user.role === 'user'){
-            navigate('/')
-        }else{
+        if(user.role === 'hotel'){
             navigate('/hotel/landing-page')
         }
-    },[user])
+    },[])
+
+      useEffect(()=>{
+    if(admin._id){
+       navigate('/admin')
+    }
+   },[admin])
     return (
         <div>
             <CarouselWithText />

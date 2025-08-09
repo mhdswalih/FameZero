@@ -6,6 +6,7 @@ import AdminLogin from '../Components/Admin/AdminLogin';
 import { useSelector } from 'react-redux';
 import { RootState } from '../Redux/store';
 import { ReactElement } from 'react';
+import DashBoard from '../Components/Admin/Pages/DashBoard';
 
 const AdminAuth = () => {
   const ProtectedRouteAdmin = ({children} : {children: ReactElement}) => {
@@ -33,6 +34,11 @@ const AdminAuth = () => {
       <Route path="/" element={
         <ProtectedRouteAdmin>
           <AdminHomePage />
+        </ProtectedRouteAdmin>
+      } />
+      <Route path='/dashboard' element={
+        <ProtectedRouteAdmin>
+          <DashBoard />
         </ProtectedRouteAdmin>
       } />
       <Route path="/user-table" element={

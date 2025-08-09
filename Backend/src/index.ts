@@ -1,4 +1,5 @@
-import  express ,{ Request,Response }from 'express';
+import  express from 'express';
+import cookieParser from 'cookie-parser';
 import userRouter from './routers/userRouters/userRoute'
 import hotelRoutes from './routers/hoteRoutes/hotelRoutes'
 import cors from 'cors';
@@ -24,6 +25,7 @@ app.use(cors({
 app.use(express.json())
 app.use(express.urlencoded({extended:true}))
 app.use(express.static('public'))
+app.use(cookieParser());
 
 
 
@@ -33,6 +35,7 @@ app.use('/api/hotel',hotelRoutes)
 app.use('/api/hotel',hotelProfileRoutes)
 app.use('/api/admin',adminRoutes)
 app.use(errorHandler)
+
 
 connectDB().then(() => {
   app.listen(3000, () => {
