@@ -151,8 +151,6 @@ const HotelProfileSheet = () => {
     dispatch(removeHotelProfile())
     navigate('/hotel/landing-page');
     toast.success('Logged out successfully');
-
-
   };
   const id = user.id
   const handleGetHotel = async () => {

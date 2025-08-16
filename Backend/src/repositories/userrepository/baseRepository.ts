@@ -3,9 +3,9 @@ import { IBaseRepository } from "../../interfaces/baserepo/IbaseRepo";
 
 
 export class BaseRepository<T extends Document> implements IBaseRepository<T> {
-    constructor(protected readonly model: Model<T>) {}
-   async find(filter: FilterQuery<T>, option?: QueryOptions): Promise<T[]> {  
-          return await this.model.find(filter, null, option);
+    constructor(protected readonly model: Model<T>) { }
+    async find(filter: FilterQuery<T>, option?: QueryOptions): Promise<T[]> {
+        return await this.model.find(filter, null, option);
     }
     countDocument(filter: FilterQuery<T>): Promise<number> {
         throw new Error("Method not implemented.");
@@ -57,16 +57,24 @@ export class BaseRepository<T extends Document> implements IBaseRepository<T> {
             throw new Error(`Error finding entities with pagination ${error instanceof Error ? error.message : String(error)}`);
         }
     }
-
-  async update(id: string, data: UpdateQuery<T>): Promise<T | null> {
-    try {
-    
-        const entity = await this.model.findByIdAndUpdate(id, data, { new: true }).exec();
-        return entity;
-    } catch (error: any) {
-        throw new Error(`Error updating entity ${error instanceof Error ? error.message : String(error)}`);
+    async updatePassword(email: string, hashedPassword: string): Promise<T | null> {
+        try {
+            const enity = await this.model.findOneAndUpdate({ email }, { password: hashedPassword });
+            return enity;
+        } catch (error) {
+            throw new Error(`Error updating password: ${error instanceof Error ? error.message : String(error)}`);
+        }
     }
-}
+
+    async update(id: string, data: UpdateQuery<T>): Promise<T | null> {
+        try {
+
+            const entity = await this.model.findByIdAndUpdate(id, data, { new: true }).exec();
+            return entity;
+        } catch (error: any) {
+            throw new Error(`Error updating entity ${error instanceof Error ? error.message : String(error)}`);
+        }
+    }
 
     async delete(id: string): Promise<T | null> {
         try {
@@ -90,6 +98,9 @@ export class BaseRepository<T extends Document> implements IBaseRepository<T> {
         }
     }
     async findByEmail(email: string): Promise<T | null> {
-        return await this.model.findOne({email})
+        return await this.model.findOne({ email })
+    }
+    async findByPhone(phone: string): Promise<T | null> {
+        return await this.model.findOne({phone})
     }
 }

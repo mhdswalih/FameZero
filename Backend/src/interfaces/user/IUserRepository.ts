@@ -6,6 +6,7 @@ import { IBaseRepository } from '../baserepo/IbaseRepo';
 export interface IUserRepository extends IBaseRepository<IUser> {
     updateUser(id:string,userData:Partial<IUserProfile>):Promise<void>;
     getAllUsers():Promise<IUser[]>;
-    updateUserPassword(id:string,hashedPassword:string):Promise<IUser | null>;
+    updateUserPassword(email:string,hashedPassword:string):Promise<void>;
     checkMobileExists(mobile:string):Promise<boolean>;
+    updateEmail(userId:string,email:string):Promise<void>
 }

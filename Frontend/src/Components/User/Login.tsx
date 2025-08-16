@@ -1,17 +1,21 @@
 import { useState } from "react";
-import { loginUser } from "../../Api/userApiCalls/userApi";
+import {  googleLogin, loginUser } from "../../Api/userApiCalls/userApi";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { useDispatch } from "react-redux";
-import { addUser} from "../../Redux/Slice/userSlice";
+import { addUser } from "../../Redux/Slice/userSlice";
 import { addUserProfile } from "../../Redux/Slice/ProfileSlice/userProfileSlice";
 import { addHotelProfile } from "../../Redux/Slice/ProfileSlice/hotelProfileSlice";
+import { GoogleLogin } from '@react-oauth/google'
+import { ForgetPassword } from "./Modals/User/ForgetPassword";
 
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
+  const [googleToken, setGoogleToken] = useState<string | null>(null)
+  const [passwordModal,setPasswordModal] = useState(false)
+  const [isModalOpen, setIsModalOpen] = useState(false)
   const navigate = useNavigate()
   const dispatch = useDispatch()
   const handleSubmit = async (e: any) => {
@@ -25,27 +29,27 @@ const LoginPage = () => {
         token: response?.accessToken || null
       }))
       dispatch(addUserProfile({
-          profilepic:response.user?.profilepic || '',
-          phone:response.user?.phone || '',
-          address : response.user?.address || '',
-          city : response.user?.city || ''
+        profilepic: response.user?.profilepic || '',
+        phone: response.user?.phone || '',
+        address: response.user?.address || '',
+        city: response.user?.city || ''
       }))
       dispatch(addHotelProfile({
-         profilepic : response.user?.prifilepic || '',
-         role:response.user?.role || '',
-         status:response.user?.status || '',
-         idProof : response.user?.idProof || '',
-         phone: response.user?.phone || '',
-         location : response.user?.location || '',
-         city : response.user?.city || '',
+        profilepic: response.user?.prifilepic || '',
+        role: response.user?.role || '',
+        status: response.user?.status || '',
+        idProof: response.user?.idProof || '',
+        phone: response.user?.phone || '',
+        location: response.user?.location || '',
+        city: response.user?.city || '',
       }))
       toast.success(response.message)
       setTimeout(() => {
-        if(response.user?.role === 'hotel'){
+        if (response.user?.role === 'hotel') {
           navigate('/hotel/landing-page')
-        }else if (response.user?.role === 'user'){
+        } else if (response.user?.role === 'user') {
           navigate('/')
-        }else{
+        } else {
           toast.error('No access')
         }
       }, 1000)
@@ -53,6 +57,63 @@ const LoginPage = () => {
       toast.error(error.error);
     }
   };
+
+
+
+  const handleGoogleLogin = async (credentialResponse: any) => {
+  const decode = credentialResponse.credential
+  setGoogleToken(decode);
+
+  setIsModalOpen(true);
+};
+
+const handleRoleSelect = async (selectedRole: 'user' | 'hotel') => {
+  if (!googleToken) {
+    toast.error('Authentication failed');
+    setIsModalOpen(false); 
+    return;
+  }
+  try {
+    const response = await googleLogin(googleToken, selectedRole);
+ dispatch(addUser({
+        id: response.user?.id || '',
+        email: response.user?.email || '',
+        role: response.user?.role || '',
+        token: response?.accessToken || null
+      }))
+      dispatch(addUserProfile({
+        profilepic: response.user?.profilepic || '',
+        phone: response.user?.phone || '',
+        address: response.user?.address || '',
+        city: response.user?.city || ''
+      }))
+      dispatch(addHotelProfile({
+        profilepic: response.user?.prifilepic || '',
+        role: response.user?.role || '',
+        status: response.user?.status || '',
+        idProof: response.user?.idProof || '',
+        phone: response.user?.phone || '',
+        location: response.user?.location || '',
+        city: response.user?.city || '',
+      }))
+
+    toast.success(response.message);
+    setIsModalOpen(false); 
+     
+    setTimeout(() => {
+      if (response.user?.role === 'hotel') {
+        navigate('/hotel/landing-page');
+      } else {
+        navigate('/');
+      }
+    }, 1000);
+
+  } catch (error: any) {
+    toast.error(error.message || 'Login failed');
+    setIsModalOpen(false); 
+  }
+};
+
 
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-orange-50 via-white to-yellow-50 overflow-hidden">
@@ -73,9 +134,7 @@ const LoginPage = () => {
 
       {/* Main content container */}
       <div className="relative z-10 flex min-h-screen">
-        {/* Background animation overlay for right side */}
         <div className="absolute inset-0 md:left-1/2 bg-gradient-to-br from-orange-50/80 via-white/90 to-yellow-50/80 pointer-events-none"></div>
-        {/* Left side - Image */}
         <div className="hidden md:flex md:w-1/2 bg-white items-center justify-center">
           <img
             src="/img/login.jpg"
@@ -100,67 +159,32 @@ const LoginPage = () => {
           <div className="my-auto flex flex-col w-full max-w-[450px] mx-auto mt-8 mb-10">
             <p className="text-[32px] font-bold mb-6 text-orange-400">Login</p>
 
-            <div className="">
-              <form className="pb-2" onSubmit={handleSubmit}>
-                <input type="hidden" name="provider" value="google" />
-                <button
-                  className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-zinc-300 bg-white text-black hover:bg-zinc-100 h-10 px-4 w-full py-6 mb-2"
-                  type="button"
-                >
-                  <span className="mr-2">
-                    <svg
-                      stroke="currentColor"
-                      fill="currentColor"
-                      strokeWidth="0"
-                      version="1.1"
-                      x="0px"
-                      y="0px"
-                      viewBox="0 0 48 48"
-                      enableBackground="new 0 0 48 48"
-                      className="h-5 w-5"
-                      height="1em"
-                      width="1em"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        fill="#FFC107"
-                        d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12
-c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24
-c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"
-                      ></path>
-                      <path
-                        fill="#FF3D00"
-                        d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657
-C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"
-                      ></path>
-                      <path
-                        fill="#4CAF50"
-                        d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36
-c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"
-                      ></path>
-                      <path
-                        fill="#1976D2"
-                        d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571
-c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"
-                      ></path>
-                    </svg>
-                  </span>
-                  <span>Google</span>
-                </button>
-              </form>
+            <div className="space-y-4">
+              {/* Google Login Button - Styled to match phone button */}
+              <div className="w-full">
+                <GoogleLogin
+                  onSuccess={handleGoogleLogin}
+                  onError={() => console.log('Login error')}
+                  width='100%'
+                  theme="outline"
+                  size="large"
+                  text="signin_with"
+                />
+              </div>
 
-              <form className="pb-2">
+              {/* Phone Login Button */}
+              <form className="w-full">
                 <input type="hidden" name="provider" value="phone" />
                 <button
-                  className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-zinc-300 bg-white text-black hover:bg-zinc-100 h-10 px-4 w-full py-6"
+                  className="inline-flex items-center justify-center border border-gray-300 rounded-md w-full h-12 px-4 py-2 bg-white hover:bg-gray-50 text-gray-700 font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   type="button"
                 >
-                  <span className="mr-2">
+                  <span className="mr-3">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       viewBox="0 0 24 24"
                       fill="currentColor"
-                      className="w-6 h-6"
+                      className="w-5 h-5"
                     >
                       <path
                         fillRule="evenodd"
@@ -169,16 +193,47 @@ c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.
                       />
                     </svg>
                   </span>
-                  <span>Phone</span>
+                  <span>Continue with Phone</span>
                 </button>
               </form>
-            </div>
 
+              {/* Role Selection Modal */}
+              {isModalOpen && (
+                <div className="fixed inset-0  flex items-center justify-center z-50">
+                  <div className="bg-white rounded-lg p-6 w-96 max-w-md mx-4 shadow-xl">
+                    <h2 className="text-xl font-semibold text-gray-900 mb-6 text-center">
+                      Select Your Role
+                    </h2>
+                    <div className="space-y-3 mb-6">
+                      <button
+                        onClick={() => handleRoleSelect('user')}
+                        className="whitespace-nowrap ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-orange-350 text-black grow border border-orange-400 hover:bg-orange-400 hover:text-white flex w-full max-w-full mt-6 items-center justify-center rounded-lg px-4 py-4 text-base font-medium"
+                      >
+                        Normal User
+                      </button>
+                      <button
+                        onClick={() => handleRoleSelect('hotel')}
+                        className="whitespace-nowrap ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-orange-350 text-black grow border border-orange-400 hover:bg-orange-400 hover:text-white flex w-full max-w-full mt-6 items-center justify-center rounded-lg px-4 py-4 text-base font-medium"
+                      >
+                        Hotel User
+                      </button>
+                    </div>
+                    <button
+                      onClick={() => setIsModalOpen(false)}
+                      className="w-full px-4 py-3 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition-colors duration-200 font-medium"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
             <p className="flex justify-between text-sm mt-2">
               <a href="/Signup" className="font-medium text-black text-sm">
                 Don't have an account? Sign up
               </a>
-              <a href="" className="text-orange-400">
+              <a onClick={(e)=>{e.preventDefault() ;
+                setPasswordModal(true)}} href="" className="text-orange-400">
                 Forget Password?
               </a>
             </p>
@@ -249,6 +304,11 @@ c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.
           </div>
         </div>
       </div>
+      <ForgetPassword 
+     
+       onClose={()=>setPasswordModal(false)}
+       isOpen={passwordModal}
+      />
     </div>
   );
 };

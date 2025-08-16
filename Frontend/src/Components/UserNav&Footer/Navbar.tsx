@@ -13,8 +13,6 @@ import { getUserDetails, updateUser } from "../../Api/userApiCalls/profileApi";
 import UserEditModal from "../User/Modals/User/UserEditModal";
 import { addUserProfile, removeUserProfile } from '../../Redux/Slice/ProfileSlice/userProfileSlice'
 
-
-// Custom Sheet Component Implementation
 const SheetContext = createContext<{
   open: boolean;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;

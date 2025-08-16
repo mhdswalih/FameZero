@@ -8,8 +8,10 @@ import OTPVerificationPage from '../Components/User/Otp'
 import ProfilePage from '../Components/User/ProfileDetailPage'
 import NewspaperPage from '../Components/User/AboutPage'
 import { ReactElement } from 'react'
-import Navbar from '../Components/UserNav&Footer/Navbar'
 import FoodSection from '../Components/User/FoodPage'
+import { Settings } from 'lucide-react'
+import UserSettings from '../Components/User/Settings'
+import ResetPassword from '../Components/User/ResetPassword'
 
 const ProtectedRoute = ({ children }: { children:ReactElement }) => {
   const user = useSelector((state: RootState) => state.user);
@@ -43,6 +45,8 @@ const AuthRoutes = () => {
               <ProfilePage />
             // </ProtectedRoute>
               } />
+        <Route path='settings' element={<UserSettings />}/> 
+        <Route path='reset-password' element={<ResetPassword />} />     
         <Route path='about-page' element={
           <>
           {/* <Navbar /> */}

@@ -4,6 +4,10 @@ export interface IUser extends Document {
     _id: string;
     name: string;
     email: string;
+    phone:string;
+    profilepic:string;
+    isGoogleAuth:boolean;
+    isPhoneAuth :boolean;
     password: string;
     role: string;
     isBlocked:boolean;
@@ -21,11 +25,15 @@ const userSchema = new mongoose.Schema<IUser>({
     email: {
         type: String,
         unique: true,
-        required: true,
+    },
+    profilepic:{
+        type:String,
+    },
+    phone: {
+        type : String,
     },
     password: {
         type: String,
-        required: true
     },
     role: {
         type: String,
@@ -36,6 +44,14 @@ const userSchema = new mongoose.Schema<IUser>({
     isBlocked : {
         type : Boolean,
         default : false
+    },
+    isGoogleAuth:{
+        type:Boolean,
+        default:false,
+    },
+    isPhoneAuth: {
+        type:Boolean,
+        default :false
     },
     isVerified: {
         type: Boolean,

@@ -47,3 +47,29 @@ export const refreshToken = async () =>{
   }
 }
 
+export const googleLogin = async(googleToken:string,role:string) =>{
+  try {
+    const response = await axiosInstance.post('/google-login',{googleToken,role}) 
+    return response.data
+  } catch (error:any) {
+    throw error.response?.data
+  }
+}
+
+export const forgetPassword = async(email:string)=>{
+  try {
+    const response = await axiosInstance.post('/forget-password',{email})
+    return response.data
+  } catch (error:any) {
+     throw error.response?.data
+  }
+}
+
+export const resetPassword = async()=>{
+  try {
+    const response = await axiosInstance.post('/reset-password')
+    return response.data
+  } catch (error:any) {
+    throw error.response?.erorr
+  }
+}

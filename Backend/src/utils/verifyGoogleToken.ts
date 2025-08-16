@@ -1,0 +1,23 @@
+import { OAuth2Client } from "google-auth-library";
+
+
+const clint = new OAuth2Client( process.env.GOOGLE_CLINT_ID)
+
+export const verifyGoogleAndCreateUser = async(token:string) =>{  
+    try {
+        const ticket = await clint.verifyIdToken({
+            idToken:token,
+            audience:process.env.GOOGLE_CLINT_ID
+        });
+        const payload = ticket.getPayload()
+        if(!payload) throw new Error('Invalid Google Token')
+            return {
+        id:payload.sub,
+        name:payload.name,
+        email:payload.email,
+        profilepic:payload.picture,
+    };
+    } catch (error) {
+      throw new Error('Faild to veryfy Google token')  
+    }
+}

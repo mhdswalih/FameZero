@@ -20,7 +20,6 @@ export class ProfileController implements IProfileController {
     try {
       const { id } = req.params;
       let userProfile;
-
       if (req.file) {
         userProfile = {
           ...req.body,
@@ -29,7 +28,7 @@ export class ProfileController implements IProfileController {
       } else {
         userProfile = req.body.userProfile || req.body;
       }
-
+      
       // if (userProfile.userId && typeof userProfile.userId === 'object' && userProfile.userId._id) {
       //   userProfile.userId = userProfile.userId._id;
       // }

@@ -1,4 +1,5 @@
 import { Messages } from "../../constants/Messeges";
+import { IUserRepository } from "../../interfaces/user/IUserRepository";
 import { IProfileService } from "../../interfaces/user/profile/IProfileService";
 import userProfile, {
   IUserProfile,
@@ -6,7 +7,7 @@ import userProfile, {
 import { ProfileRepository } from "../../repositories/userrepository/profileRepository";
 
 export class ProfileService implements IProfileService {
-  constructor(private _profileRepository: ProfileRepository) {}
+  constructor(private _profileRepository: ProfileRepository,private _userRepository:IUserRepository) {}
   
   async getProfile(userId: string): Promise<IUserProfile | null> {
     return await this._profileRepository.findByUserId(userId);
@@ -32,7 +33,9 @@ export class ProfileService implements IProfileService {
         userId,
         profileData
       );
-
+      if (profileData.email) {
+        await this._userRepository.updateEmail(userId, profileData.email);
+      }
       if (!updatedProfile) {
         throw new Error(Messages.USER_NOT_FOUND);
       }

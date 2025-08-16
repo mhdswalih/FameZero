@@ -11,17 +11,17 @@ import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../../Redux/store';
 import { removeUser } from '../../Redux/Slice/userSlice';
 import toast from 'react-hot-toast';
-import {  editHotelProfile, getHotels, reRequstOption } from '../../Api/hotelApiCalls/hotelProfileApi';
+import { editHotelProfile, getHotels, reRequstOption } from '../../Api/hotelApiCalls/hotelProfileApi';
 import HotelEditModal from '../User/Modals/Hotel/HotelEditModal';
-import { addHotelProfile } from '../../Redux/Slice/ProfileSlice/hotelProfileSlice';
-import { VerifiedIcon,InfoIcon } from 'lucide-react';
+import { addHotelProfile, removeHotelProfile } from '../../Redux/Slice/ProfileSlice/hotelProfileSlice';
+import { VerifiedIcon, InfoIcon } from 'lucide-react';
 
 interface HotelProfile {
-  _id:string;
+  _id: string;
   name: string;
   profilepic: string;
-  status:string;
-  idProof:string;
+  status: string;
+  idProof: string;
   phone: string;
   location: string;
   city: string;
@@ -32,80 +32,79 @@ const HotelProfilePage = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const user = useSelector((state: RootState) => state.user);
-  const hotelprofile = useSelector((state : RootState) => state.hotelProfile)
+  const hotelprofile = useSelector((state: RootState) => state.hotelProfile)
+ console.log(hotelprofile,'dsadasdasda////////////////////////////////////////////////');
+ 
 
-  
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  // Initialize userProfile state
   const [hotelProfile, setHotelProfile] = useState<HotelProfile>({
-    _id:'',
+    _id: '',
     name: '',
     profilepic: "",
-    status:'',
+    status: '',
     phone: '',
     location: '',
-    idProof:'',
+    idProof: '',
     city: '',
   });
 
-  
+
   const [editedProfile, setEditedProfile] = useState<HotelProfile>({ ...hotelProfile });
 
   const handleLogout = () => {
     dispatch(removeUser());
+    dispatch(removeHotelProfile())
     toast.success('Logged out successfully');
     navigate('/hotel/landing-page');
   };
- const id = user.id 
-const handleEditHotel = async (selectedFile?: File, selectedIdProofFile?: File) => {   
-  try {
-    const response = await editHotelProfile(id, editedProfile, selectedFile, selectedIdProofFile);  
-    // Check the actual response structure
-    if (response && response.success) {
-      const updatedProfile = {
-        _id:response._id || editedProfile._id,
-        name: response.name || editedProfile.name,
-        status:response.status || editedProfile.status,
-        profilepic: response.profilepic || editedProfile.profilepic,  
-        phone: response.phone || editedProfile.phone,
-        location: response.location || editedProfile.location,
-        idProof: response.idProof || editedProfile.idProof,
-        city: response.city || editedProfile.city,
-      };
-       
-      setHotelProfile(updatedProfile);
-      dispatch(addHotelProfile(updatedProfile));
-      setEditedProfile(updatedProfile);
-      
-      toast.success('Profile updated successfully');
-      setIsEditModalOpen(false);
-    }
-  } catch (error: any) {
-    console.error('Error in handleEditHotel:', error);
-    toast.error(error.message || error.error || 'Failed to update profile');
-  }
-};
-
-const reRequst = async(id:string) =>{  
-  try {
-    await reRequstOption(id)
-    await handleGetHotel()
-  } catch (error:any) {
-    toast.error(error.message || error.error);
-  }
-}
-const handleGetHotel = async () => { 
+  const id = user.id
+  const handleEditHotel = async (selectedFile?: File, selectedIdProofFile?: File) => {
     try {
-      const response = await getHotels(id);    
+      const response = await editHotelProfile(id, editedProfile, selectedFile, selectedIdProofFile);
+      if (response && response.success) {
+        const updatedProfile = {
+          _id: response._id || editedProfile._id,
+          name: response.name || editedProfile.name,
+          status: response.status || editedProfile.status,
+          profilepic: response.profilepic || editedProfile.profilepic,
+          phone: response.phone || editedProfile.phone,
+          location: response.location || editedProfile.location,
+          idProof: response.idProof || editedProfile.idProof,
+          city: response.city || editedProfile.city,
+        };
+
+        setHotelProfile(updatedProfile);
+        dispatch(addHotelProfile(updatedProfile));
+        setEditedProfile(updatedProfile);
+
+        toast.success('Profile updated successfully');
+        setIsEditModalOpen(false);
+      }
+    } catch (error: any) {
+      toast.error(error.message || error.error || 'Failed to update profile');
+    }
+  };
+
+  const reRequst = async (id: string) => {
+    try {
+      await reRequstOption(id)
+      await handleGetHotel()
+    } catch (error: any) {
+      // toast.error(error.message || error.error);
+    }
+  }
+  const handleGetHotel = async () => {
+    try {
+      const response = await getHotels(id);
       if (response.data) {
         const updatedProfile = {
-          _id:response.data._id || '',
+          _id: response.data._id || '',
           name: response.data.name || '',
-          status : response.data.status || '',
+          status: response.data.status || '',
           profilepic: response.data.profilepic || '',
-          idProof :response.data.idProof || '',
+          idProof: response.data.idProof || '',
           phone: response.data.phone || '',
           location: response.data.location || '',
           city: response.data.city || '',
@@ -114,16 +113,16 @@ const handleGetHotel = async () => {
         dispatch(addHotelProfile(updatedProfile))
         setEditedProfile(updatedProfile);
       }
-    } catch (error:any) {
-       toast.error(error.message || error.error || 'Failed to get profile');
+    } catch (error: any) {
+      // toast.error(error.message || error.error || 'Failed to get profile');
     }
   };
 
   useEffect(() => {
-      handleGetHotel();
+    handleGetHotel();
   }, []);
- 
-   useEffect(() => {
+
+  useEffect(() => {
     setEditedProfile({ ...hotelProfile });
   }, [hotelProfile]);
   // Profile menu items
@@ -187,71 +186,71 @@ const handleGetHotel = async () => {
             >
               <div className="p-6 border-b border-gray-100">
                 <div className="flex items-center gap-4">
-               {
-                (hotelProfile.status === 'Pending' && (
-                    <div className="relative">
-                    <img
-                      src={hotelprofile.profilepic || "https://images.unsplash.com/photo-1633332755192-727a05c4013d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1480&q=80"}
-                      alt="Profile"
-                      className="w-12 h-12 sm:w-16 sm:h-16 rounded-full object-cover border-2 border-orange-400 p-0.5"
-                    />
-                    <button className="absolute bottom-0 right-0 bg-orange-400 text-white p-1 rounded-full shadow-lg hover:bg-orange-500 transition-colors">
-                      <TimerIcon className="h-3 w-3 sm:h-4 sm:w-4" />
-                    </button>
-                  </div>
-                ))
-               }
-               {
-                (hotelProfile.status === 'Approved' && (
-                    <div className="relative">
-                    <img
-                      src={hotelprofile.profilepic || "https://images.unsplash.com/photo-1633332755192-727a05c4013d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1480&q=80"}
-                      alt="Profile"
-                      className="w-12 h-12 sm:w-16 sm:h-16 rounded-full object-cover border-2 border-green-600 p-0.5"
-                    />
-                    <button className="absolute bottom-0 right-0 bg-green-600 text-white p-1 rounded-full shadow-lg hover:bg-green-700 transition-colors">
-                      <VerifiedIcon className="h-3 w-3 sm:h-4 sm:w-4" />
-                    </button>
-                  </div>
-                ))
-               }
-                {
-                (hotelProfile.status === 'Rejected' && (
-                    <div className="relative">
-                    <img
-                      src={hotelprofile.profilepic || "https://images.unsplash.com/photo-1633332755192-727a05c4013d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1480&q=80"}
-                      alt="Profile"
-                      className="w-12 h-12 sm:w-16 sm:h-16 rounded-full object-cover border-2 border-red-600 p-0.5"
-                    />
-                    <button className="absolute bottom-0 right-0 bg-red-600 text-white p-1 rounded-full shadow-lg hover:bg-red-700 transition-colors">
-                      <InfoIcon className="h-3 w-3 sm:h-4 sm:w-4" />
-                    </button>
-                  </div>
-                ))
-               }
+                  {
+                    (hotelProfile.status === 'Pending' && (
+                      <div className="relative">
+                        <img
+                          src={hotelprofile.profilepic || "https://images.unsplash.com/photo-1633332755192-727a05c4013d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1480&q=80"}
+                          alt="Profile"
+                          className="w-12 h-12 sm:w-16 sm:h-16 rounded-full object-cover border-2 border-orange-400 p-0.5"
+                        />
+                        <button className="absolute bottom-0 right-0 bg-orange-400 text-white p-1 rounded-full shadow-lg hover:bg-orange-500 transition-colors">
+                          <TimerIcon className="h-3 w-3 sm:h-4 sm:w-4" />
+                        </button>
+                      </div>
+                    ))
+                  }
+                  {
+                    (hotelProfile.status === 'Approved' && (
+                      <div className="relative">
+                        <img
+                          src={hotelprofile.profilepic || "https://images.unsplash.com/photo-1633332755192-727a05c4013d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1480&q=80"}
+                          alt="Profile"
+                          className="w-12 h-12 sm:w-16 sm:h-16 rounded-full object-cover border-2 border-green-600 p-0.5"
+                        />
+                        <button className="absolute bottom-0 right-0 bg-green-600 text-white p-1 rounded-full shadow-lg hover:bg-green-700 transition-colors">
+                          <VerifiedIcon className="h-3 w-3 sm:h-4 sm:w-4" />
+                        </button>
+                      </div>
+                    ))
+                  }
+                  {
+                    (hotelProfile.status === 'Rejected' && (
+                      <div className="relative">
+                        <img
+                          src={hotelprofile.profilepic || "https://images.unsplash.com/photo-1633332755192-727a05c4013d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1480&q=80"}
+                          alt="Profile"
+                          className="w-12 h-12 sm:w-16 sm:h-16 rounded-full object-cover border-2 border-red-600 p-0.5"
+                        />
+                        <button className="absolute bottom-0 right-0 bg-red-600 text-white p-1 rounded-full shadow-lg hover:bg-red-700 transition-colors">
+                          <InfoIcon className="h-3 w-3 sm:h-4 sm:w-4" />
+                        </button>
+                      </div>
+                    ))
+                  }
                   <div className="flex-1">
                     <h3 className="text-xl font-semibold text-gray-900">{hotelProfile.name}</h3>
                     <p className="text-gray-600">{user.email}</p>
                     <div className="flex items-center gap-2 mt-2">
                       {
-                       (hotelProfile.status === 'Pending' && (
-                         <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-400 text-white">
-                        Pending
-                      </span>
-                       ))
-                      } 
+                        (hotelProfile.status === 'Pending' && (
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-400 text-white">
+                            Pending
+                          </span>
+                        ))
+                      }
                       {
                         (hotelProfile.status === 'Approved' && (
-                         <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-600">
-                        Verified <VerifiedIcon className='h-3 w-3 sm:h-4 sm:w-4' />
-                      </span>
-                       ))
+                          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-600">
+                            Verified <VerifiedIcon className='h-3 w-3 sm:h-4 sm:w-4' />
+                          </span>
+                        ))
                       }
                       {
                         (hotelProfile.status === 'Rejected' && (
-                            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-red-600 text-white">
-                        Rejected <InfoIcon className='h-3 w-3 sm:h-4 sm:w-4' />
-                       </span>
+                          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-red-600 text-white">
+                            Rejected <InfoIcon className='h-3 w-3 sm:h-4 sm:w-4' />
+                          </span>
                         ))
                       }
                       <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
@@ -261,20 +260,20 @@ const handleGetHotel = async () => {
                     </div>
                   </div>
                   <div className='flex flex-col gap-2 '>
-                  <button
-                    onClick={handleEdit}
-                    className="bg-orange-400 hover:bg-orange-500 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center gap-2"
-                  >
-                    <Edit3 className="h-4 w-4" />
-                    Edit Profile
-                  </button>
-                  {
-                    (hotelProfile.status === 'Rejected' && (
-                      <div>
-                        <button onClick={()=>reRequst(hotelProfile._id)} className='bg-red-500 hover:bg-red-600  text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center gap-2'><RefreshCcwIcon/>Retry</button>
-                      </div>
-                    ))
-                  }
+                    <button
+                      onClick={handleEdit}
+                      className="bg-orange-400 hover:bg-orange-500 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center gap-2"
+                    >
+                      <Edit3 className="h-4 w-4" />
+                      Edit Profile
+                    </button>
+                    {
+                      (hotelProfile.status === 'Rejected' && (
+                        <div>
+                          <button onClick={() => reRequst(hotelProfile._id)} className='bg-red-500 hover:bg-red-600  text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center gap-2'><RefreshCcwIcon />Retry</button>
+                        </div>
+                      ))
+                    }
                   </div>
                 </div>
               </div>

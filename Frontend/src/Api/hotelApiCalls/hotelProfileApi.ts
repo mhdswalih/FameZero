@@ -3,6 +3,8 @@ import { Axios, axiosInstance} from "../Instance/axiosInstance"
 
 export const getHotels = async (id:string) =>{
     try {
+      console.log('...................................................');
+      
         const response = await axiosInstance.get(`/hotel/get-hotel-profile/${id}`)
         return response.data
         

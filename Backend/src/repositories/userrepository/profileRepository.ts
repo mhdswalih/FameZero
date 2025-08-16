@@ -1,5 +1,6 @@
 import { Messages } from "../../constants/Messeges";
 import { IProfileRepositer } from "../../interfaces/user/profile/IProfileRepository";
+import { User } from "../../models/usermodel/userModel";
 import Profile, { IUserProfile } from "../../models/usermodel/userProfileModel";
 import { BaseRepository } from "./baseRepository";
 
@@ -11,7 +12,6 @@ export class ProfileRepository extends BaseRepository<IUserProfile> implements I
         return await this.model.create(data)
     };
     async findByUserId(userId: string): Promise<IUserProfile | null>  {
-     
       
          const profile = await this.model.findOne({ userId })
                 .populate({
@@ -42,12 +42,13 @@ export class ProfileRepository extends BaseRepository<IUserProfile> implements I
       address: profileData.address,
       phone: profileData.phone
     };
-
+    
     // Perform update and return the updated document
     const updatedProfile = await this.model.updateOne(
       { userId },
       { $set: updateProfile },
     );
+    const updaUser = await User.findByIdAndUpdate(userId,{email:updateProfile.email})
     // if (updatedProfile.modifiedCount <  0) {
     //   throw new Error(`Profile Alredyy updated`);
     // }

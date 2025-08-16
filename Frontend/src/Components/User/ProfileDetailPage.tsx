@@ -118,7 +118,7 @@ useEffect(()=>{
   // }, [userProfile]);
 
   const profileMenuItems = [
-    { label: 'Account Settings', icon: Settings, onClick: () => {} },
+    { label: 'Account Settings', icon: Settings, onClick: () => {navigate('/settings')} },
     { label: 'Notifications', icon: Bell, onClick: () => {} },
     { label: 'Privacy & Security', icon: Shield, onClick: () => {} },
     { label: 'Sign Out', icon: LogOut, onClick: handleLogout },

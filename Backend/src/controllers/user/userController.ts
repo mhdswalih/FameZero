@@ -1,8 +1,9 @@
-import { Request, Response, NextFunction } from "express";
+import { Request, Response, NextFunction, response } from "express";
 import { IUserController } from "../../interfaces/user/IUserController";
 import { IUserService } from "../../interfaces/user/IUserservice";
 import { HttpStatus } from "../../constants/HttpStatus";
 import { Messages } from "../../constants/Messeges";
+
 
 
 
@@ -41,6 +42,7 @@ export class UserController implements IUserController {
         try {
             const { email, password } = req.body;
             const response = await this._userService.loginUser(email, password)
+            
             res.cookie('refreshToken', response.refreshToken, {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === 'production', 
@@ -52,8 +54,77 @@ export class UserController implements IUserController {
                 accessToken: response.accessToken,
                 user: response.user,
             });
+        } catch (error:any) {
+            next(error)
+        }
+    }
+    async logout(req: Request, res: Response, next: NextFunction): Promise<void> {
+        try {
+            res.clearCookie('refreshToken',{
+                 secure: process.env.NODE_ENV === "production",
+                sameSite: "none",
+            })
+            res.status(HttpStatus.OK).json({message:Messages.LOGOUT_SUCCESS})
         } catch (error) {
             next(error)
+        }
+    }
+    async googleLogin(req: Request, res: Response, next: NextFunction): Promise<void> {
+        try {
+           const {googleToken,role} = req.body;  
+           const response = await this._userService.googleLogin(googleToken,role) 
+           res.cookie('refreshToken', response.refreshToken, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production', 
+                sameSite: 'strict', 
+                maxAge: 7 * 24 * 60 * 60 * 1000 
+            });
+           res.status(HttpStatus.OK).json({message:response.message,accessToken:response.accessToken,
+            user:response.user
+           }) 
+        } catch (error) {
+            next(error)
+        }
+    }
+    async phoneAuth(req: Request, res: Response, next: NextFunction): Promise<void> {
+        try {
+            const {name,phone,role} = req.body
+            console.log(req.body,'///////////////////////////////');
+            
+            const response = await this._userService.phoneAuth(name,phone,role)
+              res.cookie('refreshToken', response.refreshToken, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production', 
+                sameSite: 'strict', 
+                maxAge: 7 * 24 * 60 * 60 * 1000 
+            });
+            console.log(response.user,'this si response from yser ');
+            
+           res.status(HttpStatus.OK).json({message:response.message,accessToken:response.accessToken,
+            user:response.user
+           }) 
+        } catch (error) {
+            
+        }
+    }
+    async emailVerifycation(req: Request, res: Response, next: NextFunction): Promise<void> {
+        try {
+            const {email} = req.body
+            const response = await this._userService.verifyEmail(email)
+            res.status(HttpStatus.OK).json({response})
+        } catch (error) {
+            next(error)
+        }
+    }
+    async otpverificationPhonAuth(req: Request, res: Response, next: NextFunction): Promise<void> {
+        try {
+            const {id} = req.params;
+            const {email,otp} = req.body
+            console.log(req.body,'................................');
+            const response = await this._userService.otpVerifycationPhoneAuth(id,email,otp)
+            res.status(HttpStatus.OK).json({response})
+        } catch (error) {
+            
         }
     }
     async getUserDetails(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -68,8 +139,6 @@ export class UserController implements IUserController {
             next(error)
         }
     }
-
-
     async refreshToken(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
             const token = req.cookies?.refreshToken;
@@ -80,9 +149,7 @@ export class UserController implements IUserController {
                 });
                 return;
             }
-
             const { accessToken, user } = await this._userService.refreshToken(token);
-
             res.status(HttpStatus.OK).json({
                 success: true,
                 response: accessToken,
@@ -92,7 +159,26 @@ export class UserController implements IUserController {
             next(error);
         }
     }
-
+        async forgetPassWord(req: Request, res: Response, next: NextFunction): Promise<void> {
+            try {
+                const {email} = req.body;
+                const response = await this._userService.forgetPassword(email)
+                res.status(HttpStatus.OK).json({success:true,data:response})
+            } catch (error) {
+                next(error)
+            }
+        }
+    async resetPassword(req: Request, res: Response, next: NextFunction): Promise<void> {
+        try {
+            const {token,newPassword,confirmPassword} =req.body
+            console.log(req.body,'this is from reset apasswordsadadasda');
+            
+            const response = await this._userService.resetPassword(token,newPassword,confirmPassword)
+            res.status(HttpStatus.OK).json({success:true,message:response.message})  
+        } catch (error) {
+            next(error)
+        }
+    }    
     async checkMobileExists(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
             // Implement mobile check logic here
@@ -115,25 +201,7 @@ export class UserController implements IUserController {
         }
     }
 
-    // async updateUser(req: Request, res: Response ,next:NextFunction): Promise<void> {
-    //     try {
-    //         const {id} = req.params;
-    //         console.log(id,'this is id from con');
-
-    //         const {userProfile} = req.body
-    //         console.log(userProfile,'this is from contrrollerererere');
-
-    //          const profile = await this._userService.updateUser(id,userProfile)
-    //          console.log(profile);
-
-    //          res.status(HttpStatus.OK).json({data:profile})
-    //     } catch (error) {
-    //         res.status(HttpStatus.BAD_REQUEST).json({
-    //             message: error instanceof Error ? error.message : Messages.UNKNOWN_ERROR,
-    //         });
-    //     }
-    // }
-
+   
     async deleteUser(req: Request, res: Response): Promise<void> {
         try {
             // Implement delete user logic here

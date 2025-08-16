@@ -4,6 +4,8 @@ import {
   User,  Phone, MapPin, Save, X, Camera, Image,
 } from 'lucide-react';
 import React, { useState } from 'react';
+import { isDeepEqual } from '../../../../utils/is-equal';
+import toast from 'react-hot-toast';
 
 
 interface userDetails {
@@ -71,6 +73,21 @@ const UserEditModal = ({
     setIsSubmitting(true);
     try {
 
+      if(userProfile){
+        const currentFormState = {
+          name : editedProfile.name,
+          phone:editedProfile.phone,
+          address:editedProfile.address,
+          profilepic:editedProfile.profilepic,
+          city:editedProfile.city,
+        }
+            
+          if (isDeepEqual(userProfile,currentFormState) && 
+                !selectedFile) {
+                toast.error("User profile already updated - no changes detected!");
+                return;
+            } 
+      }
       await handleEditUser(selectedFile || undefined);
 
       setSelectedFile(null);
@@ -83,7 +100,6 @@ const UserEditModal = ({
     }
   };
 
-  // Get the image source for display
   const getImageSrc = () => {
     if (previewUrl) return previewUrl;
     if (editedProfile.profilepic) return editedProfile.profilepic;

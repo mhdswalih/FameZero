@@ -4,12 +4,14 @@ import { ProfileService } from "../../../services/user/profileService";
 import { ProfileController } from "../../../controllers/user/profileController";
 import upload from "../../../config/multer";
 import { authenticateToken } from "../../../middleware/authMiddleware";
+import { UserRepository } from "../../../repositories/userrepository/userRepository";
 
 
 const profileRouter = Router()  
 
 const profileRepository = new ProfileRepository()
-const profileService = new ProfileService(profileRepository);
+const userRepository = new UserRepository()
+const profileService = new ProfileService(profileRepository,userRepository);
 const profileController = new ProfileController(profileService)
 
 profileRouter.get('/get-user-details/:id',authenticateToken,profileController.getProfile.bind(profileController))
