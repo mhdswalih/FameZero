@@ -2,16 +2,16 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import { RootState } from '../Redux/store'
 import Landing from '../Components/Landing/Landing'
-import Signup from '../Components/User/Signup'
-import LoginPage from '../Components/User/Login'
-import OTPVerificationPage from '../Components/User/Otp'
+import Signup from '../Components/Login/Signup'
+import LoginPage from '../Components/Login/Login'
+import OTPVerificationPage from '../Components/Login/Otp'
 import ProfilePage from '../Components/User/ProfileDetailPage'
 import NewspaperPage from '../Components/User/AboutPage'
 import { ReactElement } from 'react'
 import FoodSection from '../Components/User/FoodPage'
 import { Settings } from 'lucide-react'
 import UserSettings from '../Components/User/Settings'
-import ResetPassword from '../Components/User/ResetPassword'
+import ResetPassword from '../Components/ForgetPassword/ResetPassword'
 
 const ProtectedRoute = ({ children }: { children:ReactElement }) => {
   const user = useSelector((state: RootState) => state.user);
@@ -21,6 +21,8 @@ const ProtectedRoute = ({ children }: { children:ReactElement }) => {
 
 const PublicRoute = ({ children }: { children: ReactElement }) => {
   const user = useSelector((state: RootState) => state.user);  
+  console.log(user,'///////////////////////////////////////');
+  
   const isAuthenticated = !!user.token;
   
   return !isAuthenticated ? children : <Navigate to='/' replace />;

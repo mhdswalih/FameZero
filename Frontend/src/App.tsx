@@ -1,11 +1,11 @@
 import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import { Toaster } from 'react-hot-toast';
-import AuthRoutes from "./routes/AuthRoutes";
+import AuthRoutes from "./Routes/AuthRoutes";
 import { lazy, Suspense } from "react";
 import Loader from "./Components/ui/Loader";
-import AdminAuth from "./routes/AdminAuth";
-import HotelAuth from "./routes/HotelAuth";
-const UserRoutes = lazy(() => import("./routes/UserRoutes"));
+import AdminAuth from "./Routes/AdminAuth";
+import HotelAuth from "./Routes/HotelAuth";
+const UserRoutes = lazy(() => import("./Routes/UserRoutes"));
 
 function App() {
   return (

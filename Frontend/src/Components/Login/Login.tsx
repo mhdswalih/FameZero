@@ -7,7 +7,8 @@ import { addUser } from "../../Redux/Slice/userSlice";
 import { addUserProfile } from "../../Redux/Slice/ProfileSlice/userProfileSlice";
 import { addHotelProfile } from "../../Redux/Slice/ProfileSlice/hotelProfileSlice";
 import { GoogleLogin } from '@react-oauth/google'
-import { ForgetPassword } from "./Modals/User/ForgetPassword";
+import { ForgetPassword } from "../ForgetPassword/ForgetPassword";
+import PhoneAuthModal from "../Modals/PhoneAuthModal/PhoneAuthModal";
 
 
 const LoginPage = () => {
@@ -15,6 +16,7 @@ const LoginPage = () => {
   const [password, setPassword] = useState("");
   const [googleToken, setGoogleToken] = useState<string | null>(null)
   const [passwordModal,setPasswordModal] = useState(false)
+  const [phoneModal,setPhoneModal] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const navigate = useNavigate()
   const dispatch = useDispatch()
@@ -22,8 +24,8 @@ const LoginPage = () => {
     e.preventDefault();
     try {
       const response = await loginUser(email, password)
-      dispatch(addUser({
-        id: response.user?.id || '',
+        dispatch(addUser({
+          id: response.user?.id || '',
         email: response.user?.email || '',
         role: response.user?.role || '',
         token: response?.accessToken || null
@@ -43,7 +45,11 @@ const LoginPage = () => {
         location: response.user?.location || '',
         city: response.user?.city || '',
       }))
+      
       toast.success(response.message)
+      if(!response.user?.name){
+        navigate('/login')
+      }
       setTimeout(() => {
         if (response.user?.role === 'hotel') {
           navigate('/hotel/landing-page')
@@ -53,12 +59,12 @@ const LoginPage = () => {
           toast.error('No access')
         }
       }, 1000)
-    } catch (error: any) {
+    } catch (error: any) {  
       toast.error(error.error);
+      navigate('/login')  
     }
   };
-
-
+ 
 
   const handleGoogleLogin = async (credentialResponse: any) => {
   const decode = credentialResponse.credential
@@ -173,29 +179,31 @@ const handleRoleSelect = async (selectedRole: 'user' | 'hotel') => {
               </div>
 
               {/* Phone Login Button */}
-              <form className="w-full">
-                <input type="hidden" name="provider" value="phone" />
-                <button
-                  className="inline-flex items-center justify-center border border-gray-300 rounded-md w-full h-12 px-4 py-2 bg-white hover:bg-gray-50 text-gray-700 font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  type="button"
-                >
-                  <span className="mr-3">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 24 24"
-                      fill="currentColor"
-                      className="w-5 h-5"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M1.5 4.5a3 3 0 013-3h1.372c.86 0 1.61.586 1.819 1.42l1.105 4.423a1.875 1.875 0 01-.694 1.955l-1.293.97c-.135.101-.164.249-.126.352a11.285 11.285 0 006.697 6.697c.103.038.25.009.352-.126l.97-1.293a1.875 1.875 0 011.955-.694l4.423 1.105c.834.209 1.42.959 1.42 1.82V19.5a3 3 0 01-3 3h-2.25C8.552 22.5 1.5 15.448 1.5 6.75V4.5z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </span>
-                  <span>Continue with Phone</span>
-                </button>
-              </form>
+           <form className="w-full">
+        <input type="hidden" name="provider" value="phone" />
+        <button
+          className="inline-flex items-center justify-center border border-gray-300 rounded-md w-full h-12 px-4 py-2 bg-white hover:bg-gray-50 text-gray-700 font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          type="button"
+          onClick={() => setPhoneModal(true)}  // Fixed setter name
+        >
+          <span className="mr-3">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              className="w-5 h-5"
+            >
+              <path
+                fillRule="evenodd"
+                d="M1.5 4.5a3 3 0 013-3h1.372c.86 0 1.61.586 1.819 1.42l1.105 4.423a1.875 1.875 0 01-.694 1.955l-1.293.97c-.135.101-.164.249-.126.352a11.285 11.285 0 006.697 6.697c.103.038.25.009.352-.126l.97-1.293a1.875 1.875 0 011.955-.694l4.423 1.105c.834.209 1.42.959 1.42 1.82V19.5a3 3 0 01-3 3h-2.25C8.552 22.5 1.5 15.448 1.5 6.75V4.5z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </span>
+          <span>Continue with Phone</span>
+        </button>
+      </form>
+
 
               {/* Role Selection Modal */}
               {isModalOpen && (
@@ -305,9 +313,12 @@ const handleRoleSelect = async (selectedRole: 'user' | 'hotel') => {
         </div>
       </div>
       <ForgetPassword 
-     
        onClose={()=>setPasswordModal(false)}
        isOpen={passwordModal}
+      />
+   <PhoneAuthModal
+        isOpen={phoneModal}
+        onClose={() => setPhoneModal(false)}  // Fixed setter name
       />
     </div>
   );

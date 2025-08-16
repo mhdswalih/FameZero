@@ -1,4 +1,4 @@
-import { IUserData } from "../../Components/User/Signup";
+import { IUserData } from "../../Components/Login/Signup";
 import { axiosInstance } from "../Instance/axiosInstance";
 
 export const RegisteUser = async(userData:IUserData) =>{
@@ -37,6 +37,14 @@ export const loginUser = async(email:string,password:string)=>{
     throw error.response?.data || 'Failed to login user'
   }
 }
+export const logoutUser = async()=>{
+  try {
+    const response = await axiosInstance.post('/logout')
+    return response.data
+  } catch (error:any) {
+      throw error.response?.data || 'Failed to logout user'
+  }
+}
 
 export const refreshToken = async () =>{
   try {    
@@ -65,11 +73,40 @@ export const forgetPassword = async(email:string)=>{
   }
 }
 
-export const resetPassword = async()=>{
+export const resetPassword = async(token:string,newPassword:string,confirmPassword:string)=>{  
   try {
-    const response = await axiosInstance.post('/reset-password')
+    const response = await axiosInstance.post('/reset-password',{token,newPassword,confirmPassword})
     return response.data
   } catch (error:any) {
     throw error.response?.erorr
+  }
+}
+
+
+export const phoneAuth = async(name:string,phone:string,role:string) =>{ 
+  try {
+    const respone = await axiosInstance.post('/phone-auth',{name,phone,role})
+
+    return respone.data
+  } catch (error:any) {
+      throw error.response?.erorr
+  }
+}
+
+export const isEmailVerified = async(email:string) =>{
+  try {
+    const response = await axiosInstance.post('/email-verify',{email})
+    return response.data
+  } catch (error:any) {
+     throw error.response?.erorr
+  }
+}
+
+export const verifyEmailOtp = async (id:string,email:string,otp:string)=>{  
+  try {
+    const response = await axiosInstance.post(`/verify-otp/:${id}`,{email,otp})
+    return response.data
+  } catch (error) {
+    
   }
 }

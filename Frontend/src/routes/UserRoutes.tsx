@@ -1,5 +1,5 @@
 import { Routes,Route } from 'react-router-dom'
-import ProfilePage from '../../src/Components/User/ProfileDetailPage'
+import ProfilePage from '../Components/User/ProfileDetailPage'
 import NewspaperPage from '../Components/User/AboutPage'
 
 const UserRoutes = () => {

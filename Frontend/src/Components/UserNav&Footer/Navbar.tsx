@@ -10,8 +10,9 @@ import { useDispatch } from "react-redux";
 import { removeUser } from "../../Redux/Slice/userSlice";
 import toast from "react-hot-toast";
 import { getUserDetails, updateUser } from "../../Api/userApiCalls/profileApi";
-import UserEditModal from "../User/Modals/User/UserEditModal";
+import UserEditModal from "../Modals/User/UserEditModal";
 import { addUserProfile, removeUserProfile } from '../../Redux/Slice/ProfileSlice/userProfileSlice'
+import { logoutUser } from "../../Api/userApiCalls/userApi";
 
 const SheetContext = createContext<{
   open: boolean;
@@ -122,7 +123,9 @@ const ProfileSheet = () => {
   const { setOpen } = useSheet();
 
     interface UserProfile  {
+      _id:string;
      name:string;
+     email:string;
      profilepic:string;
      phone:string;
      address:string;
@@ -131,7 +134,9 @@ const ProfileSheet = () => {
   }
  
   const [userProfile,setUserProfile] = useState<UserProfile>({
+    _id:'',
       name:'',
+      email: '',
       profilepic:'',
       phone:'',
       address:'',
@@ -141,9 +146,10 @@ const ProfileSheet = () => {
   const [editedProfile, setEditedProfile] = useState<UserProfile>({ ...userProfile });
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
-  const handleLogout = () => {
+  const handleLogout = async() => {
     dispatch(removeUser());
     dispatch(removeUserProfile());
+    await logoutUser()
     toast.success('Logged out successfully');
     setOpen(false);
     navigate('/');
@@ -186,10 +192,12 @@ const ProfileSheet = () => {
 
   const handleGetUser = async() =>{
     try {
-      const response = await getUserDetails(user.id)
+      const response = await getUserDetails(user.id as string)
       if(response.data){
         const userDetails = {
+          _id:response.data.id || '',
           name: response.data.name || '',
+          email:response.data.email || '',
           profilepic: response.data.profilepic || '',
           phone: response.data.phone || '',
           address: response.data.address || '',
@@ -205,10 +213,12 @@ const ProfileSheet = () => {
 
   const handleEditUser = async (selectedFile?: File) => {
     try {
-      const response = await updateUser(user.id, editedProfile, selectedFile);
+      const response = await updateUser(user.id as string, editedProfile, selectedFile);
       if (response.data) {
         const updatedProfile = {
+          _id:response.data.id || '',
           name:response.data.name || editedProfile.name,
+          email:response.data.email || editedProfile.email,
           profilepic: response.data.profilepic || editedProfile.profilepic,
           address: response.data.address || editedProfile.address,
           city: response.data.city || editedProfile.city,
@@ -351,7 +361,7 @@ const Navbar = () => {
 
   const handleGetUser = async () => {
     try {   
-      const response = await getUserDetails(userData.id);
+      const response = await getUserDetails(userData.id as string);
       if (response.data) {
            const userData = {
           _id: response.data._id || '',

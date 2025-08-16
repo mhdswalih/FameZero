@@ -84,17 +84,17 @@ axiosInstance.interceptors.response.use(
         return axiosInstance(originalReq);
       } catch (err) {
         isRefreshing = false;
-        // store.dispatch(removeUser());
+        store.dispatch(removeUser());
         persistor.purge();
-        // window.location.href = "/login";
+        window.location.href = "/login";
         return Promise.reject(err);
       }
     }
 
     if (error.response?.status === 403) {
-      // store.dispatch(removeUser());
+      store.dispatch(removeUser());
       persistor.purge();
-      // window.location.href = "/login";
+      window.location.href = "/login";
       return Promise.reject(error);
     }
 

@@ -12,7 +12,7 @@ import { RootState } from '../../Redux/store';
 import { removeUser } from '../../Redux/Slice/userSlice';
 import toast from 'react-hot-toast';
 import { editHotelProfile, getHotels, reRequstOption } from '../../Api/hotelApiCalls/hotelProfileApi';
-import HotelEditModal from '../User/Modals/Hotel/HotelEditModal';
+import HotelEditModal from '../Modals/Hotel/HotelEditModal';
 import { addHotelProfile, removeHotelProfile } from '../../Redux/Slice/ProfileSlice/hotelProfileSlice';
 import { VerifiedIcon, InfoIcon } from 'lucide-react';
 

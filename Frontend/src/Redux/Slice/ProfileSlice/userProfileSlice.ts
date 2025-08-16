@@ -2,6 +2,7 @@
 import { createSlice,} from '@reduxjs/toolkit'
 
 interface UserProfileState {
+    _id:string
     name:string;
     profilepic: string;
     phone: string;
@@ -10,6 +11,7 @@ interface UserProfileState {
 }
 
 const initialState: UserProfileState = {
+    _id:'',
     name : '',
     profilepic: '',
     phone: '',
@@ -21,6 +23,7 @@ const profileSlice = createSlice({
     initialState,
     reducers: {
         addUserProfile: (state, action) => {  
+            state._id = action.payload._id
             state.name = action.payload.name 
             state.profilepic = action.payload.profilepic;
             state.phone = action.payload.phone;

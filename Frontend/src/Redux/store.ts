@@ -19,7 +19,7 @@ import {
 const userPersistConfig = {
   key: "user",
   storage,
-  whitelist: ['id','role','token','email','isVerified'], 
+  whitelist: ['id','role','email','isVerified'], 
 };
 
 const adminPersistConfig = {
@@ -31,7 +31,7 @@ const adminPersistConfig = {
 const userProfilePersistConfig = {
   key: "userProfile", 
   storage,
-  whitelist: ['name', 'profilepic', 'phone', 'address', 'city'], 
+  whitelist: ['_id','name', 'profilepic', 'phone', 'address', 'city'], 
 };
 const hotelProfilePersistConfig = {
   key : "hotelProfile",

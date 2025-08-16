@@ -1,6 +1,6 @@
 import { useState } from "react";
 import toast from "react-hot-toast";
-import { forgetPassword } from "../../../../Api/userApiCalls/userApi";
+import { forgetPassword } from "../../Api/userApiCalls/userApi";
 
 interface forgetPasswordModal {
     isOpen: boolean;
@@ -16,8 +16,7 @@ export const ForgetPassword = ({
 
     const handleSubmit = async () => {
         try {
-            const response = await forgetPassword(email)
-             
+            await forgetPassword(email)
             onClose()
             toast.success('Forget Password successfully')
         } catch (error: any) {
@@ -27,7 +26,6 @@ export const ForgetPassword = ({
     if (!isOpen) return null
     return (
         <div className="fixed inset-0 flex items-center justify-center z-50">
-            {/* Blurred overlay */}
             <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px]"></div>
 
             {/* Modal container with glass effect */}

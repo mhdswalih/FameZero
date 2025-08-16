@@ -1,15 +1,21 @@
 import { motion, AnimatePresence } from 'framer-motion';
 
 import {
-  User,  Phone, MapPin, Save, X, Camera, Image,
+  User, Phone, MapPin, Save, X, Camera, Image,
+  Mail,
 } from 'lucide-react';
 import React, { useState } from 'react';
-import { isDeepEqual } from '../../../../utils/is-equal';
+import { isDeepEqual } from '../../../Utils/is-equal';
 import toast from 'react-hot-toast';
+import { isEmailVerified, verifyEmailOtp } from '../../../Api/userApiCalls/userApi';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../../Redux/store';
 
 
 interface userDetails {
+  _id: string;
   name: string;
+  email: string;
   profilepic: string;
   phone: string;
   address: string;
@@ -35,10 +41,20 @@ const UserEditModal = ({
   handleEditUser
 }: UserEditModalProps) => {
 
-
+  const id = useSelector((state: RootState) => state.user.id)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string>('');
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    role: 'user',
+    isEmailVerified: false,
+    emailVerificationCode: '',
+    showEmailCodeInput: false,
+    emailVerificationLoading: false,
+    emailChanged: false
+  });
 
   const handleCancel = () => {
     setEditedProfile({ ...userProfile });
@@ -52,6 +68,14 @@ const UserEditModal = ({
       ...editedProfile,
       [field]: value
     });
+
+    // Track if email is being changed
+    if (field === 'email') {
+      setFormData(prev => ({
+        ...prev,
+        emailChanged: value !== userProfile.email
+      }));
+    }
   };
 
 
@@ -70,23 +94,28 @@ const UserEditModal = ({
 
   // Modified handleSubmit function
   const handleSubmit = async () => {
+    // Check if email is being changed and needs verification
+    if (editedProfile.email !== userProfile.email && !formData.isEmailVerified) {
+      toast.error("Please verify your email before saving");
+      return;
+    }
+
     setIsSubmitting(true);
     try {
-
-      if(userProfile){
+      if (userProfile) {
         const currentFormState = {
-          name : editedProfile.name,
-          phone:editedProfile.phone,
-          address:editedProfile.address,
-          profilepic:editedProfile.profilepic,
-          city:editedProfile.city,
+          name: editedProfile.name,
+          phone: editedProfile.phone,
+          address: editedProfile.address,
+          profilepic: editedProfile.profilepic,
+          city: editedProfile.city,
         }
-            
-          if (isDeepEqual(userProfile,currentFormState) && 
-                !selectedFile) {
-                toast.error("User profile already updated - no changes detected!");
-                return;
-            } 
+
+        if (isDeepEqual(userProfile, currentFormState) &&
+          !selectedFile) {
+          toast.error("User profile already updated - no changes detected!");
+          return;
+        }
       }
       await handleEditUser(selectedFile || undefined);
 
@@ -99,13 +128,56 @@ const UserEditModal = ({
       setIsSubmitting(false);
     }
   };
-
   const getImageSrc = () => {
     if (previewUrl) return previewUrl;
     if (editedProfile.profilepic) return editedProfile.profilepic;
     return "https://images.unsplash.com/photo-1633332755192-727a05c4013d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1480&q=80";
   };
 
+  const handleInputChangeEmail = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSendEmailCode = async () => {
+    if (!editedProfile.email) {
+      toast.error('Please enter an email address');
+      return;
+    }
+    try {
+      setFormData(prev => ({ ...prev, emailVerificationLoading: true }));
+      await isEmailVerified(editedProfile.email);
+      setFormData(prev => ({
+        ...prev,
+        showEmailCodeInput: true,
+        emailVerificationLoading: false
+      }));
+      toast.success('Verification code sent to your email');
+    } catch (error: any) {
+      setFormData(prev => ({ ...prev, emailVerificationLoading: false }));
+      toast.error(error.response?.data?.message || 'Failed to send verification code');
+    }
+  }
+
+
+  const handleVerifyEmail = async () => {
+    try {
+      await verifyEmailOtp(id as string, editedProfile.email, formData.emailVerificationCode);
+      setFormData(prev => ({
+        ...prev,
+        isEmailVerified: true,
+        showEmailCodeInput: false,
+        emailVerificationLoading: false
+      }));
+      toast.success('Email verified successfully!');
+    } catch (error: any) {
+      setFormData(prev => ({ ...prev, emailVerificationLoading: false }));
+      toast.error(error.response?.data?.message || 'Invalid verification code');
+    }
+  }
   return (
     <AnimatePresence>
       {isEditModalOpen && (
@@ -190,27 +262,67 @@ const UserEditModal = ({
                       />
                     </div>
                   </motion.div>
+                  {!userProfile.email && (
+                    <motion.div
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.2 }}
+                      className="flex items-center gap-3"
+                    >
+                      <Mail className="h-5 w-5 text-gray-700 flex-shrink-0" />
+                      <div className="flex-1">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Email
+                        </label>
+                        <div className="flex gap-2">
+                          <input
+                            type="email"
+                            value={editedProfile.email || ''}
+                            onChange={(e) => handleInputChange('email', e.target.value)}
+                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-400 focus:border-transparent transition-all"
+                            disabled={formData.isEmailVerified || isSubmitting}
+                          />
+                          {!formData.isEmailVerified && (
+                            <button
+                              type="button"
+                              onClick={handleSendEmailCode}
+                              disabled={!editedProfile.email || formData.emailVerificationLoading}
+                              className="bg-orange-400 text-white px-3 py-2 rounded-lg hover:bg-orange-500 disabled:opacity-50 transition-colors text-sm whitespace-nowrap"
+                            >
+                              {formData.emailVerificationLoading ? 'Sending...' : 'Verify'}
+                            </button>
+                          )}
+                        </div>
 
-                  {/* <motion.div
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.2 }}
-                    className="flex items-center gap-3"
-                  >
-                    <Mail className="h-5 w-5 text-gray-700 flex-shrink-0" />
-                    <div className="flex-1">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Email
-                      </label>
-                      <input
-                        type="email"
-                        value={editedProfile.email || ''}
-                        onChange={(e) => handleInputChange('email', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-400 focus:border-transparent transition-all"
-                        disabled={isSubmitting}
-                      />
-                    </div>
-                  </motion.div> */}
+                        {formData.isEmailVerified ? (
+                          <p className="text-green-500 text-sm mt-1">✓ Email verified</p>
+                        ) : formData.showEmailCodeInput && (
+                          <div className="mt-2 space-y-2">
+                            <div className="flex gap-2 items-center">
+                              <input
+                                type="text"
+                                name="emailVerificationCode"
+                                value={formData.emailVerificationCode}
+                                onChange={handleInputChangeEmail}
+                                placeholder="Enter 6-digit code"
+                                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-400 focus:border-transparent transition-all text-sm"
+                              />
+                              <button
+                                type="button"
+                                onClick={handleVerifyEmail}
+                                disabled={!formData.emailVerificationCode || formData.emailVerificationLoading}
+                                className="bg-orange-400 text-white px-3 py-2 rounded-lg hover:bg-orange-500 disabled:opacity-50 transition-colors text-sm whitespace-nowrap"
+                              >
+                                {formData.emailVerificationLoading ? 'Verifying...' : 'Confirm'}
+                              </button>
+                            </div>
+                            <p className="text-xs text-gray-500">We've sent a verification code to your email</p>
+                          </div>
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
+
 
                   <motion.div
                     initial={{ opacity: 0, x: -20 }}
@@ -266,7 +378,7 @@ const UserEditModal = ({
                     <MapPin className="h-5 w-5 text-gray-700 flex-shrink-0" />
                     <div className="flex-1">
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Address 
+                        Address
                       </label>
                       <input
                         type="text"
@@ -310,11 +422,18 @@ const UserEditModal = ({
               >
                 <button
                   onClick={handleSubmit}
-                  disabled={isSubmitting}
-                  className="w-full sm:w-auto bg-orange-400 hover:bg-orange-500 disabled:bg-orange-300 disabled:cursor-not-allowed text-white py-2 px-6 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+                  disabled={isSubmitting ||
+                    (formData.emailChanged && !formData.isEmailVerified)}
+                  className={`w-full sm:w-auto ${(formData.emailChanged && !formData.isEmailVerified) ?
+                      'bg-gray-400 cursor-not-allowed' :
+                      'bg-orange-400 hover:bg-orange-500'
+                    } text-white py-2 px-6 rounded-lg font-medium transition-colors flex items-center justify-center gap-2`}
                 >
                   <Save className="h-4 w-4" />
                   {isSubmitting ? 'Saving...' : 'Save Changes'}
+                  {(formData.emailChanged && !formData.isEmailVerified) && (
+                    <span className="text-xs ml-2">(Verify email first)</span>
+                  )}
                 </button>
                 <button
                   onClick={handleCancel}

@@ -12,7 +12,7 @@ import { Avatar, MenuItem, Typography } from "@material-tailwind/react";
 import { Link } from "react-router-dom";
 import { editHotelProfile, getHotels } from "../../Api/hotelApiCalls/hotelProfileApi";
 import { addHotelProfile, removeHotelProfile } from "../../Redux/Slice/ProfileSlice/hotelProfileSlice";
-import HotelEditModal from "../User/Modals/Hotel/HotelEditModal";
+import HotelEditModal from "../Modals/Hotel/HotelEditModal";
 
 // Simple Sheet Component
 const SheetContext = createContext<{
