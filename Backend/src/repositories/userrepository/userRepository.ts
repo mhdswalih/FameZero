@@ -24,7 +24,11 @@ export class UserRepository extends BaseRepository<IUser> implements IUserReposi
 
    }
    async updateEmail(userId: string, email: string): Promise<void> {
-      const updateEmail = await User.updateOne({userId:userId},{$set:{email:email}})
+       await User.findByIdAndUpdate(
+        userId,
+        { $set: { email } },
+        { new: true }
+    );
    }
    async updateUserPassword(email: string, hashedPassword: string): Promise<void> {
       await this.updatePassword(email, hashedPassword);
@@ -33,4 +37,8 @@ export class UserRepository extends BaseRepository<IUser> implements IUserReposi
       const user = await this.findOne({ mobile });
       return !!user;
    }
+   async changePassword(id: string, newPassword: string): Promise<void> {
+       await  User.findByIdAndUpdate(id,{$set:{password:newPassword}},{new : true})
+   }
+
 }

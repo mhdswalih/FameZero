@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { IProfileHotelController } from "../../interfaces/hotel/profile/IProfileHotelController";
 import { IProfileHotelService } from "../../interfaces/hotel/profile/IProfileHotelService";
 import { HttpStatus } from "../../constants/HttpStatus";
-import userProfile from "../../models/usermodel/userProfileModel";
+
 
 export class HotelProfileController implements IProfileHotelController {
     constructor(private _hotelProfileService: IProfileHotelService) { }
@@ -32,7 +32,7 @@ async updateHotelProfile(req: Request, res: Response, next: NextFunction): Promi
       status : 'Pending'
     };
     const response = await this._hotelProfileService.updateHotelProfile(id, hotelData);
- 
+    
     res.status(200).json({ success: true, data: response });
   } catch (error) {
     next(error);
@@ -47,5 +47,14 @@ async reRequstProfile(req: Request, res: Response, next: NextFunction): Promise<
       next(error)
     }
 }
-
+async changePassword(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const {id} = req.params;
+      const {currentPasswords,newPassword,confirmPassword} = req.body
+      const response = await this._hotelProfileService.changePassword(id,currentPasswords,newPassword,confirmPassword)
+      res.status(HttpStatus.OK).json({response})
+    } catch (error) {
+      next(error)
+    }
+}
 }

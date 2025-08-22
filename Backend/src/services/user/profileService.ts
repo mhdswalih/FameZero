@@ -1,18 +1,22 @@
 import { Messages } from "../../constants/Messeges";
+import { IHotelRepository } from "../../interfaces/hotel/IHotelRepository";
+import { IProfileHotelRepositer } from "../../interfaces/hotel/profile/IProfileHotelRepository";
 import { IUserRepository } from "../../interfaces/user/IUserRepository";
 import { IProfileService } from "../../interfaces/user/profile/IProfileService";
 import userProfile, {
   IUserProfile,
 } from "../../models/usermodel/userProfileModel";
+import { IHotelFullProfile } from "../../repositories/hotelRepository/hotelInterface";
 import { ProfileRepository } from "../../repositories/userrepository/profileRepository";
+import { comparePassword, hashPassword } from "../../utils/hashPassword";
 
 export class ProfileService implements IProfileService {
-  constructor(private _profileRepository: ProfileRepository,private _userRepository:IUserRepository) {}
-  
+  constructor(private _profileRepository: ProfileRepository, private _userRepository: IUserRepository,private _hotelRepository:IHotelRepository) { }
+
   async getProfile(userId: string): Promise<IUserProfile | null> {
     return await this._profileRepository.findByUserId(userId);
   }
-  
+
   async updateUserProfile(
     userId: string,
     profileData: Partial<IUserProfile>
@@ -45,5 +49,46 @@ export class ProfileService implements IProfileService {
       console.error(`Failed to update profile for user ${userId}:`, error);
       throw error;
     }
+  }
+  async changePassword(id: string, currentPasswords: string, newPassword: string, confirmPassword: string): Promise<{ status: number; message: string; }> {
+    try {
+      if (newPassword !== confirmPassword) {
+        throw new Error(Messages.PASSWORD_NOT_MATCH);
+      }
+      const cleanedId = id.replace(/^:/, '');
+      const user = await this._userRepository.findById(cleanedId);
+
+      if (!user) {
+        throw new Error(Messages.USER_NOT_FOUND);
+      }
+      // Check if the current password matches
+      const isCurrentPasswordValid = await comparePassword(currentPasswords, user.password);
+      if (!isCurrentPasswordValid) {
+        throw new Error(Messages.INVALID_CURRENT_PASSWORD);
+      }
+      if(user.password.length <= 0){
+        throw new Error('You don’t have a password set. Please create a new password.')
+      }
+      // Check if new password is different from current password
+      const isSamePassword = await comparePassword(newPassword, user.password);
+      if (isSamePassword) {
+        throw new Error('New password must be different from the current password');
+      }
+
+      // Hash and update the new password
+      const hashedNewPassword = await hashPassword(newPassword);
+      await this._userRepository.changePassword(cleanedId, hashedNewPassword);
+
+      return { status: 200, message: "Password changed successfully" };
+    } catch (error) {
+      throw error
+    }
+  }
+  async getHotels(): Promise<IHotelFullProfile[] | null> {
+      try {
+        return await this._hotelRepository.getAllHotels()
+      } catch (error) {
+        throw error
+      }
   }
 }

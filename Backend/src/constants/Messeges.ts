@@ -25,6 +25,7 @@ export const Messages = {
   RESET_LINK_SENT: "Password reset link has been sent to your email.",
   RESET_TOKEN_INVALID: "Reset token is invalid or has expired.",
   PASSWORD_NOT_MATCH: "New password and confirm password do not match.",
+  INVALID_CURRENT_PASSWORD: 'The current password you entered is incorrect. Please try again',
   PASSWORD_RESET_SUCCESS: "Your password has been reset successfully",
   INVALID_USER_ID: 'Invalid user ID provided.',
   GOOGLE_ACCOUNT: "This account is linked with Google. Cannot reset password.",

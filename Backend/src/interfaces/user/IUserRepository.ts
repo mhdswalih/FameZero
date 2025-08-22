@@ -9,4 +9,5 @@ export interface IUserRepository extends IBaseRepository<IUser> {
     updateUserPassword(email:string,hashedPassword:string):Promise<void>;
     checkMobileExists(mobile:string):Promise<boolean>;
     updateEmail(userId:string,email:string):Promise<void>
+    changePassword(id:string,newPassword:string):Promise<void>
 }

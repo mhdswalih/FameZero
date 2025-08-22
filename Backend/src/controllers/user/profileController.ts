@@ -39,5 +39,24 @@ export class ProfileController implements IProfileController {
       next(error);
     }
   }
-
+  async changePassword(req: Request, res: Response, next: NextFunction): Promise<void> {
+      try {
+        const {id} = req.params  
+        const {currentPasswords,newPassword,confirmPassword} = req.body  
+        const response = await this._profileService.changePassword(id,currentPasswords,newPassword,confirmPassword)
+        res.status(HttpStatus.OK).json({response})
+      } catch (error) {
+        next(error)
+      }
+  }
+  async getHotels(req: Request, res: Response, next: NextFunction): Promise<void> {
+      try {
+        const hotels = await this._profileService.getHotels()
+        console.log(hotels,'this is response ...............');
+        res.status(HttpStatus.OK).json({hotels})
+        
+      } catch (error) {
+       next(error) 
+      }
+  }
 }

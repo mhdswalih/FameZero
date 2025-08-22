@@ -88,9 +88,7 @@ export class UserController implements IUserController {
     }
     async phoneAuth(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
-            const {name,phone,role} = req.body
-            console.log(req.body,'///////////////////////////////');
-            
+            const {name,phone,role} = req.body 
             const response = await this._userService.phoneAuth(name,phone,role)
               res.cookie('refreshToken', response.refreshToken, {
                 httpOnly: true,
@@ -119,6 +117,8 @@ export class UserController implements IUserController {
     async otpverificationPhonAuth(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
             const {id} = req.params;
+            console.log(id,'this is params from ...................');
+            
             const {email,otp} = req.body
             console.log(req.body,'................................');
             const response = await this._userService.otpVerifycationPhoneAuth(id,email,otp)
