@@ -4,11 +4,11 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import ChangePasswordModal from "../Modals/User/PasswordChangeModal/PasswordChangeModal";
 import toast from "react-hot-toast";
-import { changePassword } from "../../Api/userApiCalls/profileApi";
+import { changePassword } from "../../Api/hotelApiCalls/hotelProfileApi";
 import { useSelector } from "react-redux";
 import { RootState } from "../../Redux/store";
 
-const UserSettings = () => {
+const HotelSettings = () => {
     const navigate = useNavigate();
     const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
     const user = useSelector((state:RootState)=> state.user)
@@ -117,4 +117,4 @@ const UserSettings = () => {
     );
 };
 
-export default UserSettings;
+export default HotelSettings;

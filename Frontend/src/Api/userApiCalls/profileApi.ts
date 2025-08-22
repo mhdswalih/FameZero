@@ -1,4 +1,4 @@
-import { Axios, axiosInstance } from "../Instance/axiosInstance";
+import { axiosInstance } from "../Instance/axiosInstance";
 
 export const getUserDetails = async (id: string) => {
   try {
@@ -48,3 +48,22 @@ export const updateUser = async (
     throw error.response?.data || 'Failed to update user profile';
   }
 };
+
+export const changePassword = async(id:string,currentPasswords:string,newPassword:string,confirmPassword:string) => {
+  try {
+    const response = await axiosInstance.post(`/change-password/:${id}`,{currentPasswords,newPassword,confirmPassword})
+    return response.data
+  } catch (error) { 
+  }
+}
+
+export const fetchHotelProfiles  =  async()=>{
+  try {
+    const response = await axiosInstance.get('/get-hotels')
+    console.log(response.data,'.......................................');
+    
+    return response.data
+  } catch (error) {
+    
+  }
+}

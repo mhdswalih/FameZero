@@ -1,14 +1,19 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import {isDeepEqual} from'../../../Utils/is-equal'
 import {
-  Building2, Phone, MapPin, Save, X, Camera, Image, FileText, Hotel
+  Building2, Phone, MapPin, Save, X, Camera, Image, FileText, Hotel,
+  Mail
 } from 'lucide-react';
 import React, { useState } from 'react';
 import toast from 'react-hot-toast';
+import { isEmailVerified, verifyEmailOtp } from '../../../Api/userApiCalls/userApi';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../../Redux/store';
 
 interface hotelDetails {
   _id:string;
   name: string;
+  email:string;
   status:string;
   profilepic: string;
   phone: string;
@@ -40,6 +45,17 @@ const HotelEditModal = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string>('');
   const [idProofPreviewUrl, setIdProofPreviewUrl] = useState<string>('');
+  const hotel = useSelector((state:RootState)=> state.user)
+    const [formData, setFormData] = useState({
+      name: '',
+      email: '',
+      role: '',
+      isEmailVerified: false,
+      emailVerificationCode: '',
+      showEmailCodeInput: false,
+      emailVerificationLoading: false,
+      emailChanged: false
+    });
 
   const handleCancel = () => {
     setEditedProfile({ ...hotelProfile });
@@ -131,6 +147,49 @@ const handleSubmit = async () => {
     if (editedProfile.idProof) return editedProfile.idProof;
     return null;
   };
+ 
+    const handleSendEmailCode = async () => {
+      if (!editedProfile.email) {
+        toast.error('Please enter an email address');
+        return;
+      }
+      try {
+        setFormData(prev => ({ ...prev, emailVerificationLoading: true }));
+        await isEmailVerified(editedProfile.email);
+        setFormData(prev => ({
+          ...prev,
+          showEmailCodeInput: true,
+          emailVerificationLoading: false
+        }));
+        toast.success('Verification code sent to your email');
+      } catch (error: any) {
+        setFormData(prev => ({ ...prev, emailVerificationLoading: false }));
+        toast.error(error.response?.data?.message || 'Failed to send verification code');
+      }
+    }
+    const handleVerifyEmail = async () => {
+    try {
+      await verifyEmailOtp( hotel.id as string, editedProfile.email, formData.emailVerificationCode);
+      setFormData(prev => ({
+        ...prev,
+        isEmailVerified: true,
+        showEmailCodeInput: false,
+        emailVerificationLoading: false
+      }));
+      toast.success('Email verified successfully!');
+    } catch (error: any) {
+      setFormData(prev => ({ ...prev, emailVerificationLoading: false }));
+      toast.error(error.response?.data?.message || 'Invalid verification code');
+    }
+  }
+
+    const handleInputChangeEmail = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+      const { name, value } = e.target;
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    };
 
   return (
     <AnimatePresence>
@@ -221,6 +280,66 @@ const handleSubmit = async () => {
                       disabled={isSubmitting}
                     />
                   </motion.div>
+                   {!hotelProfile.email && (
+                    <motion.div
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.2 }}
+                      className="flex items-center gap-3"
+                    >
+                      <Mail className="h-5 w-5 text-gray-700 flex-shrink-0" />
+                      <div className="flex-1">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Email
+                        </label>
+                        <div className="flex gap-2">
+                          <input
+                            type="email"
+                            value={editedProfile.email || ''}
+                            onChange={(e) => handleInputChange('email', e.target.value)}
+                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-400 focus:border-transparent transition-all"
+                            disabled={formData.isEmailVerified || isSubmitting}
+                          />
+                          {!formData.isEmailVerified && (
+                            <button
+                              type="button"
+                              onClick={handleSendEmailCode}
+                              disabled={!editedProfile.email || formData.emailVerificationLoading}
+                              className="bg-orange-400 text-white px-3 py-2 rounded-lg hover:bg-orange-500 disabled:opacity-50 transition-colors text-sm whitespace-nowrap"
+                            >
+                              {formData.emailVerificationLoading ? 'Sending...' : 'Verify'}
+                            </button>
+                          )}
+                        </div>
+
+                        {formData.isEmailVerified ? (
+                          <p className="text-green-500 text-sm mt-1">✓ Email verified</p>
+                        ) : formData.showEmailCodeInput && (
+                          <div className="mt-2 space-y-2">
+                            <div className="flex gap-2 items-center">
+                              <input
+                                type="text"
+                                name="emailVerificationCode"
+                                value={formData.emailVerificationCode}
+                                onChange={handleInputChangeEmail}
+                                placeholder="Enter 6-digit code"
+                                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-400 focus:border-transparent transition-all text-sm"
+                              />
+                              <button
+                                type="button"
+                                onClick={handleVerifyEmail}
+                                disabled={!formData.emailVerificationCode || formData.emailVerificationLoading}
+                                className="bg-orange-400 text-white px-3 py-2 rounded-lg hover:bg-orange-500 disabled:opacity-50 transition-colors text-sm whitespace-nowrap"
+                              >
+                                {formData.emailVerificationLoading ? 'Verifying...' : 'Confirm'}
+                              </button>
+                            </div>
+                            <p className="text-xs text-gray-500">We've sent a verification code to your email</p>
+                          </div>
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
 
                   <motion.div
                     initial={{ opacity: 0, x: -20 }}

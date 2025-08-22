@@ -89,9 +89,7 @@ const ProfilePage = () => {
     }
   };
 
-  const handleGetUser = async () => {
-    console.log('this si user id.......................................');
-    
+  const handleGetUser = async () => {    
     try {
       const response = await getUserDetails(user.id as string);  
       if (response.data) {
@@ -213,8 +211,10 @@ const ProfilePage = () => {
                     <h4 className="text-sm font-semibold text-gray-700 mb-3">Contact Information</h4>
                     <div className="space-y-3">
                       <div className="flex items-center gap-3">
+                           <a href={`tel:${userProfile.phone}`}>
                         <Phone className="h-4 w-4 text-gray-500" />
-                        <span className="text-sm sm:text-base text-gray-900">{userProfile.phone || 'Not provided'}</span>
+                        <span className="text-sm sm:text-base text-gray-900">{userProfile.phone || '+917034683567'}</span>
+                        </a>
                       </div>
                       <div className="flex items-center gap-3">
                         <Mail className="h-4 w-4 text-gray-500" />

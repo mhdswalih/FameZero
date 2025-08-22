@@ -19,6 +19,7 @@ import { VerifiedIcon, InfoIcon } from 'lucide-react';
 interface HotelProfile {
   _id: string;
   name: string;
+  email:string;
   profilepic: string;
   status: string;
   idProof: string;
@@ -33,15 +34,14 @@ const HotelProfilePage = () => {
 
   const user = useSelector((state: RootState) => state.user);
   const hotelprofile = useSelector((state: RootState) => state.hotelProfile)
- console.log(hotelprofile,'dsadasdasda////////////////////////////////////////////////');
  
-
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const [hotelProfile, setHotelProfile] = useState<HotelProfile>({
     _id: '',
     name: '',
+    email:'',
     profilepic: "",
     status: '',
     phone: '',
@@ -62,11 +62,12 @@ const HotelProfilePage = () => {
   const id = user.id
   const handleEditHotel = async (selectedFile?: File, selectedIdProofFile?: File) => {
     try {
-      const response = await editHotelProfile(id, editedProfile, selectedFile, selectedIdProofFile);
+      const response = await editHotelProfile(id as string, editedProfile, selectedFile, selectedIdProofFile);
       if (response && response.success) {
         const updatedProfile = {
           _id: response._id || editedProfile._id,
           name: response.name || editedProfile.name,
+          email:response.data.email || editedProfile.email,
           status: response.status || editedProfile.status,
           profilepic: response.profilepic || editedProfile.profilepic,
           phone: response.phone || editedProfile.phone,
@@ -97,11 +98,12 @@ const HotelProfilePage = () => {
   }
   const handleGetHotel = async () => {
     try {
-      const response = await getHotels(id);
+      const response = await getHotels(id as string);
       if (response.data) {
         const updatedProfile = {
           _id: response.data._id || '',
           name: response.data.name || '',
+          email:response.data.email || '',
           status: response.data.status || '',
           profilepic: response.data.profilepic || '',
           idProof: response.data.idProof || '',
@@ -127,7 +129,7 @@ const HotelProfilePage = () => {
   }, [hotelProfile]);
   // Profile menu items
   const profileMenuItems = [
-    { label: 'Account Settings', icon: Settings, path: '' },
+    { label: 'Account Settings', icon: Settings, path: '', onClick:()=> navigate('/hotel/settings') },
     { label: 'Notifications', icon: Bell, path: '' },
     { label: 'Privacy & Security', icon: Shield, path: '' },
     { label: 'Sign Out', icon: LogOut, path: '/', onClick: () => handleLogout() },
@@ -230,7 +232,7 @@ const HotelProfilePage = () => {
                   }
                   <div className="flex-1">
                     <h3 className="text-xl font-semibold text-gray-900">{hotelProfile.name}</h3>
-                    <p className="text-gray-600">{user.email}</p>
+                    <p className="text-gray-600">{hotelProfile.email}</p>
                     <div className="flex items-center gap-2 mt-2">
                       {
                         (hotelProfile.status === 'Pending' && (
@@ -284,12 +286,14 @@ const HotelProfilePage = () => {
                     <h4 className="text-sm font-semibold text-gray-700 mb-3">Contact Information</h4>
                     <div className="space-y-3">
                       <div className="flex items-center gap-3">
+                        <a href={`tel:${hotelProfile.phone}`}>
                         <Phone className="h-4 w-4 text-gray-500" />
-                        <span className="text-gray-900">{hotelProfile.phone}</span>
+                        <span  className="text-gray-900">{hotelProfile.phone}</span>
+                        </a>
                       </div>
                       <div className="flex items-center gap-3">
                         <Mail className="h-4 w-4 text-gray-500" />
-                        <span className="text-gray-900">{user.email}</span>
+                        <span className="text-gray-900">{hotelProfile.email}</span>
                       </div>
                     </div>
                   </div>
