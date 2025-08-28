@@ -1,28 +1,31 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { FaUserCircle} from 'react-icons/fa';
 import CombinedLayout from '../sidesheet/AdminSideSheet';
 import { fetchHotels, accptRequst, rejectrequst, blockHotel } from '../../../Api/adminApiCalls/adminApi'; 
 import toast from 'react-hot-toast';
-
+import SocketService from '../../../Utils/socket-service';
+import { data } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../../Redux/store';
 
  interface IHotelProfile {
     _id: string;
     userId: string; 
     name:string;
     email:string;
-    idProof : string;
+    idProof ?: string;
     status:string;
-    profilepic: string;
-    location: string;
-    city: string;
-    phone: string;
+    profilepic?: string;
+    location?: string;
+    city?: string;
+    phone?: string;
 }
 
 const HotelsTable = () => {
   const [hotels, setHotels] = useState<IHotelProfile[]>([]);
   const [loading, setLoading] = useState(false);
-  console.log(hotels,'......................');
-  
+  const token = useSelector((state:RootState)=> state.admin.token)
+
   const getHotels = async () => {
     try {
       const response = await fetchHotels(); 
@@ -37,6 +40,9 @@ const HotelsTable = () => {
     try {
       await accptRequst(id);
       await getHotels();
+      setHotels(pre => pre.map(hotels => 
+        hotels._id == id ? {...hotels,status:'Approved'}:hotels
+      ))
       toast.success('Request accepted successfully');
     } catch (error) {
       toast.error('Failed to accept request');
@@ -50,13 +56,61 @@ const HotelsTable = () => {
     try {
       await rejectrequst(id)
       await getHotels()
+      setHotels(pre => pre.map(hotels => 
+        hotels._id === id ? {...hotels,status:'Rejected'}:hotels
+      ))
       toast.success('Request Rejected successfully');
     } catch (error) {
         toast.error('Failed to Reject request');
+        await getHotels()
     }finally{
       setLoading(false)
     }
   }
+
+  const handleStatusUpdate = useCallback(async(data:{id:string,status:string,timestamp?:string})=>{
+    console.log('Status update recivd',data);
+    
+    try {
+      // await getHotels()
+      setHotels(pre => pre.map(hotels => 
+        hotels._id === data.id ? {...hotels,status:data.status} : hotels
+      ))
+    } catch (error) {
+      throw error
+    }
+},[])
+
+  useEffect(() => {
+  const socketService = SocketService.getInstance();
+   
+  if (!socketService.isConnected()) {
+    socketService.connect({role:'admin',token});
+  }
+  // Listen for status updates
+  socketService.on("admin-hotel-status-changed", handleStatusUpdate);
+  // Join room
+
+  // Cleanup function
+  return () => {
+    socketService.off("admin-hotel-status-changed", handleStatusUpdate);
+  };
+}, [handleStatusUpdate]); 
+
+
+  useEffect(() => {
+    const socketService = SocketService.getInstance();
+    if (!socketService.isConnected()) {
+      socketService.connect({role:'admin',token});
+    }
+    socketService.on("hotel-status-changed", handleStatusUpdate);
+   // Cleanup function
+    return () => {
+      const socketService = SocketService.getInstance();
+      socketService.off("hotel-status-changed", handleStatusUpdate);
+      socketService.off("room-joined");
+    };
+  }, [handleStatusUpdate]);
   const blockuser = async(id:string) =>{
     try {
         await blockHotel(id)
@@ -69,6 +123,9 @@ const HotelsTable = () => {
   useEffect(() => {
     getHotels();
   }, []);
+
+
+  
 
   return (
     <div>

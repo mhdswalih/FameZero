@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import {
@@ -15,7 +15,7 @@ import { editHotelProfile, getHotels, reRequstOption } from '../../Api/hotelApiC
 import HotelEditModal from '../Modals/Hotel/HotelEditModal';
 import { addHotelProfile, removeHotelProfile } from '../../Redux/Slice/ProfileSlice/hotelProfileSlice';
 import { VerifiedIcon, InfoIcon } from 'lucide-react';
-import SocketService from '../../Utils/socket-service'; // Adjust path as needed
+import SocketService from '../../Utils/socket-service';
 
 interface HotelProfile {
   _id: string;
@@ -123,53 +123,65 @@ const HotelProfilePage = () => {
     }
   };
 
-   const handleStatusUpdate = (data: { id: string; status: string; timestamp?: string }) => {
-    console.log("📡 Received hotel status update:", data);
-    console.log("🏨 Current hotel profile ID:", hotelProfile._id);
-    
-    // Compare with hotel profile ID
-    if (hotelProfile._id === data.id) {
-      console.log("🎯 Status update matches current hotel! Updating...");
-      
-      // Update local state
-      setHotelProfile(prev => ({ ...prev, status: data.status }));
-      
-      // Update Redux store
-      dispatch(addHotelProfile({
-        ...hotelProfile,
-        status: data.status
-      }));
 
-      toast.success(`Status updated to: ${data.status}`);
-    }
-  };
+const handleStatusUpdate = useCallback(async (data: { id: string; status: string; timestamp?: string }) => {
+  try {
+    await handleGetHotel();
+    toast.success(`Status updated to: ${data.status}`);
+  } catch (error) {
+    console.error("Failed to refresh hotel data:", error);
+  }
+}, []);
+const token = useSelector((state:RootState)=> state.user.token)
 
-  // Initialize socket connection - UPDATED
+// useEffect(() => {
+//   const socketService = SocketService.getInstance();
+   
+//   if (!socketService.isConnected()) {
+//     socketService.connect({role:'hotel',token});
+//   } 
+//   // Listen for status updates
+//   socketService.on("hotel-status-changed", handleStatusUpdate);
+//   // Join room
+//   const joinRoom = () => {
+//     socketService.joinHotelRoom(hotelProfile._id);
+//   };
+//   if (socketService.isConnected()) {
+//     joinRoom();
+//   } else {
+//     socketService.once("connect", joinRoom);
+//   }
+
+//   // Cleanup function
+//   return () => {
+//     socketService.off("hotel-status-changed", handleStatusUpdate);
+//   };
+// }, [hotelProfile._id, handleStatusUpdate]); 
+
   useEffect(() => {
-    if (!hotelProfile._id) {
-      console.log("❌ No hotel ID available, skipping socket connection");
-      return;
+    const socketService = SocketService.getInstance();
+    if (!socketService.isConnected()) {
+      socketService.connect({role:'hotel',token});
+    }
+    
+    socketService.on("hotel-status-changed", handleStatusUpdate);
+    if (socketService.isConnected()) {
+      socketService.joinHotelRoom(hotelProfile._id);
+    } else {
+      const handleConnect = () => {
+        socketService.joinHotelRoom(hotelProfile._id);
+      };
+      socketService.once("connect", handleConnect);
     }
 
-    console.log("🔌 Setting up socket connection for hotel:", hotelProfile._id);
-    
-    const socketService = SocketService.getInstance();
-    
-    // Connect to socket
-    socketService.connect(hotelProfile._id);
-    
-    // Join the specific hotel room
-    socketService.joinHotelRoom(hotelProfile._id);
-    
-    // Listen for status updates
-    socketService.on("hotel-status-changed", handleStatusUpdate);
 
-    // Cleanup function
+   // Cleanup function
     return () => {
-      console.log("🧹 Cleaning up socket listeners");
+      const socketService = SocketService.getInstance();
       socketService.off("hotel-status-changed", handleStatusUpdate);
+      socketService.off("room-joined");
     };
-  }, [hotelProfile._id])
+  }, [hotelProfile._id, handleStatusUpdate]);
 
   // Initial data fetch
   useEffect(() => {
@@ -178,7 +190,6 @@ const HotelProfilePage = () => {
     }
   }, [user.id]);
 
-  // Update edited profile when hotel profile changes
   useEffect(() => {
     setEditedProfile({ ...hotelProfile });
   }, [hotelProfile]);
@@ -195,11 +206,6 @@ const HotelProfilePage = () => {
     setEditedProfile({ ...hotelProfile });
     setIsEditModalOpen(true);
   };
-
-  // Debug info
-  useEffect(() => {
-     SocketService.getInstance().isConnected();
-  }, [user.id, hotelProfile]);
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
@@ -306,6 +312,7 @@ const HotelProfilePage = () => {
                       <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
                         Active
                       </span>
+                    
                     </div>
                   </div>
                   <div className='flex flex-col gap-2'>
@@ -334,7 +341,7 @@ const HotelProfilePage = () => {
                     <div className="space-y-3">
                       <div className="flex items-center gap-3">
                         <a href={`tel:${hotelProfile.phone}`}>
-                          <Phone className="h-4 w-4 text-gray-500" />
+                          <Phone className="h-4 w-4 text-gray-50" />
                           <span className="text-gray-900">{hotelProfile.phone}</span>
                         </a>
                       </div>
@@ -370,15 +377,21 @@ const HotelProfilePage = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 + 0.2 }}
                   className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-shadow duration-200 cursor-pointer"
-                  onClick={onClick}
                 >
-                  <Link to={path}>
-                    <div className="flex items-center gap-3">
-                      <div className="bg-gray-100 p-2 rounded-lg">
-                        <Icon className="h-5 w-5 text-gray-700" />
-                      </div>
-                      <span className="font-medium text-gray-900">{label}</span>
+                  <Link
+                    to={path || "#"}
+                    onClick={e => {
+                      if (onClick) {
+                        e.preventDefault();
+                        onClick();
+                      }
+                    }}
+                    className="flex items-center gap-3"
+                  >
+                    <div className="bg-gray-100 p-2 rounded-lg">
+                      <Icon className="h-5 w-5 text-gray-700" />
                     </div>
+                    <span className="font-medium text-gray-900">{label}</span>
                   </Link>
                 </motion.div>
               ))}

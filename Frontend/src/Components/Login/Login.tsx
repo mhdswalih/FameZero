@@ -318,7 +318,7 @@ const handleRoleSelect = async (selectedRole: 'user' | 'hotel') => {
       />
    <PhoneAuthModal
         isOpen={phoneModal}
-        onClose={() => setPhoneModal(false)}  // Fixed setter name
+        onClose={() => setPhoneModal(false)} 
       />
     </div>
   );

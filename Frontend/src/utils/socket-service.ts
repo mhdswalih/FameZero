@@ -1,10 +1,17 @@
 import io, { Socket } from 'socket.io-client';
+interface SocketOptions {
+  role: 'admin' | 'hotel' | 'user';
+  token: string | null
+}
+
 
 class SocketService {
   private socket: Socket | null = null;
   private static instance: SocketService;
+  private currentRole: string | null = null;
+  private token: string | null = null;
 
-  private constructor() {} 
+  private constructor() { }
 
   public static getInstance(): SocketService {
     if (!SocketService.instance) {
@@ -12,23 +19,28 @@ class SocketService {
     }
     return SocketService.instance;
   }
-  
 
-  public connect(userId: string): void {
+  public connect(options: SocketOptions): void {
     if (this.socket?.connected) {
       console.log("Socket already connected");
       return;
     }
+    this.currentRole = options.role;
+    this.token = options.token;
+
     this.socket = io("http://localhost:3000", {
       transports: ["websocket"],
       forceNew: false,
       reconnection: true,
       timeout: 5000,
+      auth: {
+        role: options.role,
+        token: options.token
+      }
     });
 
     this.socket.on("connect", () => {
       console.log("✅ Socket connected:", this.socket?.id);
-      this.socket?.emit("join-hotel-room", userId);
     });
 
     this.socket.on("disconnect", (reason) => {
@@ -42,13 +54,28 @@ class SocketService {
     this.socket.on("reconnect", (attemptNumber) => {
       console.log("🔄 Socket reconnected after", attemptNumber, "attempts");
     });
+
+    this.socket.on("room-joined", (data) => {
+      console.log("✅ Successfully joined room:", data.room);
+    });
   }
 
-   public joinHotelRoom(hotelId: string) {
-    if (this.socket) {
-      this.socket.emit('join-hotel-room', hotelId);
-      console.log(`🏨 Requesting to join hotel room: ${hotelId}`);
+  // In your SocketService
+  // In your SocketService
+  public joinHotelRoom(hotelId: string): void {
+    if (!this.socket?.connected) {
+      console.error("❌ Socket not connected. Cannot join room.");
+      return;
     }
+
+    this.socket.emit('join-hotel-room', hotelId);
+    console.log(`🏨 Requesting to join hotel room: hotel-${hotelId}`);
+
+    // Listen for confirmation with correct parameter name
+    this.socket.once('room-joined', (data) => {
+      console.log("✅ Successfully joined room:", data.room);
+      console.log("✅ Hotel ID confirmed:", data.hotelId);
+    });
   }
 
   public disconnect(): void {
@@ -82,6 +109,12 @@ class SocketService {
       this.socket.emit(event, data);
     } else {
       console.warn("Socket not connected. Cannot emit event:", event);
+    }
+  }
+
+  public once(event: string, callback: (...args: any[]) => void): void {
+    if (this.socket) {
+      this.socket.once(event, callback);
     }
   }
 

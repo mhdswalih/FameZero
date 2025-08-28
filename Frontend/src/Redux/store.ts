@@ -19,13 +19,13 @@ import {
 const userPersistConfig = {
   key: "user",
   storage,
-  whitelist: ['id','role','email','isVerified'], 
+  whitelist: ['id','role','email','isVerified','token'], 
 };
 
 const adminPersistConfig = {
   key: "admin", 
   storage,
-  whitelist: ['id', 'email'], 
+  whitelist: ['id', 'email','token'], 
 };
 
 const userProfilePersistConfig = {
@@ -59,7 +59,7 @@ const store = configureStore({
         ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
       },
     }),
-  devTools: process.env.NODE_ENV !== 'production', 
+  devTools: process.env.NODE_ENV !== 'production',    
 });
 
 export const persistor = persistStore(store);
