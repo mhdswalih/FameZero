@@ -44,7 +44,6 @@ export class adminController implements IAdminController {
         try {
             const { id } = req.params;
             const status = await this._AdminService.acceptRequst(id);
-
             // Use global socket instance
             const cleanedId = id.replace(/^:/, '');
             const emitted = emitToHotel(cleanedId, "Approved");

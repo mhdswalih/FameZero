@@ -14,8 +14,8 @@ import profileRouter from './routers/userRouters/ProfileRoutes/profileRoutes';
 import hotelProfileRoutes from './routers/hoteRoutes/hotelProfileRoutes';
 dotenv.config()
 
-import type { Request, Response, NextFunction } from 'express';
 import { setSocketInstance } from './middleware/soket.io';
+import { getJWTInfoFromToken } from './utils/jwt';
 
 declare global {
   namespace Express {
@@ -37,24 +37,59 @@ const io = new Server(server, {
   }
 });
 
+io.use((socket, next) => {
+  const { role, token } = socket.handshake.auth;
+  
+  const {id} = getJWTInfoFromToken(token) 
+
+  if (role === 'hotel' && !token) {
+    return next(new Error('Hotel ID required for hotel role'));
+  }
+  if (role === 'user') {
+    return next(new Error('User ID required for user role'));
+  }
+  socket.data.role = role;
+  socket.data.id = id;
+  next();
+});
+
+
 io.on("connection", (socket) => {
   console.log("⚡️ New client connected", socket.id);
 
-  // Join hotel-specific room
-  socket.on("join-hotel-room", (userId) => {
-    const roomName = `hotel-${userId}`;
-    socket.join(roomName);
-    console.log(`✅ User ${userId} joined room ${roomName} with socket ${socket.id}`);
+  if(socket.data.role === 'admin'){
+    socket.join('admin')
+  }else if(socket.data.role === 'hotel'){
+    socket.join(`hotel-${socket.data.id}`)
+  }
+
+  // FIXED: Change parameter name from userId to hotelId
+  socket.on("join-hotel-room", (hotelId) => {
+    if (!hotelId) {
+      console.log('❌ No hotelId provided for room joining');
+      return;
+    }
     
-    // Confirm room joining
-    socket.emit("room-joined", { room: roomName, userId });
+    const roomName = `hotel-${hotelId}`;
+    socket.join(roomName);
+    console.log(`✅ Hotel ${hotelId} joined room ${roomName} with socket ${socket.id}`);
+    
+    // Confirm room joining - send back the actual hotelId
+    socket.emit("room-joined", { 
+      room: roomName, 
+      hotelId: hotelId,
+      success: true 
+    });
+
+    // Debug: check room clients
+    const room = io.sockets.adapter.rooms.get(roomName);
+    console.log(`📊 Room ${roomName} now has ${room ? room.size : 0} clients`);
   });
 
-  // Handle leaving room
-  socket.on("leave-hotel-room", (userId) => {
-    const roomName = `hotel-${userId}`;
+  socket.on("leave-hotel-room", (hotelId) => {
+    const roomName = `hotel-${hotelId}`;
     socket.leave(roomName);
-    console.log(`❌ User ${userId} left room ${roomName}`);
+    console.log(`❌ Hotel ${hotelId} left room ${roomName}`);
   });
 
   socket.on("disconnect", () => {

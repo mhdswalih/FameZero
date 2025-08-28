@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { IProfileHotelController } from "../../interfaces/hotel/profile/IProfileHotelController";
 import { IProfileHotelService } from "../../interfaces/hotel/profile/IProfileHotelService";
 import { HttpStatus } from "../../constants/HttpStatus";
-import { emitToHotel } from "../../middleware/soket.io";
+import { emitAdminHotelsTable, emitToHotel } from "../../middleware/soket.io";
 
 
 export class HotelProfileController implements IProfileHotelController {
@@ -25,23 +25,27 @@ export class HotelProfileController implements IProfileHotelController {
       };
       const profilepicPath = files?.profilepic?.[0]?.path;
       const idProofPath = files?.idProof?.[0]?.path;
-      const cleanedId = id.replace(/^:/, '');
+      const cleanedId = id.replace(/^:/, '').trim();
+      const hotel = await this._hotelProfileService.getHotelProfile(cleanedId);
+      if (!hotel) {
+        throw new Error("Hotel not found");
+      }
 
       const hotelData = {
         ...req.body,
         ...(profilepicPath && { profilepic: profilepicPath }),
         ...(idProofPath && { idProof: idProofPath }),
-        status: 'Pending' 
+        status: 'Pending'
       };
 
-  
-      const response = await this._hotelProfileService.updateHotelProfile(id, hotelData);
-      const emitted = emitToHotel(cleanedId, hotelData.status);
-
+      const response = await this._hotelProfileService.updateHotelProfile(cleanedId, hotelData);
+      const emitted = emitToHotel(hotel._id.toString(), 'Pending');
+      const adminEmitted = emitAdminHotelsTable(hotel._id.toString(),'Pending')
       res.status(200).json({
         success: true,
         data: response,
-        socketEmitted: emitted
+        socketEmitted: emitted,
+        hotelIdUsed: hotel._id
       });
     } catch (error) {
       next(error);
@@ -50,8 +54,10 @@ export class HotelProfileController implements IProfileHotelController {
   async reRequstProfile(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { id } = req.params
-      const status = await this._hotelProfileService.reqRequstProfile(id)
-      res.status(HttpStatus.OK).json({ success: true, data: status })
+        const cleanedId = id.replace(/^:/, '').trim();
+      const status = await this._hotelProfileService.reqRequstProfile(cleanedId)
+       const adminEmitted = emitAdminHotelsTable(cleanedId.toString(),'Pending')
+      res.status(HttpStatus.OK).json({ success: true, data: status , socketEmitted: adminEmitted})
     } catch (error) {
       next(error)
     }

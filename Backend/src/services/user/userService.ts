@@ -125,6 +125,7 @@ export class UserService implements IUserService {
             if (!isValid) {
                 throw createHttpError(HttpStatus.BAD_REQUEST, Messages.INVALID_PASSWORD)
             }
+            console.log(user)
             const accessToken = genrateAccessToken(user.id.toString(), user.role)
             const refreshToken = genrateRefreshToken(user.id.toString())
             return {
@@ -222,6 +223,8 @@ export class UserService implements IUserService {
                     });
                 }
             }
+            console.log('user ',user);
+            
             const accessToken = genrateAccessToken(user.id.toString(), user.role);
             const refreshToken = genrateRefreshToken(user.id.toString());
 
