@@ -16,6 +16,7 @@ dotenv.config()
 
 import { setSocketInstance } from './middleware/soket.io';
 import { getJWTInfoFromToken } from './utils/jwt';
+import productRoutes from './routers/userRouters/productRoutes';
 
 declare global {
   namespace Express {
@@ -116,6 +117,7 @@ app.use(cookieParser());
 
 app.use('/api',userRouter)
 app.use('/api',profileRouter)
+app.use('/api',productRoutes)
 app.use('/api/hotel',hotelRoutes)
 app.use('/api/hotel',hotelProfileRoutes)
 app.use('/api/admin',adminRoutes)

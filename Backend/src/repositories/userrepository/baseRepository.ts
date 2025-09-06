@@ -1,5 +1,7 @@
 import { Document, Model, FilterQuery, UpdateQuery, QueryOptions } from "mongoose";
 import { IBaseRepository } from "../../interfaces/baserepo/IbaseRepo";
+import Product from "../../models/hotelModel/productModel";
+import Cart from "../../models/usermodel/cartModel";
 
 
 export class BaseRepository<T extends Document> implements IBaseRepository<T> {
@@ -32,6 +34,26 @@ export class BaseRepository<T extends Document> implements IBaseRepository<T> {
             return await this.model.findOne(filter).exec();
         } catch (error: any) {
             throw new Error(`Error finding entities${error instanceof Error ? error.message : String(error)}`);
+        }
+    }
+    async findOneProduct( productId: string): Promise<T | null> {
+        try {
+            return  await Product.findOne(
+            { "productDetails._id": productId },
+            { "productDetails.$": 1 }
+        );
+        } catch (error) {
+            throw error
+        }
+    }
+    async findOneCart(userId: string, productId: string): Promise<T | null> {
+        try {
+            return  await Cart.findOne(
+            { userId, "products.productId": productId },
+            { "products.$": 1 }
+        );
+        } catch (error) {
+            throw error
         }
     }
 

@@ -10,21 +10,22 @@ import { UserRepository } from "../../repositories/userrepository/userRepository
 
 const hotelProfileRoutes = Router()
 
-const hotelProfileRepository =  new HotelProfileRepository()
+const hotelProfileRepository = new HotelProfileRepository()
 const userRepository = new UserRepository()
-const hotelProfileService = new HotelProfileService(hotelProfileRepository,userRepository)
+const hotelProfileService = new HotelProfileService(hotelProfileRepository, userRepository)
 const hotelProfileController = new HotelProfileController(hotelProfileService)
 
-hotelProfileRoutes.get('/get-hotel-profile/:id',authenticateToken,hotelProfileController.getHotelProfile.bind(hotelProfileController))
-hotelProfileRoutes.post( 
-  '/update-hotelprofile/:id',authenticateToken,
+hotelProfileRoutes.get('/get-hotel-profile/:id', authenticateToken, hotelProfileController.getHotelProfile.bind(hotelProfileController))
+hotelProfileRoutes.post(
+  '/update-hotelprofile/:id', authenticateToken,
   upload.fields([
     { name: 'profilepic', maxCount: 1 },
     { name: 'idProof', maxCount: 1 }
   ]),
   hotelProfileController.updateHotelProfile.bind(hotelProfileController));
-hotelProfileRoutes.post('/rerequst-profile/:id',authenticateToken,hotelProfileController.reRequstProfile.bind(hotelProfileController))
-hotelProfileRoutes.post('/change-password/:id',authenticateToken,hotelProfileController.changePassword.bind(hotelProfileController))
-
+hotelProfileRoutes.post('/rerequst-profile/:id', authenticateToken, hotelProfileController.reRequstProfile.bind(hotelProfileController))
+hotelProfileRoutes.post('/change-password/:id', authenticateToken, hotelProfileController.changePassword.bind(hotelProfileController))
+hotelProfileRoutes.post('/add-products/:hotelId',authenticateToken,hotelProfileController.addProducts.bind(hotelProfileController))
+hotelProfileRoutes.get('/get-menu/:userId',hotelProfileController.getAllMenu.bind(hotelProfileController))
 
 export default hotelProfileRoutes

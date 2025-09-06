@@ -1,9 +1,14 @@
+import { UUID } from "crypto";
 import { Messages } from "../../constants/Messeges";
 import { IProfileHotelRepositer } from "../../interfaces/hotel/profile/IProfileHotelRepository";
 import { IProfileHotelService } from "../../interfaces/hotel/profile/IProfileHotelService";
 import { IUserRepository } from "../../interfaces/user/IUserRepository";
 import { IHotelProfile } from "../../models/hotelModel/hotelProfileModel";
+import { IProducts, IProductsDetails } from "../../models/hotelModel/productModel";
 import { comparePassword, hashPassword } from "../../utils/hashPassword";
+import { createHttpError } from "../../utils/httperr";
+import productModel from '../../models/hotelModel/productModel'
+import { HttpStatus } from "../../constants/HttpStatus";
 
 
 
@@ -62,5 +67,54 @@ export class HotelProfileService implements IProfileHotelService {
             throw error
         }
     }
+    async addProducts(
+        hotelId: string,
+        products: IProductsDetails[]
+    ): Promise<{ status: number; message: string }> {
+        try {
+            if (!products || products.length === 0) {
+                return { status: 400, message: Messages.PRODUCT_NOT_FOUND };
+            }
 
-}
+            // 1. Check duplicates inside request
+            const productNames = products.map(p => p.productName);
+            const duplicates = productNames.filter((name, i) => productNames.indexOf(name) !== i);
+
+            if (duplicates.length > 0) {
+             throw createHttpError(HttpStatus.BAD_REQUEST,Messages.DUBLICATE_PRODUCT);
+            }
+
+            // 2. Check duplicates in DB
+            const existingProducts = await productModel.findOne({ hotelId });
+            if (existingProducts) {
+                const existingNames = existingProducts.productDetails
+                    .map(item => item.productName)
+                    .filter(name => productNames.includes(name));
+
+                if (existingNames.length > 0) {
+                    throw createHttpError(HttpStatus.BAD_REQUEST,Messages.DUBLICATE_PRODUCT);
+                }
+            }
+
+            // 3. Save if no duplicates
+            await this._hotelProfileRepository.addProducts(hotelId, products);
+
+            return { status: 200, message: "Products added successfully" };
+        } catch (error: any) {
+            return { status: 500, message: error.message || "Something went wrong" };
+        }
+    }
+
+
+    async getAllMenu(userId: string): Promise<IProductsDetails[] | null> {
+        try {
+            if (!userId) {
+                throw new Error(Messages.INVALID_USER_ID)
+            }
+            const ListedMenu = await this._hotelProfileRepository.getAllMenu(userId)
+            return ListedMenu
+        } catch (error) {
+            throw error
+        }
+    }
+}   

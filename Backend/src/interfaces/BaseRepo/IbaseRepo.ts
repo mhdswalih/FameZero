@@ -6,6 +6,8 @@ export interface IBaseRepository<T extends Document> {
     findByEmail(email:string):Promise<T | null> 
     findByPhone(phone:string):Promise<T | null>
     findAll(): Promise<T[]>;
+    findOneProduct(productId:string):Promise<T | null>
+    findOneCart(userId:string,productId:string):Promise<T | null>
     find(filter: FilterQuery<T>, option?: QueryOptions): Promise<T[]>;
     findWithPagination(
         filter: FilterQuery<T>,

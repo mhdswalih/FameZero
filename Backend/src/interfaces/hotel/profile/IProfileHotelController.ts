@@ -6,4 +6,6 @@ export interface  IProfileHotelController {
     updateHotelProfile(req:Request,res:Response,next:NextFunction):Promise<void>
     reRequstProfile(req:Request,res:Response,next:NextFunction):Promise<void>
     changePassword(req:Request,res:Response,next:NextFunction):Promise<void>
+    addProducts(req:Request,res:Response,next:NextFunction):Promise<void>
+    getAllMenu(req:Request,res:Response,next:NextFunction):Promise<void>
 }

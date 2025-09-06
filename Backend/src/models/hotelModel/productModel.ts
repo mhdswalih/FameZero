@@ -1,11 +1,35 @@
-import mongoose from "mongoose";
+import mongoose, { Schema,Document } from "mongoose";
+import { IHotelProfile } from "./hotelProfileModel";
 
-interface Products {
-  productName :string;
-  price:string;
-  qundity:string;
+export interface IProductsDetails {
+  _id:string;
+  category: string,
+  productName: string,
+  price: number,
+  quantity: number,
 }
 
-const productSchema = new mongoose.Schema({
+export interface IProducts extends Document {
+  hotelId: Schema.Types.ObjectId | IHotelProfile;
+  productDetails: IProductsDetails[];
+}
 
+const productDetailsSchema = new mongoose.Schema<IProductsDetails>({
+  category: { type: String, required: true },
+  productName: { type: String, required: true },
+  price: { type: Number, required: true },
+  quantity: { type: Number, required: true },
 })
+
+const productSchema = new Schema<IProducts>({
+  hotelId: {
+    type: Schema.Types.ObjectId,
+    ref: 'hotelProfile',
+    required: true
+  },
+  productDetails: { type: [productDetailsSchema], required: true },
+})
+
+const Product = mongoose.model<IProducts>('Products', productSchema);
+
+export default Product

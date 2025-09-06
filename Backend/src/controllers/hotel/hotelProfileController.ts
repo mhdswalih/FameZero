@@ -4,7 +4,6 @@ import { IProfileHotelService } from "../../interfaces/hotel/profile/IProfileHot
 import { HttpStatus } from "../../constants/HttpStatus";
 import { emitAdminHotelsTable, emitToHotel } from "../../middleware/soket.io";
 
-
 export class HotelProfileController implements IProfileHotelController {
   constructor(private _hotelProfileService: IProfileHotelService) { }
 
@@ -40,7 +39,7 @@ export class HotelProfileController implements IProfileHotelController {
 
       const response = await this._hotelProfileService.updateHotelProfile(cleanedId, hotelData);
       const emitted = emitToHotel(hotel._id.toString(), 'Pending');
-      const adminEmitted = emitAdminHotelsTable(hotel._id.toString(),'Pending')
+      const adminEmitted = emitAdminHotelsTable(hotel._id.toString(), 'Pending')
       res.status(200).json({
         success: true,
         data: response,
@@ -54,10 +53,10 @@ export class HotelProfileController implements IProfileHotelController {
   async reRequstProfile(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { id } = req.params
-        const cleanedId = id.replace(/^:/, '').trim();
+      const cleanedId = id.replace(/^:/, '').trim();
       const status = await this._hotelProfileService.reqRequstProfile(cleanedId)
-       const adminEmitted = emitAdminHotelsTable(cleanedId.toString(),'Pending')
-      res.status(HttpStatus.OK).json({ success: true, data: status , socketEmitted: adminEmitted})
+      const adminEmitted = emitAdminHotelsTable(cleanedId.toString(), 'Pending')
+      res.status(HttpStatus.OK).json({ success: true, data: status, socketEmitted: adminEmitted })
     } catch (error) {
       next(error)
     }
@@ -67,6 +66,33 @@ export class HotelProfileController implements IProfileHotelController {
       const { id } = req.params;
       const { currentPasswords, newPassword, confirmPassword } = req.body
       const response = await this._hotelProfileService.changePassword(id, currentPasswords, newPassword, confirmPassword)
+      res.status(HttpStatus.OK).json({ response })
+    } catch (error) {
+      next(error)
+    }
+  }
+  async addProducts(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { hotelId } = req.params;
+      const { products } = req.body;
+
+      const response = await this._hotelProfileService.addProducts(hotelId, products);
+        res.status(HttpStatus.OK).json({
+      success: true,
+      message: "Products added successfully",
+      data: response,
+    });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getAllMenu(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { userId } = req.params;
+      console.log(userId, 'this si userId');
+
+      const response = await this._hotelProfileService.getAllMenu(userId)
       res.status(HttpStatus.OK).json({ response })
     } catch (error) {
       next(error)

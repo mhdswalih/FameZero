@@ -3,18 +3,24 @@ import { createHttpError } from "../utils/httperr";
 import { HttpStatus } from "../constants/HttpStatus";
 import { Messages } from "../constants/Messeges";
 import { User } from "../models/usermodel/userModel";
-import  jwt  from "jsonwebtoken";
+import  jwt, { JwtPayload }  from "jsonwebtoken";
 import { isUserBlackListed } from "../utils/blockuser";
 
-export interface AuthRequst extends Request {
-    user?: {
-        userId:string;
-        role:string
-    };
+declare global {
+  namespace Express {
+    interface Request {
+      user?: {
+        userId: string;
+        role: string;
+      };
+    }
+  }
 }
 
+
+
 export async function authenticateToken(
-    req: AuthRequst,
+    req: Request,
     res: Response,
     next: NextFunction
 ): Promise<void> {

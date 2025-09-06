@@ -1,4 +1,5 @@
 import { IHotelProfile } from "../../../models/hotelModel/hotelProfileModel";
+import { IProducts, IProductsDetails } from "../../../models/hotelModel/productModel";
 import { IBaseRepository } from "../../baserepo/IbaseRepo";
 
 export interface IProfileHotelRepositer extends IBaseRepository<IHotelProfile> {
@@ -6,6 +7,8 @@ export interface IProfileHotelRepositer extends IBaseRepository<IHotelProfile> {
      findByHotelId(userId:string):Promise<IHotelProfile | null> 
      updateHotelProfile(userId:string,profileData:Partial<IHotelProfile>):Promise<IHotelProfile | null>;
      reRequstHotelProfile(id:string):Promise<IHotelProfile | null>;
+     addProducts(hotelId:string,newProduct:IProductsDetails[]):Promise<IProducts>
+     getAllMenu(userId:string):Promise<IProductsDetails[] | null>
   
 }
 
