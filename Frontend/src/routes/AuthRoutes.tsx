@@ -12,6 +12,9 @@ import FoodSection from '../Components/User/FoodPage'
 import { Settings } from 'lucide-react'
 import UserSettings from '../Components/User/Settings'
 import ResetPassword from '../Components/ForgetPassword/ResetPassword'
+import ProductPage from '../Components/User/HotelsDetailsPage'
+import CartPage from '../Components/User/CartPage'
+import WishListPage from '../Components/User/WishList'
 
 const ProtectedRoute = ({ children }: { children:ReactElement }) => {
   const user = useSelector((state: RootState) => state.user);
@@ -20,11 +23,8 @@ const ProtectedRoute = ({ children }: { children:ReactElement }) => {
 };
 
 const PublicRoute = ({ children }: { children: ReactElement }) => {
-  const user = useSelector((state: RootState) => state.user);  
-  console.log(user,'///////////////////////////////////////');
-  
+  const user = useSelector((state: RootState) => state.user);   
   const isAuthenticated = !!user.token;
-  
   return !isAuthenticated ? children : <Navigate to='/' replace />;
 };
 
@@ -43,12 +43,14 @@ const AuthRoutes = () => {
         </PublicRoute>
       } />
           <Route path='profile-details' element={
-            // <ProtectedRoute>
+            <ProtectedRoute>
               <ProfilePage />
-            // </ProtectedRoute>
+             </ProtectedRoute>
               } />
         <Route path='settings' element={<UserSettings />}/> 
-        <Route path='reset-password' element={<ResetPassword />} />     
+        <Route path='reset-password' element={<ResetPassword />} />   
+        <Route path='/cart' element={<CartPage />} />
+        <Route path='/wishlist' element={<WishListPage />} />  
         <Route path='about-page' element={
           <>
           {/* <Navbar /> */}
@@ -61,6 +63,11 @@ const AuthRoutes = () => {
             <FoodSection />
           </>
         }/>
+        <Route path='explore-food/:hotelId' element={
+          <>
+          <ProductPage />
+          </>
+        } />
       <Route path='otp' element={
         <PublicRoute>
           <OTPVerificationPage />

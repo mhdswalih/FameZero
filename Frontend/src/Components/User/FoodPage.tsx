@@ -1,31 +1,29 @@
-import {  motion, useScroll } from "framer-motion";
-import { useNavigate } from "react-router-dom"; 
+import { motion, useScroll, useSpring } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import Navbar from "../UserNav&Footer/Navbar";
 import { useEffect, useState } from "react";
 import { fetchHotelProfiles } from "../../Api/userApiCalls/profileApi";
 import { useSelector } from "react-redux";
-import {} from 'react-icons'
 import { RootState } from "../../Redux/store";
-import { BackwardIcon } from "@heroicons/react/24/solid";
 
 function FoodSection() {
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
   interface hotel {
-    _id:string;
-    name:string;
-    email:string;
-    profilepic:string;
-    location:string;
-    city:string;
-    phone:string;
+    _id: string;
+    userId: string;
+    name: string;
+    email: string;
+    profilepic: string;
+    location: string;
+    city: string;
+    phone: string;
   }
-  const [hotels,setHotels] = useState<hotel[]>([]);
-  const user = useSelector((state:RootState)=> state.userProfile)
-      
+  const [hotels, setHotels] = useState<hotel[]>([]);
+  const user = useSelector((state: RootState) => state.userProfile)
+
   const getHotels = async () => {
     try {
       const response = await fetchHotelProfiles();
-      // If response.data is an array, use it. Otherwise, fallback to empty array.
       if (Array.isArray(response?.hotels)) {
         setHotels(response.hotels);
       } else if (Array.isArray(response)) {
@@ -34,47 +32,113 @@ function FoodSection() {
         setHotels([]);
       }
     } catch (error) {
-      setHotels([]); 
+      setHotels([]);
     }
   };
 
-  useEffect(()=>{
+  useEffect(() => {
     getHotels()
-  },[])
+  }, [])
+
   const { scrollYProgress } = useScroll();
-  
+  const scaleX = useSpring(scrollYProgress, {
+    stiffness: 100,
+    damping: 30,
+    restDelta: 0.001
+  });
+
+  // Animation variants for better organization
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        duration: 0.8,
+        staggerChildren: 0.1,
+        when: "beforeChildren"
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: {
+        type: "spring",
+        stiffness: 120,
+        damping: 14,
+        mass: 0.5
+      }
+    }
+  };
+
+  const cardVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        type: "spring",
+        stiffness: 100,
+        damping: 15
+      }
+    },
+    hover: {
+      y: -8,
+      transition: {
+        type: "spring",
+        stiffness: 400,
+        damping: 17
+      }
+    }
+  };
+
   return (
     <>
-      <div className="fixed top-0 left-0 w-full  flex justify-center z-50 ">
+      <div className="fixed top-0 left-0 w-full flex justify-center z-50">
         <div className="w-full max-w-7xl px-4">
-           <Navbar /> 
+          <Navbar />
         </div>
       </div>
-      
+
       <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 1 }}
-        className="font-sans bg-gray-50 text-gray-800 min-h-screen relative pt-28 md:pt-36 px-4 sm:px-6 lg:px-8 pb-16"
+        initial="hidden"
+        animate="visible"
+        variants={containerVariants}
+        className="font-['Poppins'] min-h-screen bg-gradient-to-br from-orange-50 to-orange-100 relative pt-28 md:pt-36 px-4 sm:px-6 lg:px-8 pb-16"
       >
+        {/* Scroll Progress Bar */}
+       
         {/* Header Section */}
         <div className="max-w-7xl mx-auto">
           <motion.div
-            initial={{ opacity: 0, y: -30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
+            variants={itemVariants}
             className="w-full flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6"
           >
             <div className="flex-1">
-              <h3 className="text-2xl sm:text-3xl font-bold text-gray-900">Food Outlets</h3>
-              <p className="text-gray-600 mt-2">Discover amazing venues for your events</p>
+              <motion.h3
+                className="text-2xl sm:text-3xl font-bold text-gray-900"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, ease: "easeOut" }}
+              >
+                Food Outlets
+              </motion.h3>
+              <motion.p
+                className="text-gray-600 mt-2"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.2, duration: 0.6 }}
+              >
+                Discover amazing venues for your events
+              </motion.p>
             </div>
-            
+
             <div className="w-full md:w-auto flex-shrink-0">
               <motion.div
-                initial={{ opacity: 0, x: 30 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.8, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                variants={itemVariants}
                 className="relative w-full md:min-w-[320px] max-w-md"
               >
                 <input
@@ -107,13 +171,17 @@ function FoodSection() {
           </motion.div>
 
           {/* Cards Section */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
+          <motion.div
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8"
+            variants={containerVariants}
+          >
             {Array.isArray(hotels) && hotels.map((item, index) => (
               <motion.div
                 key={item._id || index}
-                initial={{ opacity: 0, y: 50 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
+                variants={cardVariants}
+                initial="hidden"
+                animate="visible"
+                whileHover="hover"
                 viewport={{ once: true, margin: "-50px" }}
                 className="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 border border-gray-100"
               >
@@ -123,15 +191,15 @@ function FoodSection() {
                     alt={item.name}
                     className="w-full h-52 sm:h-56 object-cover"
                     whileHover={{ scale: 1.05 }}
-                    transition={{ duration: 0.4 }}
+                    transition={{ duration: 0.4, ease: "easeOut" }}
                   />
                   <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/70 to-transparent p-4">
                     <p className="text-amber-300 text-sm">{item.city}</p>
                   </div>
                 </div>
-                
+
                 <div className="p-5">
-                    <h4 className="text-lg font-semibold text-black truncate">{item.name}</h4>
+                  <h4 className="text-lg font-semibold text-black truncate">{item.name}</h4>
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center">
                       {[...Array(5)].map((_, starIndex) => (
@@ -141,8 +209,8 @@ function FoodSection() {
                           className="h-4 w-4 sm:h-5 sm:w-5 text-amber-400"
                           viewBox="0 0 20 20"
                           fill="currentColor"
-                          whileHover={{ scale: 1.2 }}
-                          transition={{ duration: 0.2 }}
+                          whileHover={{ scale: 1.2, rotate: 10 }}
+                          transition={{ duration: 0.2, type: "spring" }}
                         >
                           <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                         </motion.svg>
@@ -150,7 +218,7 @@ function FoodSection() {
                       <span className="text-xs text-gray-500 ml-1">(120 reviews)</span>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center text-sm text-gray-600 mb-4">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
@@ -158,57 +226,57 @@ function FoodSection() {
                     </svg>
                     <span className="truncate">{item.location}</span>
                   </div>
-                  
-                  <motion.button 
-                    onClick={() => navigate("/HotelsDetails",{state:{hotels:item}})}
-                    whileHover={{ 
+
+                  <motion.button
+                    onClick={() => navigate(`/explore-food/${item.userId}`)}
+                    whileHover={{
                       scale: 1.03,
-                      boxShadow: "0 10px 25px -5px rgba(245, 158, 11, 0.4)"
+                      boxShadow: "0 10px 25px -5px rgba(245, 158, 11, 0.4)",
+                      transition: { type: "spring", stiffness: 400, damping: 17 }
                     }}
                     whileTap={{ scale: 0.97 }}
                     className="w-full bg-gradient-to-r from-amber-500 to-amber-600 text-white py-3 rounded-xl hover:from-amber-600 hover:to-amber-700 transition-all duration-300 font-medium shadow-md"
                   >
-                    View Details
+                    Explore Foods
                   </motion.button>
                 </div>
               </motion.div>
             ))}
-          </div>
+          </motion.div>
 
           {hotels.length === 0 && (
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.5 }}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5, type: "spring", stiffness: 100, damping: 15 }}
               className="flex flex-col items-center justify-center py-20 text-center"
             >
-              <div className="w-24 h-24 bg-amber-100 rounded-full flex items-center justify-center mb-6">
+              <motion.div
+                className="w-24 h-24 bg-amber-100 rounded-full flex items-center justify-center mb-6"
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: "spring", delay: 0.6, stiffness: 100, damping: 10 }}
+              >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-0.5M5 21H3m2 0h0.5M5 21h14M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                 </svg>
-              </div>
+              </motion.div>
               <h3 className="text-xl font-semibold text-gray-800 mb-2">No venues available</h3>
               <p className="text-gray-600 max-w-md">We couldn't find any hotels or auditoriums at the moment. Please check back later.</p>
             </motion.div>
           )}
         </div>
-
-        {/* Scroll Progress Indicator */}
-        <motion.div 
-          className="fixed top-24 right-4 z-40 hidden lg:block"
-          style={{ scale: scrollYProgress }}
-          initial={{ scale: 0 }}
-        >
-          <div className="w-14 h-14 bg-amber-500/10 rounded-full flex items-center justify-center">
-            <div className="w-3 h-3 bg-amber-500 rounded-full"></div>
-          </div>
-        </motion.div>
       </motion.div>
-      
+
       <div className="bg-white py-12">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex justify-center">
-            <div className="w-24 h-1 bg-amber-400 rounded-full"></div>
+            <motion.div
+              className="w-24 h-1 bg-amber-400 rounded-full"
+              initial={{ width: 0 }}
+              animate={{ width: "6rem" }}
+              transition={{ delay: 0.8, duration: 0.6, ease: "easeOut" }}
+            />
           </div>
         </div>
       </div>

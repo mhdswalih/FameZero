@@ -5,17 +5,20 @@ import {
   Phone, MapPin, Edit3,
   Settings, Bell, Shield, LogOut, Mail,
   TimerIcon,
-  RefreshCcwIcon
+  RefreshCcwIcon,
+  PlusSquareIcon,
+  Plus
 } from 'lucide-react';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../../Redux/store';
 import { removeUser } from '../../Redux/Slice/userSlice';
 import toast from 'react-hot-toast';
-import { editHotelProfile, getHotels, reRequstOption } from '../../Api/hotelApiCalls/hotelProfileApi';
+import { addProducts, editHotelProfile, getHotels, reRequstOption } from '../../Api/hotelApiCalls/hotelProfileApi';
 import HotelEditModal from '../Modals/Hotel/HotelEditModal';
 import { addHotelProfile, removeHotelProfile } from '../../Redux/Slice/ProfileSlice/hotelProfileSlice';
 import { VerifiedIcon, InfoIcon } from 'lucide-react';
 import SocketService from '../../Utils/socket-service';
+import ProductModal from '../Modals/Hotel/ProductModal';
 
 interface HotelProfile {
   _id: string;
@@ -29,10 +32,22 @@ interface HotelProfile {
   city: string;
 }
 
+interface IProductsDetails {
+  category: string;
+  customCategory: string;
+  productName: string;
+  price: string;
+  quantity: string;
+  _id?: string;
+}
+
 const HotelProfilePage = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  
+  const [isProductModalOpen, setIsProductModalOpen] = useState(false)
+  const [product, setProducts] = useState<IProductsDetails[]>([])
+  console.log(product, 'this is product form modal');
+
   const user = useSelector((state: RootState) => state.user);
   const hotelprofile = useSelector((state: RootState) => state.hotelProfile);
 
@@ -81,7 +96,6 @@ const HotelProfilePage = () => {
         setHotelProfile(updatedProfile);
         dispatch(addHotelProfile(updatedProfile));
         setEditedProfile(updatedProfile);
-
         toast.success('Profile updated successfully');
         setIsEditModalOpen(false);
       }
@@ -99,6 +113,18 @@ const HotelProfilePage = () => {
     }
   };
 
+
+  const handleSaveProducts = async (updatedProducts: IProductsDetails[]) => {
+    try {
+      const response = await addProducts(updatedProducts, id);
+      setProducts(updatedProducts);
+      toast.success(response?.message);
+      setProducts([])
+    } catch (error: any) {
+
+      toast.error(error.message || error.error);
+    }
+  };
   const handleGetHotel = async () => {
     try {
       const response = await getHotels(id as string);
@@ -124,46 +150,21 @@ const HotelProfilePage = () => {
   };
 
 
-const handleStatusUpdate = useCallback(async (data: { id: string; status: string; timestamp?: string }) => {
-  try {
-    await handleGetHotel();
-    toast.success(`Status updated to: ${data.status}`);
-  } catch (error) {
-    console.error("Failed to refresh hotel data:", error);
-  }
-}, []);
-const token = useSelector((state:RootState)=> state.user.token)
-
-// useEffect(() => {
-//   const socketService = SocketService.getInstance();
-   
-//   if (!socketService.isConnected()) {
-//     socketService.connect({role:'hotel',token});
-//   } 
-//   // Listen for status updates
-//   socketService.on("hotel-status-changed", handleStatusUpdate);
-//   // Join room
-//   const joinRoom = () => {
-//     socketService.joinHotelRoom(hotelProfile._id);
-//   };
-//   if (socketService.isConnected()) {
-//     joinRoom();
-//   } else {
-//     socketService.once("connect", joinRoom);
-//   }
-
-//   // Cleanup function
-//   return () => {
-//     socketService.off("hotel-status-changed", handleStatusUpdate);
-//   };
-// }, [hotelProfile._id, handleStatusUpdate]); 
-
+  const handleStatusUpdate = useCallback(async (data: { id: string; status: string; timestamp?: string }) => {
+    try {
+      await handleGetHotel();
+      toast.success(`Status updated to: ${data.status}`);
+    } catch (error) {
+      console.error("Failed to refresh hotel data:", error);
+    }
+  }, []);
+  const token = useSelector((state: RootState) => state.user.token)
   useEffect(() => {
     const socketService = SocketService.getInstance();
     if (!socketService.isConnected()) {
-      socketService.connect({role:'hotel',token});
+      socketService.connect({ role: 'hotel', token });
     }
-    
+
     socketService.on("hotel-status-changed", handleStatusUpdate);
     if (socketService.isConnected()) {
       socketService.joinHotelRoom(hotelProfile._id);
@@ -175,7 +176,7 @@ const token = useSelector((state:RootState)=> state.user.token)
     }
 
 
-   // Cleanup function
+    // Cleanup function
     return () => {
       const socketService = SocketService.getInstance();
       socketService.off("hotel-status-changed", handleStatusUpdate);
@@ -238,11 +239,33 @@ const token = useSelector((state:RootState)=> state.user.token)
 
         {/* Main Content Area */}
         <main className="p-6">
-          <div onClick={() => navigate(-1)} className="cursor-pointer mb-4">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="icon-arrow-left">
-              <line x1="19" y1="12" x2="5" y2="12" />
-              <polyline points="12 5 5 12 12 19" />
-            </svg>
+          <div className="flex justify-between items-center mb-4">
+            {/* Arrow at the start */}
+            <div onClick={() => navigate(-1)} className="flex cursor-pointer">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="icon-arrow-left"
+              >
+                <line x1="19" y1="12" x2="5" y2="12" />
+                <polyline points="12 5 5 12 12 19" />
+              </svg>
+            </div>
+
+            {/* Add Product button at the end */}
+            <button
+              className="flex items-center gap-2 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors duration-300 font-medium"
+              onClick={() => setIsProductModalOpen(true)}
+            >
+              Add Product
+              <Plus className="w-5 h-5" />
+            </button>
           </div>
 
           <div className="max-w-4xl mx-auto">
@@ -312,7 +335,7 @@ const token = useSelector((state:RootState)=> state.user.token)
                       <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
                         Active
                       </span>
-                    
+
                     </div>
                   </div>
                   <div className='flex flex-col gap-2'>
@@ -409,6 +432,14 @@ const token = useSelector((state:RootState)=> state.user.token)
         editedProfile={editedProfile}
         setEditedProfile={setEditedProfile}
         handleEditHotel={handleEditHotel}
+      />
+
+      <ProductModal
+        setProducts={setProducts}
+        products={product}
+        setIsProductModalOpen={setIsProductModalOpen}
+        isProductModalOpen={isProductModalOpen}
+        handleSaveProducts={handleSaveProducts}
       />
     </div>
   );

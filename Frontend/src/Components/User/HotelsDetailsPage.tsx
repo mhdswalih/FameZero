@@ -1,73 +1,260 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
+import { 
+  ChefHat, 
+  Coffee, 
+  Pizza, 
+  Salad, 
+  Sandwich, 
+  Fish, 
+  Beef, 
+  Drumstick, 
+  Leaf, 
+  Cookie, 
+  Wine, 
+  IceCream, 
+  Baby, 
+  Star,
+  Filter,
+  Search
+} from 'lucide-react';
+import  Navbar  from '../UserNav&Footer/Navbar';
+import { getAllMenuList } from '../../Api/hotelApiCalls/hotelProfileApi';
+import { addToCart } from '../../Api/userApiCalls/productApi';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../Redux/store';
+import toast from 'react-hot-toast';
 
-const ProductPage = () => {
+// Mock Navbar component since it's imported
+
+const ProductCategories = [
+  { value: "", label: "All Categories", icon: ChefHat },
+  { value: "Appetizers", label: "Appetizers", icon: Cookie },
+  { value: "Main Course", label: "Main Course", icon: ChefHat },
+  { value: "Soups", label: "Soups", icon: Coffee },
+  { value: "Salads", label: "Salads", icon: Salad },
+  { value: "Sandwiches", label: "Sandwiches", icon: Sandwich },
+  { value: "Burgers", label: "Burgers", icon: Sandwich },
+  { value: "Pizza", label: "Pizza", icon: Pizza },
+  { value: "Pasta", label: "Pasta", icon: ChefHat },
+  { value: "Seafood", label: "Seafood", icon: Fish },
+  { value: "Chicken", label: "Chicken", icon: Drumstick },
+  { value: "Beef", label: "Beef", icon: Beef },
+  { value: "Vegetarian", label: "Vegetarian", icon: Leaf },
+  { value: "Vegan", label: "Vegan", icon: Leaf },
+  { value: "Sides", label: "Sides", icon: Cookie },
+  { value: "Desserts", label: "Desserts", icon: IceCream },
+  { value: "Beverages", label: "Beverages", icon: Coffee },
+  { value: "Hot Drinks", label: "Hot Drinks", icon: Coffee },
+  { value: "Cold Drinks", label: "Cold Drinks", icon: Coffee },
+  { value: "Alcoholic Beverages", label: "Alcoholic Beverages", icon: Wine },
+  { value: "Specials", label: "Specials", icon: Star },
+  { value: "Kids Menu", label: "Kids Menu", icon: Baby },
+];
+
+
+ interface IProductsDetails {
+  _id:string;
+  category: string,
+  productName: string,
+  price: string,
+  quantity: string,
+}
+
+const MenuListingPage = () => {
+  const { hotelId } = useParams();
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [menus,setMenus] = useState<IProductsDetails[]>([])
+  const userId = useSelector((state:RootState)=> state.userProfile._id)
+  const fetchMenuItems = async()=>{
+    try {
+     const response =  await getAllMenuList(hotelId as string)
+      const matchingHotel = response.response.find((item: any) => item.hotelId === hotelId); 
+    if (matchingHotel && matchingHotel.productDetails) {
+      setMenus(matchingHotel.productDetails);
+    }
+    } catch (error) {
+      setMenus([])
+    }
+  }
+  useEffect(()=>{
+    if(hotelId){
+      fetchMenuItems()
+    }
+  },[hotelId])
+
+  const getCategoryIcon = (category:string) => {
+    const categoryData = ProductCategories.find(cat => cat.value === category);
+    return categoryData ? categoryData.icon : ChefHat;
+  };
+
+  
+  const handleAddCart = async(productId:string)=>{ 
+    try {
+      const response = await addToCart(productId,userId as string,hotelId as string)
+      toast.success(response.message)
+    } catch (error) {
+      
+    }
+  }
   return (
-    <section className="font-['Poppins']  flex items-center justify-center bg-orange-350 bg-opacity-20 h-[100vh] pt-10 ">
-      <div className="flex w-full h-full p-10 bg-orange-350 border-orange-350  rounded-xl">
-        <div className="flex flex-col gap-14 items-center">
-          {/* SVG and Images */}
-          <svg width="16" height="10" viewBox="0 0 16 10" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M15 8.5L8 1.5L1 8.5" stroke="#FFA500" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
-          </svg>
-          <div className="flex flex-col gap-3">
-            <img className="w-20 h-[90px]" src="https://iili.io/3HJzjs4.png" alt="" />
-            <img className="w-20 h-[90px]" src="https://iili.io/3HJTOH7.png" alt="" />
-            <img className="w-20 h-[90px]" src="https://iili.io/3HJTeR9.png" alt="" />
-            <img className="w-20 h-[90px]" src="https://iili.io/3HJTkNe.png" alt="" />
-          </div>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M19 8.5L12 15.5L5 8.5" stroke="#FFA500" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
-          </svg>
-        </div>
-        <img className="w-[556px] ml-3 mr-6" src="https://iili.io/3HJzNql.png" alt="" />
-        <div>
-          <div className="flex gap-2 items-center">
-            <h1 className="text-[36px] leading-[44px] font-semibold text-white">Chinese Cabbage</h1>
-            <span className="text-sm text-white px-2 py-1 bg-lime-400 rounded">Availible</span>
-          </div>
-          <div className="flex items-center mt-3 text-sm leading-[1.5]">
-            <span className="text-orange-500">4 Review . </span>
-            <span className="font-medium text-orange-500">SKU:</span>
-            <span className="text-gray-700">2,51,594</span>
-          </div>
-        
-          <p className="w-[500px] text-justify text-gray-700 text-sm font-normal mt-4 leading-[21px]">
-            Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Nulla nibh diam, blandit vel consequat nec, ultrices et ipsum. Nulla varius magna a consequat pulvinar.
-          </p>
-          <div className="h-[88px] mt-6 py-[18px] bg-orange-350 justify-center items-center gap-3 flex">
-  <button className="h-[51px] px-20 py-4 bg-orange-500 text-white rounded-[43px] font-semibold">
-    Add to Cart
-  </button>
-
-  {/* Call Button with Shake Animation */}
-  <button className="flex items-center gap-2 px-6 py-3 bg-orange-500 text-white rounded-[43px] font-semibold animate-[shake_0.5s_infinite]">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M6.62 10.79C8.06 13.62 10.38 15.94 13.21 17.38L15.41 15.17C15.68 14.9 16.08 14.82 16.42 14.94C17.85 15.41 19.38 15.67 20.93 15.67C21.5 15.67 22 16.17 22 16.75V20.92C22 21.49 21.5 22 20.93 22C10.64 22 2 13.36 2 3.07C2 2.5 2.51 2 3.08 2H7.25C7.83 2 8.33 2.5 8.33 3.07C8.33 4.62 8.59 6.15 9.06 7.58C9.18 7.92 9.1 8.32 8.83 8.59L6.62 10.79Z" fill="white"/>
-    </svg>
-    Call
-  </button>
-
-  <a href='/Chat' className="px-6 py-3 bg-orange-500 text-white rounded-[43px] font-semibold">Messege</a>
-</div>
-
-          <div className="h-[54px] mt-6 flex-col justify-start items-start gap-3 inline-flex">
-            <div className="justify-start items-start gap-1.5 inline-flex">
-              <span className="text-orange-500 text-sm font-medium leading-[21px]">Category:</span>
-              <span className="text-gray-700 text-sm font-normal leading-[21px]">Vegetables</span>
-            </div>
-            <div className="justify-start items-start gap-1.5 inline-flex">
-              <span className="text-orange-500 text-sm font-medium leading-[21px]">Tag:</span>
-              <span className="text-gray-700 text-sm font-normal leading-[21px]">Vegetables</span>
-              <span className="text-gray-700 text-sm font-normal leading-[21px]">Healthy</span>
-              <span className="text-orange-500 text-sm font-normal underline leading-[21px]">Chinese</span>
-              <span className="text-gray-700 text-sm font-normal leading-[21px]">Cabbage</span>
-              <span className="text-gray-700 text-sm font-normal leading-[21px]">Green Cabbage</span>
-            </div>
-          </div>
+    <>
+      <div className="fixed top-0 left-0 w-full flex justify-center z-50">
+        <div className="w-full max-w-7xl px-4">
+          <Navbar />
         </div>
       </div>
-    </section>
+
+      <section className="font-['Poppins'] min-h-screen bg-gradient-to-br from-orange-50 to-orange-100 pt-24 pb-12">
+        <div className="max-w-7xl mx-auto px-4">
+          {/* Header */}
+          <div className="text-center mb-12">
+            <h1 className="text-5xl font-bold text-gray-900 mb-4">Our Menu</h1>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Discover our carefully crafted dishes made with the finest ingredients
+            </p>
+          </div>
+
+          {/* Search and Filter Section */}
+          <div className="mb-8 bg-white rounded-2xl p-6 shadow-lg">
+            <div className="flex flex-col lg:flex-row gap-4 items-center">
+              {/* Search Bar */}
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                <input
+                  type="text"
+                  placeholder="Search menu items..."
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-400 focus:border-transparent outline-none"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+
+              {/* Category Filter */}
+              <div className="relative">
+                <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                <select
+                  className="pl-10 pr-8 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-400 focus:border-transparent outline-none bg-white min-w-[200px]"
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                >
+                  {ProductCategories.map((category) => (
+                    <option key={category.value} value={category.value}>
+                      {category.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Category Pills */}
+            <div className="flex flex-wrap gap-2 mt-4">
+              {ProductCategories.slice(0, 8).map((category) => {
+                const IconComponent = category.icon;
+                return (
+                  <button
+                    key={category.value}
+                    onClick={() => setSelectedCategory(category.value)}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 ${
+                      selectedCategory === category.value
+                        ? 'bg-orange-500 text-white shadow-lg'
+                        : 'bg-gray-100 text-gray-700 hover:bg-orange-100 hover:text-orange-600'
+                    }`}
+                  >
+                    <IconComponent className="h-4 w-4" />
+                    <span className="text-sm font-medium">{category.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Results Count */}
+          <div className="mb-6">
+            <p className="text-gray-600">
+              Showing {menus.length} {menus.length === 1 ? 'item' : 'items'}
+              {selectedCategory && ` in ${selectedCategory}`}
+            </p>
+          </div>
+
+          {/* Menu Items Grid */}
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+            {menus.map((item) => {
+              const IconComponent = getCategoryIcon(item.category);
+              return (
+                <div 
+                  key={item.productName}
+                  className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 group"
+                >
+                  {/* Item Image - Replaced with category icon */}
+                  <div className="relative h-48 bg-gradient-to-br from-orange-100 to-orange-50 group-hover:from-orange-200 group-hover:to-orange-100 transition-all duration-300 flex items-center justify-center">
+                    <IconComponent className="h-16 w-16 text-orange-400" />
+                    
+                    {/* Availability Badge */}
+                    <div className="absolute top-3 right-3">
+                      <span className={`text-xs text-white px-2 py-1 ${Number(item.quantity) > 2 ? 'bg-orange-400' : 'bg-red-500'} rounded-full font-medium`}>
+                        {Number(item.quantity) > 2 ? 'Available' : 'Not Available'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Item Details */}
+                  <div className="p-6">
+                    <div className="flex items-start justify-between mb-2">
+                      <h3 className="text-xl font-bold text-gray-900 group-hover:text-orange-500 transition-colors">
+                        {item.productName}
+                      </h3>
+                      <span className="text-2xl font-bold text-orange-500">{item.price}</span>
+                    </div>
+
+                    <p className="text-gray-600 text-sm mb-4 leading-relaxed">
+                  
+                    </p>
+
+                    {/* Rating */}
+                    <div className="flex items-center gap-2 mb-4">
+                      <div className="flex items-center">
+                        {/* {renderStars(item.rating)} */}
+                      </div>
+                      <span className="text-sm text-gray-500">
+                        {/* {item.rating} ({item.revies} reviews) */}
+                      </span>
+                    </div>
+
+                    {/* Category Tag */}
+                    <div className="flex items-center gap-2 mb-4">
+                      <IconComponent className="h-4 w-4 text-orange-500" />
+                      <span className="text-sm text-orange-500 font-medium">{item.category}</span>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex gap-2">
+                      <button onClick={()=>handleAddCart(item._id)} className="flex-1 bg-orange-500 text-white px-4 py-2 rounded-full hover:bg-orange-600 transition-colors font-medium">
+                        Add to Cart
+                      </button>
+                      <button className="px-4 py-2 border border-orange-500 text-orange-500 rounded-full hover:bg-orange-50 transition-colors font-medium">
+                        View
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Empty State */}
+          {menus.length === 0 && (
+            <div className="text-center py-12">
+              <ChefHat className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">No items found</h3>
+              <p className="text-gray-600">Try adjusting your search or filter criteria</p>
+            </div>
+          )}
+        </div>
+      </section>
+    </>
   );
 };
 
-export default ProductPage;
+export default MenuListingPage;

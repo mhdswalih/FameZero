@@ -52,6 +52,10 @@ const ProfilePage = () => {
   const handleLogout = async() => {
     dispatch(removeUser());
     dispatch(removeUserProfile());
+     if(user.id) {
+            const welcomeShowModalKey = `welcomeModal_${user.id}`;
+            localStorage.removeItem(welcomeShowModalKey);
+        }
     await logoutUser()
     toast.success('Logged out successfully');
     navigate('/');

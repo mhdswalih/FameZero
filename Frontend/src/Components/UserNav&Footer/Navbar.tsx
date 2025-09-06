@@ -1,8 +1,8 @@
-import React, { useState, createContext, useContext, useEffect, use } from "react";
+import React, { useState, createContext, useContext, useEffect } from "react";
 import { motion, AnimatePresence, useScroll, useMotionValueEvent } from "framer-motion";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { Menu, X } from "lucide-react";
+import { HeartIcon, Menu, ShoppingCartIcon, X } from "lucide-react";
 import { MenuItem, Avatar, Button, Typography } from "@material-tailwind/react";
 import { UserCircleIcon, Cog6ToothIcon, InboxArrowDownIcon, LifebuoyIcon, PowerIcon } from "@heroicons/react/24/solid";
 import { RootState } from "../../Redux/store";
@@ -19,7 +19,7 @@ const SheetContext = createContext<{
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }>({
   open: false,
-  setOpen: () => {},
+  setOpen: () => { },
 });
 
 const Sheet = ({ children }: { children: React.ReactNode }) => {
@@ -122,33 +122,37 @@ const ProfileSheet = () => {
   const navigate = useNavigate();
   const { setOpen } = useSheet();
 
-    interface UserProfile  {
-      _id:string;
-     name:string;
-     email:string;
-     profilepic:string;
-     phone:string;
-     address:string;
-     city:string
+  interface UserProfile {
+    _id: string;
+    name: string;
+    email: string;
+    profilepic: string;
+    phone: string;
+    address: string;
+    city: string
 
   }
- 
-  const [userProfile,setUserProfile] = useState<UserProfile>({
-    _id:'',
-      name:'',
-      email: '',
-      profilepic:'',
-      phone:'',
-      address:'',
-      city:'',
-    })
-  
+
+  const [userProfile, setUserProfile] = useState<UserProfile>({
+    _id: '',
+    name: '',
+    email: '',
+    profilepic: '',
+    phone: '',
+    address: '',
+    city: '',
+  })
+
   const [editedProfile, setEditedProfile] = useState<UserProfile>({ ...userProfile });
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
-  const handleLogout = async() => {
+  const handleLogout = async () => {
     dispatch(removeUser());
     dispatch(removeUserProfile());
+    if (user.id) {
+      const welcomeShowModalKey = `welcomeModal_${user.id}`;
+      localStorage.removeItem(welcomeShowModalKey);
+    }
     await logoutUser()
     toast.success('Logged out successfully');
     setOpen(false);
@@ -185,19 +189,20 @@ const ProfileSheet = () => {
     {
       label: "Sign Out",
       icon: PowerIcon,
-      onClick: handleLogout
+      onClick: handleLogout,
+      color: 'text-red-500'
     }
   ];
 
 
-  const handleGetUser = async() =>{
+  const handleGetUser = async () => {
     try {
       const response = await getUserDetails(user.id as string)
-      if(response.data){
+      if (response.data) {
         const userDetails = {
-          _id:response.data.id || '',
+          _id: response.data.id || '',
           name: response.data.name || '',
-          email:response.data.email || '',
+          email: response.data.email || '',
           profilepic: response.data.profilepic || '',
           phone: response.data.phone || '',
           address: response.data.address || '',
@@ -206,7 +211,7 @@ const ProfileSheet = () => {
         setUserProfile(userDetails)
         dispatch(addUserProfile(userDetails))
       }
-    } catch (error:any) {
+    } catch (error: any) {
     }
   }
 
@@ -216,13 +221,13 @@ const ProfileSheet = () => {
       const response = await updateUser(user.id as string, editedProfile, selectedFile);
       if (response.data) {
         const updatedProfile = {
-          _id:response.data.id || '',
-          name:response.data.name || editedProfile.name,
-          email:response.data.email || editedProfile.email,
+          _id: response.data.id || '',
+          name: response.data.name || editedProfile.name,
+          email: response.data.email || editedProfile.email,
           profilepic: response.data.profilepic || editedProfile.profilepic,
           address: response.data.address || editedProfile.address,
           city: response.data.city || editedProfile.city,
-          phone:response.data.phone || editedProfile.phone
+          phone: response.data.phone || editedProfile.phone
         };
         dispatch(addUserProfile(updatedProfile))
         setEditedProfile(updatedProfile)
@@ -235,18 +240,18 @@ const ProfileSheet = () => {
     }
   };
 
-  useEffect(()=>{
-    if(user.id){
+  useEffect(() => {
+    if (user.id) {
       handleGetUser()
     }
-  },[user.id])
+  }, [user.id])
 
 
 
   return (
     <Sheet>
       <SheetTrigger>
-        <motion.button 
+        <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           className="flex items-center gap-2 rounded-full py-2 px-3 hover:bg-gray-100 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-offset-2"
@@ -302,7 +307,7 @@ const ProfileSheet = () => {
             className="h-px bg-orange-400 mb-3"
           />
           <ul className="space-y-1">
-            {profileMenuItems.map(({ label, icon: Icon, onClick }, index) => (
+            {profileMenuItems.filter(({ label }) => (user.id ? true : label !== 'Sign Out')).map(({ label, icon: Icon, onClick, color }, index) => (
               <motion.li
                 key={label}
                 initial={{ opacity: 0, x: -10 }}
@@ -316,10 +321,10 @@ const ProfileSheet = () => {
               >
                 <MenuItem
                   onClick={onClick}
-                  className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors duration-200 w-full text-left"
+                  className={`flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors duration-200 w-full text-left `}
                 >
-                  <Icon className="h-5 w-5 text-gray-700" />
-                  <Typography as="span" variant="small" className="font-medium">
+                  <Icon className={`h-5 w-5 ${color || 'text-gray-700'}`} />
+                  <Typography as="span" variant="small" className={`${color || 'text-gray-700'}`}>
                     {label}
                   </Typography>
                 </MenuItem>
@@ -328,7 +333,7 @@ const ProfileSheet = () => {
           </ul>
         </motion.div>
       </SheetContent>
-      
+
       <UserEditModal
         isEditModalOpen={isEditModalOpen}
         setIsEditModalOpen={setIsEditModalOpen}
@@ -350,8 +355,8 @@ const Navbar = () => {
   const { scrollY } = useScroll();
   const dispatch = useDispatch();
 
-  
-  
+
+
   const userData = useSelector((state: RootState) => state.user);
   const user = useSelector((state: RootState) => state.userProfile);
 
@@ -360,18 +365,18 @@ const Navbar = () => {
   });
 
   const handleGetUser = async () => {
-    try {   
+    try {
       const response = await getUserDetails(userData.id as string);
       if (response.data) {
-           const userData = {
+        const userData = {
           _id: response.data._id || '',
-          userId:response.data.userId || '',
+          userId: response.data.userId || '',
           name: response.data.name || '',
           profilepic: response.data.profilepic || "",
           email: response.data.email || '',
           phone: response.data.phone || '',
-          role:response.data.role || '',
-          token:response.data.token || '',
+          role: response.data.role || '',
+          token: response.data.token || '',
           address1: response.data.address1 || '',
           address2: response.data.address2 || '',
         }
@@ -380,7 +385,7 @@ const Navbar = () => {
     } catch (error: any) {
     }
   };
-  
+
   useEffect(() => {
     if (user) {
       handleGetUser();
@@ -409,7 +414,7 @@ const Navbar = () => {
           <button className="lg:hidden rounded-md hover:bg-gray-50">
             <Menu className="h-5 w-5 text-gray-700" />
           </button>
-          
+
           <motion.a
             href="/"
             className="mr-4 block cursor-pointer py-1.5 text-base text-slate-800 font-semibold"
@@ -422,7 +427,7 @@ const Navbar = () => {
               alt="Logo"
             />
           </motion.a>
-          
+
           <div className="hidden lg:block">
             <ul className="flex flex-col gap-2 mt-2 mb-4 lg:mb-0 lg:mt-0 lg:flex-row lg:items-center lg:gap-6">
               {[
@@ -446,11 +451,11 @@ const Navbar = () => {
               ))}
             </ul>
           </div>
-          
+
           <div className="flex items-center gap-4">
-            { user && user.name && (
-              <span className="italic font-bold">Hey.. {user.name}</span>
-            )}
+           
+              <span className="flex gap-5 italic font-bold"><ShoppingCartIcon onClick={()=> navigate('/cart')} /><HeartIcon onClick={()=>navigate('/wishlist')} /></span>
+           
             {!user.name && (
               <Button
                 onClick={() => navigate("/login")}

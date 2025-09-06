@@ -117,7 +117,7 @@ const NavBar = () => {
             <ul className="flex flex-col gap-2 mt-2 mb-4 lg:mb-0 lg:mt-0 lg:flex-row lg:items-center lg:gap-6">
               {[
                 { name: "Home", path: "/hotel/landing-page" },
-                { name: "Food", path: "/food-section" },
+                { name: "Food", path: "/hotel/food-section" },
                 { name: "Blocks", path: "#" },
                 { name: "About", path: "/about-page" },
               ].map((item, index) => (
