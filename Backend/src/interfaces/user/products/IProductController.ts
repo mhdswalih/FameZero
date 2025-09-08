@@ -5,4 +5,6 @@ export interface IProductController {
     getCart(req:Request,res:Response,next:NextFunction):Promise<void>
     removeFromCart(req:Request,res:Response,next:NextFunction):Promise<void>
     updateStock(req:Request,res:Response,next:NextFunction):Promise<void>
+    getCheckOut(req:Request,res:Response,next:NextFunction):Promise<void>
+    createOrder(req:Request,res:Response,next:NextFunction):Promise<void>
 }

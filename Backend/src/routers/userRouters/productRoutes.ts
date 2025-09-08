@@ -17,6 +17,8 @@ productRoutes.post('/add-to-cart/:productId/:userId/:hotelId',authenticateToken,
 productRoutes.get('/get-cart/:userId',authenticateToken,productController.getCart.bind(productController))
 productRoutes.delete('/delete-from-cart/:productId/:userId',authenticateToken,productController.removeFromCart.bind(productController))
 productRoutes.put('/update-stock-item',authenticateToken,productController.updateStock.bind(productController))
+productRoutes.get('/checkout/:userId',authenticateToken,productController.getCheckOut.bind(productController))
+productRoutes.post('/create-order/:userId',authenticateToken,productController.createOrder.bind(productController))
 
 
 export default productRoutes

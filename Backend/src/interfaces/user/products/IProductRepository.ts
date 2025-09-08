@@ -1,4 +1,5 @@
 import { IProductsDetails } from "../../../models/hotelModel/productModel"
+import { ICart } from "../../../models/usermodel/cartModel"
 
 
 export interface IProductRepository {
@@ -6,4 +7,6 @@ export interface IProductRepository {
     getCart(userId:string):Promise<IProductsDetails[] | null>
     removeFromCart(productId:string,userId:string):Promise<void>
     updateStockInCart(userId:string,productId:string,action:"increment" | "decrement"):Promise<{updatedQuantity:number}>
+    getCheckOut(userId:string):Promise<ICart |null>
+    createOrder(userId:string):Promise<void>
 }

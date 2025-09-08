@@ -2,7 +2,7 @@ import { HttpStatus } from "../../constants/HttpStatus";
 import { Messages } from "../../constants/Messeges";
 import { IProductRepository } from "../../interfaces/user/products/IProductRepository";
 import Product, { IProducts, IProductsDetails } from "../../models/hotelModel/productModel";
-import Cart from "../../models/usermodel/cartModel";
+import Cart, { ICart } from "../../models/usermodel/cartModel";
 import { createHttpError } from "../../utils/httperr";
 import { BaseRepository } from "./baseRepository";
 import mongoose from "mongoose";
@@ -60,67 +60,49 @@ export class ProductRepository extends BaseRepository<IProducts> implements IPro
             { $pull: { products: { productId: productId } } }
         );
         if (result.modifiedCount === 0) {
-            throw createHttpError(HttpStatus.BAD_REQUEST,Messages.PRODUCT_NOT_FOUND);
+            throw createHttpError(HttpStatus.BAD_REQUEST, Messages.PRODUCT_NOT_FOUND);
         }
     }
     async updateStockInCart(
         userId: string,
         productId: string,
         action: "increment" | "decrement"
-    ): Promise<{updatedQuantity:number}> {
-        const cart = await Cart.findOne(
-            { userId, "products.productId": productId },
-            { "products.$": 1 }
-        );
-        if (!cart || cart.products.length === 0) {
-            throw createHttpError(HttpStatus.BAD_REQUEST,"Product not found in cart");
-        }
-        const cartProduct = cart.products[0];
-        const updatedQuantity = cart?.products[0].quantity ?? 0;
-      
-        const product = await Product.findOne(
-            { "productDetails._id": productId },
-            { "productDetails.$": 1 }
-        );
+    ): Promise<{ updatedQuantity: number }> {
 
-        if (!product || !product.productDetails[0]) {
-            throw createHttpError(HttpStatus.BAD_REQUEST,"Product not found");
-        }
+        const cart = await Cart.findOne({ userId, "products.productId": productId });
+        if (!cart) throw createHttpError(400, "Cart not found");
 
-        const productItem = product.productDetails[0];
+        const cartProduct = cart.products.find(p => p.productId.toString() === productId);
+        if (!cartProduct) throw createHttpError(400, "Product not in cart");
+
+        let updatedQuantity = cartProduct.quantity;
+
         if (action === "increment") {
-            if (productItem.quantity <= cartProduct.quantity) {
-                throw createHttpError(HttpStatus.BAD_REQUEST,"Product out of stock");
-            }
-            // Update cart quantity
-            await Cart.updateOne(
-                { userId, "products.productId": productId },
-                { $inc: { "products.$.quantity": 1 } }
-            );
-
-            // Decrease product stock
-            await Product.updateOne(
-                { "productDetails._id": productId },
-                { $inc: { "productDetails.$.quantity": -1 } }
-            );
+            // Just increment the cart quantity
+            updatedQuantity += 1;
         } else if (action === "decrement") {
             if (cartProduct.quantity <= 1) {
-                throw createHttpError(HttpStatus.BAD_REQUEST,"Quantity cannot be less than 1");
+                throw createHttpError(400, "Quantity cannot be less than 1");
             }
-
-            await Cart.updateOne(
-                { userId, "products.productId": productId },
-                { $inc: { "products.$.quantity": -1 } }
-            );
-
-            // Increase product stock
-            await Product.updateOne(
-                { "productDetails._id": productId },
-                { $inc: { "productDetails.$.quantity": 1 } }
-            );
+            updatedQuantity -= 1;
         }
 
-       return { updatedQuantity }
+        // Update the cart only, not the product stock
+        await Cart.updateOne(
+            { userId, "products.productId": productId },
+            { $set: { "products.$.quantity": updatedQuantity } }
+        );
+
+        return { updatedQuantity };
     }
 
+
+    async getCheckOut(userId: string): Promise<ICart | null> {
+        return await Cart.findOne({ userId: new mongoose.Types.ObjectId(userId) })
+            .populate("products");
+    }
+
+    async createOrder(userId: string): Promise<void> {
+
+    }
 }

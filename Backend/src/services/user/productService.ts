@@ -2,7 +2,7 @@ import { Messages } from "../../constants/Messeges";
 import { IProductRepository } from "../../interfaces/user/products/IProductRepository";
 import { IProductService } from "../../interfaces/user/products/IProductService";
 import Product, { IProducts, IProductsDetails } from "../../models/hotelModel/productModel";
-import Cart from "../../models/usermodel/cartModel";
+import Cart, { ICart } from "../../models/usermodel/cartModel";
 import mongoose from "mongoose";
 import { BaseRepository } from "../../repositories/userrepository/baseRepository";
 import { createHttpError } from "../../utils/httperr";
@@ -69,6 +69,26 @@ export class ProductService extends BaseRepository<IProducts> implements IProduc
     const response = await this._userProducteRepository.updateStockInCart(userId, productId, action);
     return { status: 200, updatedQuantity: response };
   }
-
-
+  async getCheckOut(userId: string): Promise<{ status: number, checkOutDetails: ICart[] | null }> {
+    try {
+      if (!userId) {
+        throw createHttpError(HttpStatus.BAD_REQUEST, Messages.USER_ID_REQUIRED)
+      }
+      const checkOutDetails = await this._userProducteRepository.getCheckOut(userId)
+      return { status: 200, checkOutDetails: checkOutDetails ? [checkOutDetails] : null }
+    } catch (error) {
+      throw error
+    }
+  }
+  async createOrder(userId:string): Promise<{ status: number; message: string; }> {
+    try {
+      if (!userId) {
+        throw createHttpError(HttpStatus.BAD_REQUEST,Messages.INVALID_USER_ID)
+      }
+      const data = await this._userProducteRepository.createOrder(userId)
+      return { status: 200, message: 'Order Created Successfully' }
+    } catch (error) {
+      throw error
+    }
+  }
 }

@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import { IProductController } from "../../interfaces/user/products/IProductController";
 import { IProductService } from "../../interfaces/user/products/IProductService";
 import { HttpStatus } from "../../constants/HttpStatus";
+import { JwtPayload } from "jsonwebtoken";
 
 export class ProductController implements IProductController {
     constructor(private _userProductService:IProductService) {}
@@ -40,6 +41,26 @@ async updateStock(req: Request, res: Response, next: NextFunction): Promise<void
       res.status(HttpStatus.OK).json(response)
     } catch (error) {
       next(error)
+    }
+}
+
+async getCheckOut(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { userId } = req.params
+      const response = await this._userProductService.getCheckOut(userId) 
+      res.status(HttpStatus.OK).json(response)
+    } catch (error) {
+      next(error)
+    }
+}
+async createOrder(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+       const {userId} = req.params
+       console.log(userId,'this............................................');
+       
+       const response = await this._userProductService.createOrder(userId) 
+    } catch (error) {
+      
     }
 }
 }

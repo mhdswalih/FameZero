@@ -2,7 +2,7 @@ import mongoose, { Document, Schema } from 'mongoose'
 import { IUser } from './userModel'
 import { IProductsDetails } from '../hotelModel/productModel'
 
-interface ICart extends Document {
+export interface ICart extends Document {
   userId: Schema.Types.ObjectId | IUser,
   products: {
     productId: mongoose.Types.ObjectId,
