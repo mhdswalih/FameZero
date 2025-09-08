@@ -7,6 +7,7 @@ import { RootState } from '../../Redux/store';
 import { fetchCartProduct, removeCart, updateStockInCart } from '../../Api/userApiCalls/productApi';
 import toast from 'react-hot-toast';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
+
 const CartPage = () => {
     const navigate = useNavigate();
     interface IProductsDetails {
@@ -16,10 +17,12 @@ const CartPage = () => {
         productName: string,
         price: string,
         quantity: string
+        cartQuantity: number;
     }
     const [cartItems, setCartItems] = useState<IProductsDetails[]>([])
     const [cartQuantity, setCartQuantity] = useState(0)
     const userId = useSelector((state: RootState) => state.userProfile._id)
+
     const handleFetchCartItems = async () => {
         try {
             const response = await fetchCartProduct(userId)
@@ -39,43 +42,43 @@ const CartPage = () => {
                 setCartItems([])
             }
         } catch (error) {
-
+            // Handle error
         }
     }
 
- const updateStock = async (productId: string, action: "increment" | "decrement") => {
-    try {
-        const response = await updateStockInCart(userId, productId, action);
+    const updateStock = async (productId: string, action: "increment" | "decrement") => {
+        try {
+            const response = await updateStockInCart(userId, productId, action);
 
-        // Update cart items with new quantity
-        setCartItems(prev =>
-            prev.map(item =>
-                item.productId === productId
-                    ? { ...item, quantity: response.updatedQuantity }
-                    : item
-            )
-        );
+            if (response.updatedQuantity && typeof response.updatedQuantity === 'object') {
+                const updatedQty = response.updatedQuantity.quantity ||
+                    response.updatedQuantity.updatedQuantity ||
+                    response.updatedQuantity.value;
 
-        setCartQuantity ( prev => action === "increment" ? prev + 1 : prev - 1)
-    } catch (error: any) {
-        toast.error(
-            error.response?.data?.message ||
-            error.response?.data?.error ||
-            error.message ||
-            "Something went wrong"
-        );
-    }
-};
-
+                if (updatedQty === undefined) {
+                    toast.error("Failed to get updated quantity");
+                    return;
+                }
+                setCartItems(prev =>
+                    prev.map(item =>
+                        item.productId === productId
+                            ? { ...item, cartQuantity: updatedQty }
+                            : item
+                    )
+                );
+            }
+        } catch (error: any) {
+            handleFetchCartItems()
+        }
+    };
 
     const handleRemovefromCart = async (productId: string) => {
         try {
             const response = await removeCart(productId, userId)
             setCartItems(prevItems => prevItems.filter(item => item.productId !== productId));
             toast.success(response.data.message || "Removed from cart");
-
         } catch (error) {
-
+             
         }
     }
 
@@ -110,29 +113,25 @@ const CartPage = () => {
         }
     }, [userId])
 
-
-
     const getCategoryIcon = (category: string) => {
         const categoryObj = ProductCategories.find(cat => cat.value === category);
         return categoryObj ? categoryObj.icon : ChefHat;
     };
 
-    // Calculate order totals
+    // Fixed: Calculate order totals correctly
     const calculateOrderTotals = () => {
         const subtotal = cartItems.reduce((total, item) => {
-             let price =  Number(item.price) || 0
-             let quantity = Number(cartQuantity) || 0
-             return total = price * quantity
+            const price = parseFloat(item.price) || 0;
+            const quantity = item.cartQuantity || 0;
+            return total + (price * quantity);
         }, 0);
-
-       
-        const total = subtotal ;
-
+        const total = subtotal;
         return {
             subtotal: subtotal.toFixed(2),
             total: total.toFixed(2)
         };
     };
+
 
     const { subtotal, total } = calculateOrderTotals();
 
@@ -149,7 +148,6 @@ const CartPage = () => {
                         <ChevronLeft className="h-6 w-6 mr-1" />
                         <span className="text-base font-medium">Back</span>
                     </motion.div>
-
                     <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Your Cart</h1>
 
                     <div className="w-6"></div>
@@ -179,7 +177,6 @@ const CartPage = () => {
                         </div>
                     </div>
                 ) : (
-                    // Fixed: Added flex container to position items side by side
                     <div className="flex flex-col lg:flex-row gap-6">
                         {/* Cart Items - Left Side */}
                         <div className="lg:w-2/3 space-y-4">
@@ -203,7 +200,14 @@ const CartPage = () => {
                                                     {item.category}
                                                 </span>
                                             </div>
-                                            <p className="text-orange-600 font-semibold">${item.price}</p>
+
+                                            {/* Added individual item total price */}
+                                            <div className="flex justify-between items-center mt-1">
+                                                <p className="text-orange-600 font-semibold">${item.price}</p>
+                                                <p className="text-gray-700 font-medium ">
+                                                    Total: ${(parseFloat(item.price) * item.cartQuantity).toFixed(2)}
+                                                </p>
+                                            </div>
 
                                             <div className="flex items-center justify-between mt-3">
                                                 <div className="flex items-center space-x-3">
@@ -213,16 +217,19 @@ const CartPage = () => {
                                                     >
                                                         <Minus size={16} />
                                                     </button>
-                                                    <span className="text-gray-700 font-medium w-6 text-center">{cartQuantity}</span>
-                                                    {Number(item.quantity) !== 0 && (
-                                                        <button
-                                                            onClick={() => updateStock(item.productId, 'increment')}
-                                                            className="w-8 h-8 flex items-center justify-center bg-orange-100 text-orange-600 rounded-lg hover:bg-orange-200 transition-colors"
-                                                        >
+                                                    <span className="text-gray-700 font-medium w-6 text-center">{item.cartQuantity}</span>
 
-                                                            <Plus size={16} />
-                                                        </button>
-                                                    )}
+                                                    {/* Increment Button */}
+                                                    <button
+                                                        onClick={() => updateStock(item.productId, 'increment')}
+                                                        disabled={item.cartQuantity >= Number(item.quantity)}
+                                                        className={`w-8 h-8 flex items-center justify-center rounded-lg transition-colors 
+                                                          ${item.cartQuantity >= Number(item.quantity)
+                                                                ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                                                                : "bg-orange-100 text-orange-600 hover:bg-orange-200"}`}
+                                                    >
+                                                        <Plus size={16} />
+                                                    </button>
                                                 </div>
                                                 <button
                                                     className="text-red-500 hover:text-red-700 transition-colors p-2"
@@ -246,8 +253,7 @@ const CartPage = () => {
                                         <span className="text-gray-600">Subtotal</span>
                                         <span className="font-medium">${subtotal}</span>
                                     </div>
-                                  
-                                  
+
                                     <div className="border-t pt-3 mt-3">
                                         <div className="flex justify-between text-lg font-bold">
                                             <span>Total</span>
@@ -256,7 +262,7 @@ const CartPage = () => {
                                     </div>
                                 </div>
 
-                                <button className="bg-orange-500 text-white w-full py-4 rounded-xl hover:bg-orange-600 transition-colors font-medium text-lg shadow-md">
+                                <button onClick={() => navigate('/checkout')} className="bg-orange-500 text-white w-full py-4 rounded-xl hover:bg-orange-600 transition-colors font-medium text-lg shadow-md">
                                     Proceed to Checkout
                                 </button>
                             </div>
@@ -267,5 +273,4 @@ const CartPage = () => {
         </div>
     );
 };
-
 export default CartPage;

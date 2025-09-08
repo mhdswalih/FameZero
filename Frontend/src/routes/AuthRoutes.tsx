@@ -15,6 +15,7 @@ import ResetPassword from '../Components/ForgetPassword/ResetPassword'
 import ProductPage from '../Components/User/HotelsDetailsPage'
 import CartPage from '../Components/User/CartPage'
 import WishListPage from '../Components/User/WishList'
+import CheckOutPage from '../Components/User/CheckOutPage'
 
 const ProtectedRoute = ({ children }: { children:ReactElement }) => {
   const user = useSelector((state: RootState) => state.user);
@@ -50,7 +51,8 @@ const AuthRoutes = () => {
         <Route path='settings' element={<UserSettings />}/> 
         <Route path='reset-password' element={<ResetPassword />} />   
         <Route path='/cart' element={<CartPage />} />
-        <Route path='/wishlist' element={<WishListPage />} />  
+        <Route path='/wishlist' element={<WishListPage />} /> 
+        <Route path='/checkout' element={<CheckOutPage />} />
         <Route path='about-page' element={
           <>
           {/* <Navbar /> */}
