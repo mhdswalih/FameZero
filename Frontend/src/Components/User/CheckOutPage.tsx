@@ -9,119 +9,139 @@ import {
     Truck,
     ShoppingBag,
     User,
-    Phone,
-    Mail,
     Home,
     Building,
     Plus,
     Check
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../Redux/store';
 import toast from 'react-hot-toast';
-import { createOrder, getCheckOut } from '../../Api/userApiCalls/productApi';
+import { createOrder, getCheckOut, updatePaymentStatus } from '../../Api/userApiCalls/productApi';
+import { PayPalButtons, usePayPalScriptReducer } from '@paypal/react-paypal-js';
+import UserEditModal from '../Modals/User/UserEditModal';
+import { addUserProfile } from '../../Redux/Slice/ProfileSlice/userProfileSlice';
+import { getUserDetails, updateUser } from '../../Api/userApiCalls/profileApi';
+import OrderSuccessModal from '../Modals/User/OrderSuccessModal';
 
 const CheckOutPage = () => {
     const navigate = useNavigate();
     const userId = useSelector((state: RootState) => state.userProfile._id);
     const user = useSelector((state: RootState) => state.userProfile);
-    
+    const id = useSelector((state: RootState) => state.user.id);
+
     interface IProductsDetails {
         cartQuantity: number;
         productDetails: any;
         _id: string;
         productId: string;
-        category: string,
-        productName: string,
-        price: number,
-        quantity: number
+        category: string;
+        productName: string;
+        price: number;
+        quantity: number;
     }
 
+    interface userDetails {
+        _id: string;
+        name: string;
+        email: string;
+        profilepic: string;
+        phone: string;
+        address: string;
+        city: string;
+    }
+
+    interface userEditDetails {
+        _id: string;
+        name: string;
+        email: string;
+        profilepic: string;
+        phone: string;
+        address: string;
+        city: string;
+    }
+
+    const [userProfile, setUserProfile] = useState<userDetails>({
+        _id: '',
+        name: '',
+        email: '',
+        profilepic: '',
+        phone: '',
+        address: '',
+        city: '',
+    });
+
     // State management
-    const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'online' | 'cash'>('online');
+    const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'Online' | 'COD'>('Online');
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [editedProfile, setEditedProfile] = useState<userEditDetails>({ ...userProfile });
     const [selectedDeliveryOption, setSelectedDeliveryOption] = useState<'delivery' | 'takeaway'>('delivery');
     const [checkoutDetails, setCheckOutDetails] = useState<IProductsDetails[]>([]);
-    const [selectedAddress, setSelectedAddress] = useState<string>('');
-    const [showAddressForm, setShowAddressForm] = useState(false);
     const [orderNotes, setOrderNotes] = useState('');
+    const [{ isPending }] = usePayPalScriptReducer();
+    const [orderId, setOrderId] = useState<string>('');
+    const [isOrderSuccessModal,setIsOrderSuccessModal] = useState(false)
+    const dispatch = useDispatch();
 
-    // Form states - Pre-fill with user data
-    const [contactInfo, setContactInfo] = useState({
-        name: user.name || '',
-        phone: user.phone || '',
-    });
+    const handleGetUser = async () => {
+        try {
+            const response = await getUserDetails(id as string);
+            if (response.data) {
+                const profileData = {
+                    _id: response.data._id || '',
+                    name: response.data.name || '',
+                    email: response.data.email || '',
+                    profilepic: response.data.profilepic || '',
+                    phone: response.data.phone || '',
+                    address: response.data.address || '',
+                    city: response.data.city || '',
+                };
 
-    const [newAddress, setNewAddress] = useState({
-        type: 'home',
-        street: user.address || '',
-        city: user.city || '',
-        state: '',
-        zipCode: '',
-        landmark: ''
-    });
-
-    // Sample saved addresses - Pre-fill with user data
-    const [savedAddresses, setSavedAddresses] = useState([
-        {
-            id: '1',
-            type: 'home',
-            name: `${user.name}'s Address`,
-            address: user.address || '',
-            city: user.city || '',
-            landmark: ''
-        },
-    ]);
-
-    // Set selected address to the first one by default
-    useEffect(() => {
-        if (savedAddresses.length > 0) {
-            setSelectedAddress(savedAddresses[0].id);
+                setUserProfile(profileData);
+                dispatch(addUserProfile(profileData));
+                setEditedProfile((prev: any) => ({
+                    ...prev,
+                    ...profileData,
+                }));
+            }
+        } catch (error: any) {
+            toast.error(error.error);
         }
-    }, []);
+    };
 
-    const handleAddAddress = () => {
-        if (!newAddress.street || !newAddress.city) {
-            toast.error('Please fill in all required address fields');
-            return;
+
+    const handleEditUser = async (selectedFile?: File) => {
+        try {
+            const response = await updateUser(id as string, editedProfile, selectedFile);
+            if (response.data) {
+                const updatedProfile: userDetails = {
+                    _id: response.data._id || editedProfile._id,
+                    name: response.data.name || editedProfile.name,
+                    email: response.data.email || editedProfile.email,
+                    profilepic: response.data.profilepic || editedProfile.profilepic,
+                    phone: response.data.phone || editedProfile.phone,
+                    address: response.data.address || editedProfile.address,
+                    city: response.data.city || editedProfile.city,
+                };
+
+                setUserProfile(updatedProfile);
+                dispatch(addUserProfile(updatedProfile));
+
+                toast.success('Profile updated successfully');
+                setIsEditModalOpen(false);
+            }
+        } catch (error: any) {
+            toast.error(error.message || error.error || 'Failed to update profile');
         }
-
-        const addressToAdd = {
-            id: Date.now().toString(),
-            type: newAddress.type,
-            name: `${newAddress.type === 'home' ? 'Home' : newAddress.type === 'work' ? 'Work' : 'Other'} Address`,
-            address: newAddress.street,
-            city: newAddress.city,
-            state: newAddress.state,
-            zipCode: newAddress.zipCode,
-            landmark: newAddress.landmark
-        };
-
-        setSavedAddresses(prev => [...prev, addressToAdd]);
-        setSelectedAddress(addressToAdd.id);
-        setShowAddressForm(false);
-        setNewAddress({
-            type: 'home',
-            street: '',
-            city: '',
-            state: '',
-            zipCode: '',
-            landmark: ''
-        });
-        toast.success('Address added successfully!');
     };
 
     const handleGetCheckOut = async () => {
         try {
             const response = await getCheckOut(userId);
-            console.log(response, "this is response ...............");
-
             const checkOutArray = response?.checkOutDetails;
-            console.log(checkOutArray, "checkout array");
-
             if (Array.isArray(checkOutArray) && checkOutArray.length > 0) {
                 const cart = checkOutArray[0];
-
                 if (Array.isArray(cart.products) && cart.products.length > 0) {
                     const formattedProducts = cart.products.map((product: IProductsDetails) => ({
                         category: product.productDetails?.category || '',
@@ -130,9 +150,8 @@ const CheckOutPage = () => {
                         quantity: product.productDetails?.quantity || 0,
                         cartItemId: product._id,
                         productId: product.productId,
-                        cartQuantity: product.quantity
+                        cartQuantity: product.cartQuantity
                     }));
-
                     setCheckOutDetails(formattedProducts);
                 }
             }
@@ -141,28 +160,16 @@ const CheckOutPage = () => {
         }
     };
 
-    const handlePlaceOrder = async() => {
-       try {
-
-        const response = await createOrder(userId as string)
-
-         if (!contactInfo.name || !contactInfo.phone) {
-            toast.error('Please fill in your contact information');
-            return;
+    const handleupdatePaymentStatus = async (
+        orderId: string,
+        paymentStatus: string,
+        paypalOrderId?: string
+    ) => {
+        try {
+            await updatePaymentStatus(orderId, paymentStatus, paypalOrderId);
+        } catch (error: any) {
+            toast.error(error.response?.data || error.message);
         }
-
-        if (selectedDeliveryOption === 'delivery' && !selectedAddress) {
-            toast.error('Please select a delivery address');
-            return;
-        }
-        
-        
-
-        toast.success('Order placed successfully!');
-        navigate('/order-confirmation');
-       } catch (error) {
-        
-       }
     };
 
     const calculateSubtotal = () => {
@@ -173,17 +180,60 @@ const CheckOutPage = () => {
 
     const calculateTotal = () => {
         const subtotal = calculateSubtotal();
-        const deliveryFee = selectedDeliveryOption === 'delivery' ? 5.99 : 0;
+        const deliveryFee = selectedDeliveryOption === 'delivery' ? 3.99 : 0;
         return subtotal + deliveryFee;
     };
 
-    const deliveryFee = 5.99;
+    const handleCashOrder = async () => {
+        try {
+            if (!user.name || !user.phone) {
+                toast.error("Please fill in your contact information");
+                return;
+            }
+
+            if (selectedDeliveryOption === "delivery" && !user.address) {
+                toast.error("Please select a delivery address");
+                return;
+            }
+
+            // For cash orders, use "COD" instead of "Online"
+            const orderResponse = await createOrder(userId, "COD", selectedDeliveryOption);
+            if (orderResponse.status === 200) {
+                toast.success("Order placed successfully!");
+                setIsOrderSuccessModal(true)
+                navigate('/order-history', {
+                    state: {
+                        orderId: orderResponse.orderId,
+                        orderDetails: {
+                            items: checkoutDetails,
+                            total: calculateTotal(),
+                            paymentMethod: "Cash on Delivery",
+                            deliveryOption: selectedDeliveryOption
+                        }
+                    }
+                });
+            }
+        } catch (error: any) {
+            toast.error(error.message || "Failed to place order");
+        }
+    };
+
+    const handleEdit = () => {
+        setIsEditModalOpen(true);
+    };
 
     useEffect(() => {
         if (userId) {
             handleGetCheckOut();
         }
     }, [userId]);
+
+    useEffect(() => {
+        if (id) {
+            handleGetUser();
+        }
+    }, [id]);
+ 
 
     return (
         <div className="min-h-screen bg-gradient-to-b from-orange-50 to-orange-100 pb-20">
@@ -198,10 +248,7 @@ const CheckOutPage = () => {
                         <ChevronLeft className="h-6 w-6 mr-1" />
                         <span className="text-base font-medium">Back to Cart</span>
                     </motion.div>
-
                     <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Checkout</h1>
-
-                    <div className="w-6"></div>
                 </div>
             </div>
 
@@ -210,44 +257,18 @@ const CheckOutPage = () => {
                 <div className="flex flex-col lg:flex-row gap-6">
                     {/* Left Side - Checkout Form */}
                     <div className="lg:w-2/3 space-y-6">
-                        {/* Contact Information */}
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="bg-white rounded-2xl p-6 shadow-sm"
+                        <button 
+                            disabled={!!user.address} 
+                            onClick={handleEdit}
+                            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                                user.address 
+                                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
+                                    : 'bg-orange-500 text-white hover:bg-orange-600'
+                            }`}
                         >
-                            <div className="flex items-center gap-3 mb-4">
-                                <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
-                                    <User className="w-5 h-5 text-orange-600" />
-                                </div>
-                                <h2 className="text-xl font-bold text-gray-900">Contact Information</h2>
-                            </div>
+                            {user.address ? 'Address Added' : 'Add Address'}
+                        </button>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
-                                    <input
-                                        type="text"
-                                        value={contactInfo.name}
-                                        onChange={(e) => setContactInfo(prev => ({ ...prev, name: e.target.value }))}
-                                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                                        placeholder="Enter your full name"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number *</label>
-                                    <input
-                                        type="tel"
-                                        value={contactInfo.phone}
-                                        onChange={(e) => setContactInfo(prev => ({ ...prev, phone: e.target.value }))}
-                                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                                        placeholder="+91 XXXXX XXXXX"
-                                    />
-                                </div>
-                            </div>
-                        </motion.div>
-
-                        {/* Delivery Options */}
                         <motion.div
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
@@ -280,7 +301,7 @@ const CheckOutPage = () => {
                                         )}
                                     </div>
                                     <p className="text-sm text-gray-600">Delivered to your doorstep</p>
-                                    <p className="text-orange-600 font-medium">+ $3.99</p>
+                                    <p className="text-orange-600 font-medium">+ $5.99</p>
                                 </motion.div>
 
                                 <motion.div
@@ -321,144 +342,30 @@ const CheckOutPage = () => {
                                         </div>
                                         <h2 className="text-xl font-bold text-gray-900">Delivery Address</h2>
                                     </div>
-                                    <button
-                                        onClick={() => setShowAddressForm(true)}
-                                        className="flex items-center gap-2 text-orange-600 hover:text-orange-700 font-medium"
-                                    >
-                                        <Plus className="w-4 h-4" />
-                                        Add New
-                                    </button>
                                 </div>
 
                                 {/* Saved Addresses */}
                                 <div className="space-y-3 mb-4">
-                                    {savedAddresses.map((address) => (
+                                    {user.address && (
                                         <motion.div
-                                            key={address.id}
                                             whileTap={{ scale: 0.95 }}
-                                            onClick={() => setSelectedAddress(address.id)}
-                                            className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${selectedAddress === address.id
-                                                ? 'border-orange-500 bg-orange-50'
-                                                : 'border-gray-200 hover:border-gray-300'
-                                                }`}
+                                            className="p-4 rounded-xl border-2 border-orange-500 bg-orange-50 cursor-pointer transition-all"
                                         >
                                             <div className="flex items-start justify-between">
                                                 <div className="flex items-start gap-3">
-                                                    <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center mt-0.5">
-                                                        {address.type === 'home' ? (
-                                                            <Home className="w-4 h-4 text-gray-600" />
-                                                        ) : address.type === 'work' ? (
-                                                            <Building className="w-4 h-4 text-gray-600" />
-                                                        ) : (
-                                                            <MapPin className="w-4 h-4 text-gray-600" />
-                                                        )}
+                                                    <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center mt-0.5">
+                                                        <MapPin className="w-4 h-4 text-orange-600" />
                                                     </div>
                                                     <div>
-                                                        <h3 className="font-semibold text-gray-900">{address.name}</h3>
-                                                        <p className="text-gray-600 text-sm">{address.address}, {address.city}</p>
-                                                        {address.landmark && (
-                                                            <p className="text-gray-500 text-sm">Landmark: {address.landmark}</p>
-                                                        )}
+                                                        <h3 className="font-semibold text-gray-900">Current Address</h3>
+                                                        <p className="text-gray-600 text-sm">{user.address}, {user.city}</p>
                                                     </div>
                                                 </div>
-                                                {selectedAddress === address.id && (
-                                                    <Check className="w-5 h-5 text-orange-600 mt-0.5" />
-                                                )}
+                                                <Check className="w-5 h-5 text-orange-600" />
                                             </div>
                                         </motion.div>
-                                    ))}
+                                    )}
                                 </div>
-
-                                {/* Add New Address Form */}
-                                {showAddressForm && (
-                                    <motion.div
-                                        initial={{ opacity: 0, height: 0 }}
-                                        animate={{ opacity: 1, height: 'auto' }}
-                                        className="border-t pt-4 space-y-4"
-                                    >
-                                        <h3 className="font-semibold text-gray-900">Add New Address</h3>
-
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-2">Address Type</label>
-                                                <select
-                                                    value={newAddress.type}
-                                                    onChange={(e) => setNewAddress(prev => ({ ...prev, type: e.target.value }))}
-                                                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                                                >
-                                                    <option value="home">Home</option>
-                                                    <option value="work">Work</option>
-                                                    <option value="other">Other</option>
-                                                </select>
-                                            </div>
-                                            <div className="md:col-span-2">
-                                                <label className="block text-sm font-medium text-gray-700 mb-2">Street Address</label>
-                                                <input
-                                                    type="text"
-                                                    value={newAddress.street}
-                                                    onChange={(e) => setNewAddress(prev => ({ ...prev, street: e.target.value }))}
-                                                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                                                    placeholder="Enter street address"
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-2">City</label>
-                                                <input
-                                                    type="text"
-                                                    value={newAddress.city}
-                                                    onChange={(e) => setNewAddress(prev => ({ ...prev, city: e.target.value }))}
-                                                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                                                    placeholder="Enter city"
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-2">State</label>
-                                                <input
-                                                    type="text"
-                                                    value={newAddress.state}
-                                                    onChange={(e) => setNewAddress(prev => ({ ...prev, state: e.target.value }))}
-                                                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                                                    placeholder="Enter state"
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-2">ZIP Code</label>
-                                                <input
-                                                    type="text"
-                                                    value={newAddress.zipCode}
-                                                    onChange={(e) => setNewAddress(prev => ({ ...prev, zipCode: e.target.value }))}
-                                                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                                                    placeholder="Enter ZIP code"
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-2">Landmark (Optional)</label>
-                                                <input
-                                                    type="text"
-                                                    value={newAddress.landmark}
-                                                    onChange={(e) => setNewAddress(prev => ({ ...prev, landmark: e.target.value }))}
-                                                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                                                    placeholder="Enter landmark"
-                                                />
-                                            </div>
-                                        </div>
-
-                                        <div className="flex gap-3">
-                                            <button
-                                                onClick={handleAddAddress}
-                                                className="px-6 py-2 bg-orange-500 text-white rounded-xl hover:bg-orange-600 transition-colors font-medium"
-                                            >
-                                                Add Address
-                                            </button>
-                                            <button
-                                                onClick={() => setShowAddressForm(false)}
-                                                className="px-6 py-2 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors font-medium"
-                                            >
-                                                Cancel
-                                            </button>
-                                        </div>
-                                    </motion.div>
-                                )}
                             </motion.div>
                         )}
 
@@ -479,8 +386,8 @@ const CheckOutPage = () => {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <motion.div
                                     whileTap={{ scale: 0.95 }}
-                                    onClick={() => setSelectedPaymentMethod('online')}
-                                    className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${selectedPaymentMethod === 'online'
+                                    onClick={() => setSelectedPaymentMethod('Online')}
+                                    className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${selectedPaymentMethod === 'Online'
                                         ? 'border-orange-500 bg-orange-50'
                                         : 'border-gray-200 hover:border-gray-300'
                                         }`}
@@ -490,7 +397,7 @@ const CheckOutPage = () => {
                                             <CreditCard className="w-6 h-6 text-orange-600" />
                                             <h3 className="font-semibold text-gray-900">Online Payment</h3>
                                         </div>
-                                        {selectedPaymentMethod === 'online' && (
+                                        {selectedPaymentMethod === 'Online' && (
                                             <Check className="w-5 h-5 text-orange-600" />
                                         )}
                                     </div>
@@ -500,8 +407,8 @@ const CheckOutPage = () => {
 
                                 <motion.div
                                     whileTap={{ scale: 0.95 }}
-                                    onClick={() => setSelectedPaymentMethod('cash')}
-                                    className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${selectedPaymentMethod === 'cash'
+                                    onClick={() => setSelectedPaymentMethod('COD')}
+                                    className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${selectedPaymentMethod === 'COD'
                                         ? 'border-orange-500 bg-orange-50'
                                         : 'border-gray-200 hover:border-gray-300'
                                         }`}
@@ -511,7 +418,7 @@ const CheckOutPage = () => {
                                             <Wallet className="w-6 h-6 text-orange-600" />
                                             <h3 className="font-semibold text-gray-900">Cash on Delivery</h3>
                                         </div>
-                                        {selectedPaymentMethod === 'cash' && (
+                                        {selectedPaymentMethod === 'COD' && (
                                             <Check className="w-5 h-5 text-orange-600" />
                                         )}
                                     </div>
@@ -573,7 +480,7 @@ const CheckOutPage = () => {
                                 {selectedDeliveryOption === 'delivery' && (
                                     <div className="flex justify-between">
                                         <span className="text-gray-600">Delivery Fee</span>
-                                        <span className="font-medium">${deliveryFee.toFixed(2)}</span>
+                                        <span className="font-medium">${3.99}</span>
                                     </div>
                                 )}
 
@@ -593,12 +500,81 @@ const CheckOutPage = () => {
                                 </span>
                             </div>
 
-                            <button
-                                onClick={handlePlaceOrder}
-                                className="bg-orange-500 text-white w-full py-4 rounded-xl hover:bg-orange-600 transition-colors font-medium text-lg shadow-md"
-                            >
-                                Place Order • ${calculateTotal().toFixed(2)}
-                            </button>
+                            {selectedPaymentMethod === "Online" && (
+                                <PayPalButtons
+                                    style={{
+                                        layout: "vertical",
+                                        color: "gold",
+                                        shape: "rect",
+                                        label: "paypal"
+                                    }}
+                                    disabled={isPending || !user.name || !user.phone ||
+                                        (selectedDeliveryOption === "delivery" && !user.address)}
+                                    createOrder={async (data, actions) => {
+                                        try {
+                                            const orderResponse = await createOrder(
+                                                userId,
+                                                selectedPaymentMethod,
+                                                selectedDeliveryOption
+                                            );                                    
+                                            setOrderId(orderResponse.orderId);
+                                            const paypalOrderId = await actions.order.create({
+                                                purchase_units: [
+                                                    {
+                                                        amount: {
+                                                            currency_code: "USD",
+                                                            value: calculateTotal().toFixed(2),
+                                                        },
+                                                        custom_id: orderResponse.orderId,
+                                                        description: `Order for ${checkoutDetails.length} items`,
+                                                    },
+                                                ],
+                                                intent: "CAPTURE",
+                                            });
+                                            return paypalOrderId;
+                                        } catch (err) {
+                                            toast.error("Failed to create PayPal order");
+                                            throw err;
+                                        }
+                                    }}
+                                    onApprove={async (data) => {
+                                        try {
+                                            const paypalOrderId = data.orderID;
+                                            handleupdatePaymentStatus(orderId, "Paid", paypalOrderId);
+                                            toast.success("Payment successful!");
+                                                navigate("/order-history", {
+                                                    state: {
+                                                        orderId: orderId,
+                                                        orderDetails: {
+                                                            items: checkoutDetails,
+                                                            total: calculateTotal(),
+                                                            paymentMethod: 'PayPal',
+                                                            deliveryOption: selectedDeliveryOption,
+                                                        },
+                                                    },
+                                                });
+                                        } catch (err) {
+                                            toast.error("Payment failed. Please try again.");
+                                        }
+                                    }}
+                                    onError={(error) => {
+                                        toast.error("PayPal error occurred. Please try again." + error);
+                                    }}
+                                    onCancel={(data) => {
+                                        toast.error("Payment was cancelled" + data);
+                                    }}
+                                />
+                            )}
+
+                            {selectedPaymentMethod === 'COD' && (
+                                <button
+                                    onClick={handleCashOrder}
+                                    disabled={!user.name || !user.phone || (selectedDeliveryOption === "delivery" && !user.address)}
+                                    className="bg-orange-500 text-white w-full py-4 rounded-xl hover:bg-orange-600 transition-colors font-medium text-lg shadow-md disabled:bg-gray-400 disabled:cursor-not-allowed"
+                                >
+                                    Place Order • ${calculateTotal().toFixed(2)}
+                                </button>
+                            )}
 
                             <p className="text-xs text-gray-500 text-center mt-3">
                                 By placing this order, you agree to our Terms of Service and Privacy Policy
@@ -607,6 +583,22 @@ const CheckOutPage = () => {
                     </div>
                 </div>
             </div>
+
+            <UserEditModal
+                isEditModalOpen={isEditModalOpen}
+                setIsEditModalOpen={setIsEditModalOpen}
+                userProfile={userProfile}
+                setUserProfile={setUserProfile}
+                editedProfile={editedProfile}
+                setEditedProfile={setEditedProfile}
+                handleEditUser={handleEditUser}
+            />
+            <OrderSuccessModal
+             onClose={()=>setIsOrderSuccessModal(false)}
+             open={isOrderSuccessModal}
+             orderId={orderId}
+             
+            />
         </div>
     );
 };

@@ -77,12 +77,6 @@ const ProfilePage = () => {
         };
         
         setUserProfile(updatedProfile);
-    //     dispatch(addUser({
-    //   id: response.data._id || user.id,
-    //   email: response.data.email,
-    //   role: response.data.role || 'user', 
-    //   token: response.token 
-    // }));
         dispatch(addUserProfile(updatedProfile));
       
         toast.success('Profile updated successfully');
@@ -108,12 +102,6 @@ const ProfilePage = () => {
         };
         
         setUserProfile(profileData);
-  //       dispatch(addUser({
-  //    id: response.data._id || user.id,
-  //    email: response.data.email,
-  //    role: response.data.role || 'user', 
-  //    token: response.token 
-  //  }));
         dispatch(addUserProfile(profileData));
         setEditedProfile((prev: any) => ({
           ...prev,

@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { data, useParams } from 'react-router-dom';
 import { 
   ChefHat, 
   Coffee, 
@@ -90,12 +90,14 @@ const MenuListingPage = () => {
   };
 
   
+  
   const handleAddCart = async(productId:string)=>{ 
     try {
       const response = await addToCart(productId,userId as string,hotelId as string)
       toast.success(response.message)
-    } catch (error) {
-      
+    } catch (error : any) {
+     toast.error(error.response?.data?.message ||error.error ||error.message || "Something went wrong");
+
     }
   }
   return (

@@ -128,6 +128,7 @@ const HotelProfileSheet = () => {
     _id:string;
     name: string;
     status:string;
+    email:string;
     idProof: string;
     profilepic: string;
     phone: string;
@@ -137,6 +138,7 @@ const HotelProfileSheet = () => {
   const [hotelProfile, setHotelProfile] = useState<HotelProfile>({
     _id:'',
     name: '',
+    email:'',
     idProof: '',
     status:'',
     profilepic: "",
@@ -160,6 +162,7 @@ const HotelProfileSheet = () => {
         const updatedProfile = {
           _id:response.data._id || '',
           name: response.data.name || '',
+          email:response.data.email || '',
           status:response.data.status || '',
           profilepic: response.data.profilepic || '',
           idProof: response.data.idProof || '',
@@ -183,6 +186,7 @@ const HotelProfileSheet = () => {
         const updatedProfile = {
           _id:response.data._id || editedProfile._id,
           name: response.name || editedProfile.name,
+          email:response.data.email || editedProfile.email,
           status:response.status || editedProfile.status,
           profilepic: response.profilepic || editedProfile.profilepic,
           phone: response.phone || editedProfile.phone,
@@ -363,9 +367,6 @@ const HotelProfileSheet = () => {
         handleEditHotel={handleEditHotel}
         />
       </SheetContent>
-     
-
-      
     </Sheet>
   );
 };

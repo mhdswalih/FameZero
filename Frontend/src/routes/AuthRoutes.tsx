@@ -9,13 +9,14 @@ import ProfilePage from '../Components/User/ProfileDetailPage'
 import NewspaperPage from '../Components/User/AboutPage'
 import { ReactElement } from 'react'
 import FoodSection from '../Components/User/FoodPage'
-import { Settings } from 'lucide-react'
 import UserSettings from '../Components/User/Settings'
 import ResetPassword from '../Components/ForgetPassword/ResetPassword'
 import ProductPage from '../Components/User/HotelsDetailsPage'
 import CartPage from '../Components/User/CartPage'
 import WishListPage from '../Components/User/WishList'
 import CheckOutPage from '../Components/User/CheckOutPage'
+import OrderHistoryPage from '../Components/User/OrderHistoryPage'
+import InvoiceGenerator from '../Components/User/InvoiceGenarator'
 
 const ProtectedRoute = ({ children }: { children:ReactElement }) => {
   const user = useSelector((state: RootState) => state.user);
@@ -53,6 +54,8 @@ const AuthRoutes = () => {
         <Route path='/cart' element={<CartPage />} />
         <Route path='/wishlist' element={<WishListPage />} /> 
         <Route path='/checkout' element={<CheckOutPage />} />
+        <Route path='/order-history' element={<OrderHistoryPage />} />
+        <Route path='/get-invoice' element={<InvoiceGenerator />} />
         <Route path='about-page' element={
           <>
           {/* <Navbar /> */}

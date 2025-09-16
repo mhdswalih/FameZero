@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { fetchHotelProfiles } from "../../Api/userApiCalls/profileApi";
 import { useSelector } from "react-redux";
 import { RootState } from "../../Redux/store";
+import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 
 function FoodSection() {
   const navigate = useNavigate();
@@ -37,8 +38,10 @@ function FoodSection() {
   };
 
   useEffect(() => {
-    getHotels()
-  }, [])
+    if(user){
+      getHotels()
+    }
+  }, [user])
 
   const { scrollYProgress } = useScroll();
   const scaleX = useSpring(scrollYProgress, {
@@ -110,7 +113,7 @@ function FoodSection() {
         className="font-['Poppins'] min-h-screen bg-gradient-to-br from-orange-50 to-orange-100 relative pt-28 md:pt-36 px-4 sm:px-6 lg:px-8 pb-16"
       >
         {/* Scroll Progress Bar */}
-       
+
         {/* Header Section */}
         <div className="max-w-7xl mx-auto">
           <motion.div
@@ -251,16 +254,13 @@ function FoodSection() {
               transition={{ delay: 0.5, type: "spring", stiffness: 100, damping: 15 }}
               className="flex flex-col items-center justify-center py-20 text-center"
             >
-              <motion.div
-                className="w-24 h-24 bg-amber-100 rounded-full flex items-center justify-center mb-6"
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ type: "spring", delay: 0.6, stiffness: 100, damping: 10 }}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-0.5M5 21H3m2 0h0.5M5 21h14M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                </svg>
-              </motion.div>
+              <div className="w-44 h-44 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <DotLottieReact
+                  src="https://lottie.host/5460e5a1-7d15-421b-aa50-b20a756e8246/rfQW8EIefK.lottie"
+                  loop
+                  autoplay
+                />
+              </div>
               <h3 className="text-xl font-semibold text-gray-800 mb-2">No venues available</h3>
               <p className="text-gray-600 max-w-md">We couldn't find any hotels or auditoriums at the moment. Please check back later.</p>
             </motion.div>

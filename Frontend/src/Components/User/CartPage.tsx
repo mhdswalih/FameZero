@@ -25,16 +25,16 @@ const CartPage = () => {
 
     const handleFetchCartItems = async () => {
         try {
-            const response = await fetchCartProduct(userId)
+            const response = await fetchCartProduct(userId) 
             if (Array.isArray(response?.data.products)) {
                 const products = response.data.products.map((p: {
-                    quantity: string;
+                    cartQuantity: string;
                     _id: string; productId: string, productDetails: IProductsDetails
                 }) => ({
                     ...p.productDetails,
                     _id: p._id,
                     productId: p.productId,
-                    cartQuantity: p.quantity
+                    cartQuantity: p.cartQuantity
                 }));
                 if (Array.isArray(products)) products.map((p) => setCartQuantity(p.cartQuantity))
                 setCartItems(products);
@@ -49,9 +49,8 @@ const CartPage = () => {
     const updateStock = async (productId: string, action: "increment" | "decrement") => {
         try {
             const response = await updateStockInCart(userId, productId, action);
-
             if (response.updatedQuantity && typeof response.updatedQuantity === 'object') {
-                const updatedQty = response.updatedQuantity.quantity ||
+                const updatedQty = response.updatedQuantity.cartQuantity ||
                     response.updatedQuantity.updatedQuantity ||
                     response.updatedQuantity.value;
 
