@@ -52,9 +52,7 @@ export class ProfileController implements IProfileController {
   async getHotels(req: Request, res: Response, next: NextFunction): Promise<void> {
       try {
         const hotels = await this._profileService.getHotels()
-        console.log(hotels,'this is response ...............');
         res.status(HttpStatus.OK).json({hotels})
-        
       } catch (error) {
        next(error) 
       }

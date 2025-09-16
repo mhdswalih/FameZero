@@ -7,4 +7,8 @@ export interface IProductController {
     updateStock(req:Request,res:Response,next:NextFunction):Promise<void>
     getCheckOut(req:Request,res:Response,next:NextFunction):Promise<void>
     createOrder(req:Request,res:Response,next:NextFunction):Promise<void>
+    updatePaymentStatus(req: Request, res: Response, next: NextFunction): Promise<void>
+    getOrderHistory(req:Request,res:Response,next:NextFunction):Promise<void>
+    rePayTheOrder(req:Request,res:Response,next:NextFunction):Promise<void>
+    rePayUpdateStatus(req:Request,res:Response,next:NextFunction):Promise<void>
 }

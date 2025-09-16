@@ -1,4 +1,4 @@
-import  express from 'express';
+import  express, { Request,Response,NextFunction } from 'express';
 import http from 'http'
 import { Server } from 'socket.io'
 import cookieParser from 'cookie-parser';
@@ -17,6 +17,7 @@ dotenv.config()
 import { setSocketInstance } from './middleware/soket.io';
 import { getJWTInfoFromToken } from './utils/jwt';
 import productRoutes from './routers/userRouters/productRoutes';
+import { handleError } from './utils/httperr';
 
 declare global {
   namespace Express {
@@ -102,7 +103,7 @@ setSocketInstance(io);
 
 app.use(cors({
     origin:process.env.CLIENT_URL,
-    methods:['GET','POST','PUT','DELETE'],
+    methods:['GET','POST','PUT','DELETE','PATCH'],
     allowedHeaders:['Content-Type','Authorization'],
     credentials : true
 
@@ -122,6 +123,10 @@ app.use('/api/hotel',hotelRoutes)
 app.use('/api/hotel',hotelProfileRoutes)
 app.use('/api/admin',adminRoutes)
 app.use(errorHandler)
+app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+  handleError(res, err);
+});
+
 
 
 connectDB().then(() => {

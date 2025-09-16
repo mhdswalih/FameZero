@@ -19,6 +19,10 @@ productRoutes.delete('/delete-from-cart/:productId/:userId',authenticateToken,pr
 productRoutes.put('/update-stock-item',authenticateToken,productController.updateStock.bind(productController))
 productRoutes.get('/checkout/:userId',authenticateToken,productController.getCheckOut.bind(productController))
 productRoutes.post('/create-order/:userId',authenticateToken,productController.createOrder.bind(productController))
+productRoutes.patch('/update-payment-status/:orderId',authenticateToken,productController.updatePaymentStatus.bind(productController))
+productRoutes.get('/get-order-history/:userId',authenticateToken,productController.getOrderHistory.bind(productController))
+productRoutes.post('/re-pay/:orderId',authenticateToken,productController.rePayTheOrder.bind(productController))
+productRoutes.post('/status-re-pay/:orderId',authenticateToken,productController.rePayUpdateStatus.bind(productController))
 
 
 export default productRoutes
