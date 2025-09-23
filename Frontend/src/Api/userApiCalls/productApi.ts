@@ -103,3 +103,12 @@ export const RePayUpdatePaymentStatus = async (orderId:string,payementStatus:str
     
   }
 }
+
+export const fetchOrderDetails = async(orderId:string) => {
+  try {
+    const response = await axiosInstance.get(`/get-order-details/${orderId}`)
+    return response.data
+  } catch (error) {
+    
+  }
+}

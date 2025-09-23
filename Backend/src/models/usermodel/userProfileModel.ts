@@ -28,7 +28,8 @@ const userProfileSchema = new mongoose.Schema<IUserProfile>({
     },
     email:{
         type:String,
-        trim:true
+        trim:true,
+        unique:true
     },
     address: {
         type: String,

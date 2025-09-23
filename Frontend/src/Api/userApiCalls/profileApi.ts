@@ -59,9 +59,7 @@ export const changePassword = async(id:string,currentPasswords:string,newPasswor
 
 export const fetchHotelProfiles  =  async()=>{
   try {
-    const response = await axiosInstance.get('/get-hotels')
-    console.log(response.data,'.......................................');
-    
+    const response = await axiosInstance.get('/get-hotels')  
     return response.data
   } catch (error) {
     

@@ -15,4 +15,5 @@ export interface IProductRepository {
     getOrderHistory(userId:string):Promise<{orderDetails : IOrderHistory [] | null}>
     rePayOrder(orderId:string):Promise<{paymentStatus:string} | null>
     rePayUpdateStatus (orderId:string,payementStatus:string):Promise<{orderStatus:string} | null>
+    getOrderDetails (orderId:string):Promise<IOrderHistory[] | null>
 }

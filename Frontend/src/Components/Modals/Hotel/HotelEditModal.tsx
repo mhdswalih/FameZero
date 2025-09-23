@@ -1,34 +1,48 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import {isDeepEqual} from'../../../Utils/is-equal'
+import { isDeepEqual } from '../../../Utils/is-equal';
 import {
   Building2, Phone, MapPin, Save, X, Camera, Image, FileText, Hotel,
   Mail
 } from 'lucide-react';
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import toast from 'react-hot-toast';
 import { isEmailVerified, verifyEmailOtp } from '../../../Api/userApiCalls/userApi';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../Redux/store';
+import axios from 'axios';
+import { features } from 'process';
 
-interface hotelDetails {
-  _id:string;
+interface HotelDetails {
+  _id: string;
   name: string;
-  email:string;
-  status:string;
+  email: string;
+  status: string;
   profilepic: string;
   phone: string;
-  location: string;
+  location: {
+    type: string;
+    coordinates: number[];
+    locationName: string;
+  };
   idProof: string;
   city: string;
+}
+
+interface UserLocation {
+  lat: number;
+  lon: number;
+  city?: string;
+  region?: string;
+  country?: string;
 }
 
 interface HotelEditModalProps {
   isEditModalOpen: boolean;
   setIsEditModalOpen: (open: boolean) => void;
-  hotelProfile: hotelDetails;
-  setHotelProfile: (profile: hotelDetails) => void;
-  editedProfile: hotelDetails;
-  setEditedProfile: (profile: hotelDetails) => void;
+  hotelProfile: HotelDetails;
+  setHotelProfile: (profile: HotelDetails) => void;
+  editedProfile: HotelDetails;
+  setEditedProfile: (profile: HotelDetails) => void;
   handleEditHotel: (selectedFile?: File, idProofFile?: File) => void;
 }
 
@@ -45,17 +59,32 @@ const HotelEditModal = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string>('');
   const [idProofPreviewUrl, setIdProofPreviewUrl] = useState<string>('');
-  const hotel = useSelector((state:RootState)=> state.user)
-    const [formData, setFormData] = useState({
-      name: '',
-      email: '',
-      role: '',
-      isEmailVerified: false,
-      emailVerificationCode: '',
-      showEmailCodeInput: false,
-      emailVerificationLoading: false,
-      emailChanged: false
-    });
+  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [userLocation, setuserLocation] = useState<UserLocation>()
+  const hotel = useSelector((state: RootState) => state.user);
+  const [formData, setFormData] = useState({
+    emailVerificationCode: '',
+    showEmailCodeInput: false,
+    emailVerificationLoading: false,
+    isEmailVerified: false
+  });
+
+  const suggestionsRef = useRef<HTMLUListElement>(null);
+
+  // Close suggestions when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (suggestionsRef.current && !suggestionsRef.current.contains(event.target as Node)) {
+        setShowSuggestions(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const handleCancel = () => {
     setEditedProfile({ ...hotelProfile });
@@ -64,13 +93,24 @@ const HotelEditModal = ({
     setPreviewUrl('');
     setIdProofPreviewUrl('');
     setIsEditModalOpen(false);
+    setSuggestions([]);
+    setShowSuggestions(false);
   };
 
-  const handleInputChange = (field: string, value: string) => {
-
+  const handleInputChange = (field: keyof HotelDetails, value: string) => {
     setEditedProfile({
       ...editedProfile,
       [field]: value
+    });
+  };
+
+  const handleLocationInputChange = (value: string) => {
+    setEditedProfile({
+      ...editedProfile,
+      location: {
+        ...editedProfile.location,
+        locationName: value
+      }
     });
   };
 
@@ -87,6 +127,90 @@ const HotelEditModal = ({
     }
   };
 
+  const handleGeoApify = async (text: string) => {
+    if (text.length < 3) {
+      setSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+
+    try {
+      const response = await axios.get(
+        `https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(text)}&limit=5&apiKey=cb90b7885f6c4da8912b3402177f3264`
+      );
+
+      setSuggestions(response.data.features || []);
+      setShowSuggestions(true);
+    } catch (error) {
+      console.error('Error fetching location suggestions:', error);
+      setSuggestions([]);
+    }
+  };
+
+  const handleSelectSuggestion = (feature: any) => {
+    setEditedProfile({
+      ...editedProfile,
+      location: {
+        type: "Point",
+        coordinates: [
+          feature.properties.lon,
+          feature.properties.lat,
+        ],
+        locationName: feature.properties.formatted
+      }
+    });
+    setSuggestions([]);
+    setShowSuggestions(false);
+  };
+
+  const handleCurrentLocation = async () => {
+    return new Promise((resolve, reject) => {
+      navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+          const { latitude, longitude } = pos.coords;
+
+          const response = await axios.get(
+            `https://api.geoapify.com/v1/geocode/reverse?lat=${latitude}&lon=${longitude}&apiKey=cb90b7885f6c4da8912b3402177f3264`
+          );
+          const address = response.data.features?.[0]?.properties?.formatted || 'Current Location';
+
+          // Update user location state
+          setuserLocation({
+            lat: latitude,
+            lon: longitude
+          });
+
+          // Use the coordinates directly, not from state
+          setEditedProfile({
+            ...editedProfile,
+            location: {
+              type: 'Point',
+              coordinates: [longitude, latitude],
+              locationName: address || 'Current Location'
+            }
+          });
+
+          resolve({ latitude, longitude });
+          setSuggestions([]);
+          setShowSuggestions(false);
+
+        },
+        (error) => {
+          console.error('Geolocation error:', error);
+          reject(error);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 60000
+        }
+      );
+    });
+  };
+
+
+
+
   const handleIdProofChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -99,43 +223,46 @@ const HotelEditModal = ({
       reader.readAsDataURL(file);
     }
   };
-  
-const handleSubmit = async () => {
+
+  const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
-       if(hotelProfile){
-      
+      if (hotelProfile) {
         const currentFormState = {
-          _id:editedProfile._id,
-          name : editedProfile.name,
-          phone:editedProfile.phone,
-          status:editedProfile.status,
-          idProof:editedProfile.idProof,
-          profilepic : editedProfile.profilepic, 
-          location:editedProfile.location,
-          city:editedProfile.city,
+          _id: editedProfile._id,
+          name: editedProfile.name,
+          phone: editedProfile.phone,
+          status: editedProfile.status,
+          idProof: editedProfile.idProof,
+          profilepic: editedProfile.profilepic,
+          location: editedProfile.location,
+          city: editedProfile.city,
+          email: editedProfile.email
+        };
+
+        if (isDeepEqual(hotelProfile, currentFormState) &&
+          !selectedFile &&
+          !selectedIdProofFile) {
+          toast.error("Hotel profile already updated - no changes detected!");
+          return;
         }
-          
-          if (isDeepEqual(hotelProfile,currentFormState) && 
-                !selectedFile && 
-                !selectedIdProofFile) {
-                toast.error("Hotel profile already updated - no changes detected!");
-                return;
-            } 
-        }
-      // rest of your code...
+      }
+
       await handleEditHotel(selectedFile || undefined, selectedIdProofFile || undefined);
       setSelectedFile(null);
       setSelectedIdProofFile(null);
       setPreviewUrl('');
       setIdProofPreviewUrl('');
       setIsEditModalOpen(false);
+      setSuggestions([]);
+      setShowSuggestions(false);
     } catch (error) {
-     
+      console.error('Error updating hotel:', error);
     } finally {
       setIsSubmitting(false);
     }
   };
+
   const getImageSrc = () => {
     if (previewUrl) return previewUrl;
     if (editedProfile.profilepic) return editedProfile.profilepic;
@@ -147,29 +274,30 @@ const handleSubmit = async () => {
     if (editedProfile.idProof) return editedProfile.idProof;
     return null;
   };
- 
-    const handleSendEmailCode = async () => {
-      if (!editedProfile.email) {
-        toast.error('Please enter an email address');
-        return;
-      }
-      try {
-        setFormData(prev => ({ ...prev, emailVerificationLoading: true }));
-        await isEmailVerified(editedProfile.email);
-        setFormData(prev => ({
-          ...prev,
-          showEmailCodeInput: true,
-          emailVerificationLoading: false
-        }));
-        toast.success('Verification code sent to your email');
-      } catch (error: any) {
-        setFormData(prev => ({ ...prev, emailVerificationLoading: false }));
-        toast.error(error.response?.data?.message || 'Failed to send verification code');
-      }
+
+  const handleSendEmailCode = async () => {
+    if (!editedProfile.email) {
+      toast.error('Please enter an email address');
+      return;
     }
-    const handleVerifyEmail = async () => {
     try {
-      await verifyEmailOtp( hotel.id as string, editedProfile.email, formData.emailVerificationCode);
+      setFormData(prev => ({ ...prev, emailVerificationLoading: true }));
+      await isEmailVerified(editedProfile.email);
+      setFormData(prev => ({
+        ...prev,
+        showEmailCodeInput: true,
+        emailVerificationLoading: false
+      }));
+      toast.success('Verification code sent to your email');
+    } catch (error: any) {
+      setFormData(prev => ({ ...prev, emailVerificationLoading: false }));
+      toast.error(error.response?.data?.message || 'Failed to send verification code');
+    }
+  };
+
+  const handleVerifyEmail = async () => {
+    try {
+      await verifyEmailOtp(hotel.id as string, editedProfile.email, formData.emailVerificationCode);
       setFormData(prev => ({
         ...prev,
         isEmailVerified: true,
@@ -181,15 +309,15 @@ const handleSubmit = async () => {
       setFormData(prev => ({ ...prev, emailVerificationLoading: false }));
       toast.error(error.response?.data?.message || 'Invalid verification code');
     }
-  }
+  };
 
-    const handleInputChangeEmail = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-      const { name, value } = e.target;
-      setFormData(prev => ({
-        ...prev,
-        [name]: value
-      }));
-    };
+  const handleInputChangeEmail = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      emailVerificationCode: value
+    }));
+  };
 
   return (
     <AnimatePresence>
@@ -260,7 +388,7 @@ const handleSubmit = async () => {
                   <h3 className="text-lg font-medium text-gray-900 border-b border-gray-200 pb-2">
                     Basic Information
                   </h3>
-                  
+
                   <motion.div
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -280,7 +408,8 @@ const handleSubmit = async () => {
                       disabled={isSubmitting}
                     />
                   </motion.div>
-                   {!hotelProfile.email && (
+
+                  {!hotelProfile.email && (
                     <motion.div
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
@@ -319,7 +448,6 @@ const handleSubmit = async () => {
                             <div className="flex gap-2 items-center">
                               <input
                                 type="text"
-                                name="emailVerificationCode"
                                 value={formData.emailVerificationCode}
                                 onChange={handleInputChangeEmail}
                                 placeholder="Enter 6-digit code"
@@ -395,25 +523,54 @@ const handleSubmit = async () => {
                   <h3 className="text-lg font-medium text-gray-900 border-b border-gray-200 pb-2">
                     Location & Documents
                   </h3>
-                  
+
                   <motion.div
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.4 }}
-                    className="space-y-2"
+                    className="space-y-2 relative"
                   >
+
                     <label className="block text-sm font-medium text-gray-700">
                       <MapPin className="inline h-4 w-4 mr-2 text-gray-500" />
                       Location/Address
                     </label>
                     <textarea
-                      value={editedProfile.location || ''}
-                      onChange={(e) => handleInputChange('location', e.target.value)}
+                      value={editedProfile.location?.locationName || ""}
+                      onChange={(e) => {
+                        handleLocationInputChange(e.target.value);
+                        handleGeoApify(e.target.value);
+
+                      }}
                       rows={3}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-400 focus:border-transparent transition-all resize-none"
                       placeholder="Enter full hotel address"
-                      disabled={isSubmitting}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-400 focus:border-transparent transition-all resize-none"
                     />
+
+                    {showSuggestions && suggestions.length > 0 && (
+                      <ul ref={suggestionsRef} className="absolute bg-white border mt-1 w-full rounded shadow z-50 max-h-60 overflow-y-auto">
+                        {/* Fixed: Added onClick handler with parentheses and proper styling */}
+                        <li className="p-2 hover:bg-blue-100 cursor-pointer text-sm border-b bg-blue-50">
+                          <button
+                            onClick={() => handleCurrentLocation()} // Added parentheses to actually call the function
+                            className="w-full text-left flex items-center"
+                          >
+                            <MapPin className="inline h-4 w-4 mr-2 text-blue-500" />
+                            <span className="text-blue-600 font-medium">Use Current Location</span>
+                          </button>
+                        </li>
+                        {suggestions.map((s) => (
+                          <li
+                            key={s.properties.place_id}
+                            className="p-2 hover:bg-gray-200 cursor-pointer text-sm"
+                            onClick={() => handleSelectSuggestion(s)}
+                          >
+                            <MapPin className="inline h-4 w-4 mr-2 text-gray-400" />
+                            {s.properties.formatted}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                   </motion.div>
 
                   <motion.div
@@ -454,13 +611,13 @@ const handleSubmit = async () => {
                       disabled={isSubmitting}
                     />
                     <p className="text-xs text-gray-500">Upload business license, registration certificate, or valid ID proof</p>
-                    
+
                     {selectedIdProofFile && (
                       <p className="text-xs text-orange-600 mt-1">
                         ID Proof selected: {selectedIdProofFile.name}
                       </p>
                     )}
-                    
+
                     {idProofPreviewUrl && (
                       <div className="mt-2">
                         <img

@@ -1,4 +1,3 @@
-import { log } from "util";
 import { HttpStatus } from "../../constants/HttpStatus";
 import { Messages } from "../../constants/Messeges";
 import { IOrderHistory } from "../../interfaces/user/IOrderHistory";
@@ -6,7 +5,7 @@ import { IProductRepository } from "../../interfaces/user/products/IProductRepos
 import hotelProfile from "../../models/hotelModel/hotelProfileModel";
 import Product, { IProducts, IProductsDetails } from "../../models/hotelModel/productModel";
 import Cart, { ICart } from "../../models/usermodel/cartModel";
-import Order from "../../models/usermodel/orderModel";
+import Order, { IOrder } from "../../models/usermodel/orderModel";
 import { createHttpError } from "../../utils/httperr";
 import { BaseRepository } from "./baseRepository";
 import mongoose from "mongoose";
@@ -25,17 +24,13 @@ export class ProductRepository extends BaseRepository<IProducts> implements IPro
         if (!hotel) {
             throw createHttpError(HttpStatus.BAD_REQUEST, "Hotel Not found");
         }
-
         let cart = await Cart.findOne({ userId });
-
         const productDetails = product.productDetails.find(
             (p) => p._id.toString() === productId
         );
         if (!productDetails) {
             throw createHttpError(HttpStatus.BAD_REQUEST, Messages.PRODUCT_NOT_FOUND);
         }
-
-
         if (cart) {
             if (cart.hotelId.toString() !== hotelId.toString()) {
                 throw createHttpError(
@@ -63,7 +58,7 @@ export class ProductRepository extends BaseRepository<IProducts> implements IPro
             );
 
             if (existingProduct) {
-                throw createHttpError(HttpStatus.BAD_REQUEST,Messages.DUBLICATE_PRODUCT_IN_CART)
+                throw createHttpError(HttpStatus.BAD_REQUEST, Messages.DUBLICATE_PRODUCT_IN_CART)
             } else {
                 cart.products.push({
                     productId: new mongoose.Types.ObjectId(productDetails._id),
@@ -144,25 +139,25 @@ export class ProductRepository extends BaseRepository<IProducts> implements IPro
         }, 0);
 
         if (selectedDeliveryOption === "delivery") {
-            calculatedAmount += 3.99; 
+            calculatedAmount += 3.99;
         }
 
         const hotelId = cart.hotelId;
         const firstProductId = cart.products[0]?.productId;
 
-       
+
         const newOrder = new Order({
             userId,
             cartId: cart._id,
             hotelId,
-            productId: firstProductId, 
+            productId: firstProductId,
             products: cart.products.map((p) => ({
                 productId: p.productId,
                 productDetails: {
                     category: p.productDetails?.category,
                     productName: p.productDetails?.productName,
                     price: p.productDetails?.price,
-                    quantity: p.productDetails?.quantity, 
+                    quantity: p.productDetails?.quantity,
                 },
                 cartQuantity: p.cartQuantity,
             })),
@@ -202,7 +197,7 @@ export class ProductRepository extends BaseRepository<IProducts> implements IPro
                 },
                 {
                     $lookup: {
-                        from: "hotelprofile",
+                        from: "hotelProfile",
                         localField: "hotelObjectId",
                         foreignField: "userId",
                         as: "hotelData",
@@ -216,13 +211,16 @@ export class ProductRepository extends BaseRepository<IProducts> implements IPro
                 { $unwind: "$products" },
                 {
                     $project: {
-                        _id: 1,
-                        userId: 1,
+                        _id: { $toString: "$_id" },
+                        userId: { $toString: "$userId" },
+                        cartId: { $toString: "$cartId" },
                         totalAmount: 1,
                         orderStatus: 1,
                         selectedPaymentMethod: 1,
                         paymentStatus: 1,
                         orderDate: 1,
+                        paypalOrderId: 1,
+
 
                         hotelId: {
                             $cond: {
@@ -232,17 +230,21 @@ export class ProductRepository extends BaseRepository<IProducts> implements IPro
                             },
                         },
                         hotelName: { $ifNull: ["$hotel.name", null] },
-                        hotelImage: { $ifNull: ["$hotel.profilepic", null] },
+                        hotelProfilePic: { $ifNull: ["$hotel.profilepic", null] },
                         hotelEmail: { $ifNull: ["$hotel.email", null] },
                         hotelCity: { $ifNull: ["$hotel.city", null] },
+                        hotelLocation: { $ifNull: ["$hotel.location", null] },
                         hotelPhone: { $ifNull: ["$hotel.phone", null] },
 
-                        product: {
+                        products: {
                             productId: { $toString: "$products.productId" },
-                            category: "$products.productDetails.category",
-                            productName: "$products.productDetails.productName",
-                            price: "$products.productDetails.price",
-                            quantity: "$products.productDetails.quantity",
+                            productDetails: {
+                                category: "$products.productDetails.category",
+                                productName: "$products.productDetails.productName",
+                                price: "$products.productDetails.price",
+                                quantity: "$products.productDetails.quantity",
+                            },
+                            cartQuantity: "$products.cartQuantity"
                         },
                     },
                 },
@@ -250,36 +252,121 @@ export class ProductRepository extends BaseRepository<IProducts> implements IPro
                     $group: {
                         _id: "$_id",
                         userId: { $first: "$userId" },
+                        cartId: { $first: "$cartId" },
                         totalAmount: { $first: "$totalAmount" },
                         orderStatus: { $first: "$orderStatus" },
                         selectedPaymentMethod: { $first: "$selectedPaymentMethod" },
                         paymentStatus: { $first: "$paymentStatus" },
                         orderDate: { $first: "$orderDate" },
+                        payPalOrderId: { $first: "$paypalOrderId" },
+                        
 
                         hotelId: { $first: "$hotelId" },
                         hotelName: { $first: "$hotelName" },
-                        hotelImage: { $first: "$hotelImage" },
+                        hotelProfilePic: { $first: "$hotelProfilePic" },
                         hotelEmail: { $first: "$hotelEmail" },
                         hotelCity: { $first: "$hotelCity" },
+                        hotelLocation: { $first: "$hotelLocation" },
                         hotelPhone: { $first: "$hotelPhone" },
 
-                        products: { $push: "$product" },
+                        products: { $push: "$products" },
                     },
                 },
                 {
-                     $sort: { orderDate: -1 },
+                    $sort: { orderDate: -1 },
                 }
             ]);
 
             return { orderDetails };
         } catch (err) {
+            console.error("Error fetching order history:", err);
             return { orderDetails: [] };
         }
     }
-async rePayOrder(orderId: string): Promise<{ paymentStatus: string; } | null> {
-    return await Order.findById(orderId)
-}
-async rePayUpdateStatus(orderId: string,payementStatus:string): Promise<{ orderStatus: string; } | null> {
-    return await Order.findByIdAndUpdate(orderId,{paymentStatus : payementStatus},{new:true})
-}
+    async rePayOrder(orderId: string): Promise<{ paymentStatus: string; } | null> {
+        return await Order.findById(orderId)
+    }
+    async rePayUpdateStatus(orderId: string, payementStatus: string): Promise<{ orderStatus: string; } | null> {
+        return await Order.findByIdAndUpdate(orderId, { paymentStatus: payementStatus }, { new: true })
+    }
+    async getOrderDetails(orderId: string): Promise<IOrderHistory[] | null> {
+        try {
+            const order = await Order.aggregate<IOrderHistory>([
+                { $match: { _id: new mongoose.Types.ObjectId(orderId) } },
+
+                // Convert hotelId for lookup (if exists)
+                {
+                    $addFields: {
+                        hotelObjectId: {
+                            $cond: {
+                                if: { $ne: ["$hotelId", null] },
+                                then: { $toObjectId: "$hotelId" },
+                                else: null,
+                            },
+                        },
+                    },
+                },
+
+                // Lookup hotel profile
+                {
+                    $lookup: {
+                        from: "hotelProfile",
+                        localField: "hotelObjectId",
+                        foreignField: "userId",
+                        as: "hotelData",
+                    },
+                },
+
+                // Pick only the first hotel profile
+                { $addFields: { hotel: { $arrayElemAt: ["$hotelData", 0] } } },
+
+                // Unwind products to get per-product details
+                { $unwind: "$products" },
+
+                // Project into your IOrderHistory shape
+                {
+                    $project: {
+                        userId: { $toString: "$userId" },
+                        cartId: { $toString: "$cartId" },
+                        productId: { $toString: "$products.productId" },
+                        category: "$products.productDetails.category",
+                        productName: "$products.productDetails.productName",
+                        price: "$products.productDetails.price",
+                        quantity: "$products.productDetails.quantity",
+                        cartQuantity: "$products.cartQuantity",
+                        totalAmount: "$totalAmount",
+                        orderStatus: "$orderStatus",
+                        paypalOrderId :"$paypalOrderId",
+                        selectedPaymentMethod: "$selectedPaymentMethod",
+                        paymentStatus: "$paymentStatus",
+                        orderDate: "$orderDate",
+
+                        // Hotel profile details
+                        hotelId: {
+                            $cond: {
+                                if: { $ne: ["$hotel", null] },
+                                then: { $toString: "$hotel.userId" },
+                                else: { $toString: "$hotelId" },
+                            },
+                        },
+                        hotelName: { $ifNull: ["$hotel.name", null] },
+                        hotelEmail: { $ifNull: ["$hotel.email", null] },
+                        hotelProfilePic: { $ifNull: ["$hotel.profilepic", null] },
+                        hotelIdProof: { $ifNull: ["$hotel.idProof", null] },
+                        hotelStatus: { $ifNull: ["$hotel.status", null] },
+                        hotelLocation: { $ifNull: ["$hotel.location", null] },
+                        hotelCity: { $ifNull: ["$hotel.city", null] },
+                        hotelPhone: { $ifNull: ["$hotel.phone", null] },
+                    },
+                },
+            ]);
+
+            return order.length > 0 ? order : null;
+        } catch (err) {
+            console.error("Error fetching order details:", err);
+            return null;
+        }
+    }
+
+
 }

@@ -20,6 +20,7 @@ import { VerifiedIcon, InfoIcon } from 'lucide-react';
 import SocketService from '../../Utils/socket-service';
 import ProductModal from '../Modals/Hotel/ProductModal';
 
+
 interface HotelProfile {
   _id: string;
   name: string;
@@ -28,7 +29,11 @@ interface HotelProfile {
   status: string;
   idProof: string;
   phone: string;
-  location: string;
+  location: {
+    type: string;
+    coordinates: number[];
+    locationName : string;
+  };
   city: string;
 }
 
@@ -46,7 +51,6 @@ const HotelProfilePage = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isProductModalOpen, setIsProductModalOpen] = useState(false)
   const [product, setProducts] = useState<IProductsDetails[]>([])
-  console.log(product, 'this is product form modal');
 
   const user = useSelector((state: RootState) => state.user);
   const hotelprofile = useSelector((state: RootState) => state.hotelProfile);
@@ -61,11 +65,17 @@ const HotelProfilePage = () => {
     profilepic: "",
     status: '',
     phone: '',
-    location: '',
+    location: {
+      type: 'Point',
+      coordinates: [],
+      locationName : '',
+    },
     idProof: '',
     city: '',
   });
 
+ console.log(hotelProfile,'THIS IS HOTEL PROFILE');
+ 
   const [editedProfile, setEditedProfile] = useState<HotelProfile>({ ...hotelProfile });
 
   const handleLogout = () => {
@@ -75,8 +85,9 @@ const HotelProfilePage = () => {
     navigate('/hotel/landing-page');
   };
 
-  const id = user.id;
 
+
+  const id = user.id;
   const handleEditHotel = async (selectedFile?: File, selectedIdProofFile?: File) => {
     try {
       const response = await editHotelProfile(id as string, editedProfile, selectedFile, selectedIdProofFile);
@@ -381,7 +392,7 @@ const HotelProfilePage = () => {
                       <div className="flex items-start gap-3">
                         <MapPin className="h-4 w-4 text-gray-500 mt-0.5" />
                         <div className="text-gray-900">
-                          <p>{hotelProfile.location}</p>
+                          <p>{ hotelProfile.location.locationName}</p>
                           <p>{hotelProfile.city}</p>
                         </div>
                       </div>

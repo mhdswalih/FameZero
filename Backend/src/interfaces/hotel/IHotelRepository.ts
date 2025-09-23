@@ -5,6 +5,7 @@ import { IBaseRepository } from "../baserepo/IbaseRepo";
 
 export interface IHotelRepository extends IBaseRepository<IUser> {
     getAllHotels():Promise<IHotelFullProfile[]>;
+    getAllHotelsInUserSide():Promise<IHotelFullProfile[]>
     findByEmail(email: string): Promise<IUser | null>;
     acceptRequstHotel(id:string):Promise<IHotelFullProfile | null>
     rejectRequstHotel(id:string):Promise<IHotelFullProfile | null>

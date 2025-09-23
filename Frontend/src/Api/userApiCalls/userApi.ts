@@ -12,6 +12,8 @@ export const RegisteUser = async(userData:IUserData) =>{
 
 export const verifyOtpAndCreateUser = async (email: string, otp: string, userData = {}) => {
   try {
+    console.log(email,otp,userData,'THIS IS FROM OTP SIDE');
+    
     const response = await axiosInstance.post('/veryfy-otp', { email, otp, userData });
     return response.data; 
   } catch (error: any) {

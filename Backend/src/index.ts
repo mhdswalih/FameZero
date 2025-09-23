@@ -1,4 +1,4 @@
-import  express, { Request,Response,NextFunction } from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import http from 'http'
 import { Server } from 'socket.io'
 import cookieParser from 'cookie-parser';
@@ -13,7 +13,6 @@ import adminRoutes from './routers/adminRouters/adminRouters';
 import profileRouter from './routers/userRouters/ProfileRoutes/profileRoutes';
 import hotelProfileRoutes from './routers/hoteRoutes/hotelProfileRoutes';
 dotenv.config()
-
 import { setSocketInstance } from './middleware/soket.io';
 import { getJWTInfoFromToken } from './utils/jwt';
 import productRoutes from './routers/userRouters/productRoutes';
@@ -33,16 +32,17 @@ const server = http.createServer(app)
 
 const io = new Server(server, {
   cors: {
-    origin: process.env.CLIENT_URL, 
+    origin: process.env.CLIENT_URL,
     methods: ["GET", "POST"],
     credentials: true
   }
 });
 
+
 io.use((socket, next) => {
   const { role, token } = socket.handshake.auth;
-  
-  const {id} = getJWTInfoFromToken(token) 
+
+  const { id } = getJWTInfoFromToken(token)
 
   if (role === 'hotel' && !token) {
     return next(new Error('Hotel ID required for hotel role'));
@@ -59,9 +59,9 @@ io.use((socket, next) => {
 io.on("connection", (socket) => {
   console.log("⚡️ New client connected", socket.id);
 
-  if(socket.data.role === 'admin'){
+  if (socket.data.role === 'admin') {
     socket.join('admin')
-  }else if(socket.data.role === 'hotel'){
+  } else if (socket.data.role === 'hotel') {
     socket.join(`hotel-${socket.data.id}`)
   }
 
@@ -71,16 +71,16 @@ io.on("connection", (socket) => {
       console.log('❌ No hotelId provided for room joining');
       return;
     }
-    
+
     const roomName = `hotel-${hotelId}`;
     socket.join(roomName);
     console.log(`✅ Hotel ${hotelId} joined room ${roomName} with socket ${socket.id}`);
-    
+
     // Confirm room joining - send back the actual hotelId
-    socket.emit("room-joined", { 
-      room: roomName, 
+    socket.emit("room-joined", {
+      room: roomName,
       hotelId: hotelId,
-      success: true 
+      success: true
     });
 
     // Debug: check room clients
@@ -100,28 +100,29 @@ io.on("connection", (socket) => {
 });
 
 setSocketInstance(io);
+console.log(process.env.CLIENT_URL);
+
 
 app.use(cors({
-    origin:process.env.CLIENT_URL,
-    methods:['GET','POST','PUT','DELETE','PATCH'],
-    allowedHeaders:['Content-Type','Authorization'],
-    credentials : true
-
+  origin: 'http://localhost:5173',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
 }))
 
 app.use(express.json())
-app.use(express.urlencoded({extended:true}))
+app.use(express.urlencoded({ extended: true }))
 app.use(express.static('public'))
 app.use(cookieParser());
 
 
 
-app.use('/api',userRouter)
-app.use('/api',profileRouter)
-app.use('/api',productRoutes)
-app.use('/api/hotel',hotelRoutes)
-app.use('/api/hotel',hotelProfileRoutes)
-app.use('/api/admin',adminRoutes)
+app.use('/api', userRouter)
+app.use('/api', profileRouter)
+app.use('/api', productRoutes)
+app.use('/api/hotel', hotelRoutes)
+app.use('/api/hotel', hotelProfileRoutes)
+app.use('/api/admin', adminRoutes)
 app.use(errorHandler)
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   handleError(res, err);

@@ -1,49 +1,64 @@
-import mongoose, { Document, Schema} from "mongoose";
+import mongoose, { Document, Schema } from "mongoose";
 import { IUser } from "../usermodel/userModel";
 
 
 export interface IHotelProfile extends Document {
     _id: string;
     userId: Schema.Types.ObjectId | IUser;
-    name:string;
-    email:string;
-    idProof : string;
-    status:string;
+    name: string;
+    email: string;
+    idProof: string;
+    status: string;
     profilepic: string;
-    location: string;
+    location: {
+    type: "Point";       
+    coordinates: number[];
+    locationName: string;
+  };
     city: string;
     phone: string;
 }
- 
+
 const hotelProfileSchema = new mongoose.Schema<IHotelProfile>({
     userId: {
-        type:Schema.Types.ObjectId,
+        type: Schema.Types.ObjectId,
         ref: 'Users',
         required: true
     },
-    name : {
-        type:String,
-       
+    name: {
+        type: String,
+
     },
     profilepic: {
         type: String,
-       
+
     },
-    email:{
-        type:String,
-        trim:true
+    email: {
+        type: String,
+        trim: true,
+        unique : true
     },
-    idProof:{
-        type : String,
+    idProof: {
+        type: String,
     },
     location: {
-        type: String,
-        trim: true
+        type: {
+            type: String,
+            enum: ["Point"],
+            default: "Point"
+        },
+        coordinates: {
+            type: [Number],
+            
+        },
+        locationName : {
+            type : String,
+        }
     },
     status: {
         type: String,
         enum: ['Pending', 'Approved', 'Rejected'],
-        default:'Pending'
+        default: 'Pending'
     },
     city: {
         type: String,
@@ -52,9 +67,9 @@ const hotelProfileSchema = new mongoose.Schema<IHotelProfile>({
     phone: {
         type: String,
         trim: true,
-     
+
     }
 });
 
-const hotelProfile = mongoose.model<IHotelProfile>('hotelprofile', hotelProfileSchema, 'hotelprofile');
+const hotelProfile = mongoose.model<IHotelProfile>('hotelProfile', hotelProfileSchema, 'hotelProfile');
 export default hotelProfile;

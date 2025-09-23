@@ -4,9 +4,6 @@ import { IUserService } from "../../interfaces/user/IUserservice";
 import { HttpStatus } from "../../constants/HttpStatus";
 import { Messages } from "../../constants/Messeges";
 
-
-
-
 export class UserController implements IUserController {
     constructor(private _userService: IUserService) { }
     async createUser(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -21,7 +18,11 @@ export class UserController implements IUserController {
     async verifyOtp(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
             const { email, otp, userData } = req.body;
-            await this._userService.verifyOtp(email, otp, userData);
+            console.log(email,otp,userData,'THIS IS FROM CONTROLLER');
+            
+           const response =  await this._userService.verifyOtp(email, otp, userData);
+           console.log(response,'THIS IS RESPONE ');
+           
             res.status(HttpStatus.OK).json({
                 message: Messages.EMAIL_VERIFIED
             });

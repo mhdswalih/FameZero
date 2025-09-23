@@ -55,7 +55,7 @@ const AuthRoutes = () => {
         <Route path='/wishlist' element={<WishListPage />} /> 
         <Route path='/checkout' element={<CheckOutPage />} />
         <Route path='/order-history' element={<OrderHistoryPage />} />
-        <Route path='/get-invoice' element={<InvoiceGenerator />} />
+        <Route path='/get-invoice/:orderId' element={<InvoiceGenerator />} />
         <Route path='about-page' element={
           <>
           {/* <Navbar /> */}

@@ -28,7 +28,7 @@ class SocketService {
     this.currentRole = options.role;
     this.token = options.token;
 
-    this.socket = io("http://localhost:3000", {
+  this.socket = io("http://localhost:3000", {
       transports: ["websocket"],
       forceNew: false,
       reconnection: true,
@@ -38,7 +38,6 @@ class SocketService {
         token: options.token
       }
     });
-
     this.socket.on("connect", () => {
       console.log("✅ Socket connected:", this.socket?.id);
     });

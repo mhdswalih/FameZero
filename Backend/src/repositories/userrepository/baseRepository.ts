@@ -14,6 +14,8 @@ export class BaseRepository<T extends Document> implements IBaseRepository<T> {
     }
 
     async create(data: Partial<T>): Promise<T> {
+        console.log(data,'THIS IS FROM BAE REPOOOOO');
+        
         try {
             const entity = new this.model(data);
             return await entity.save();

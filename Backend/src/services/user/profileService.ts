@@ -86,7 +86,7 @@ export class ProfileService implements IProfileService {
   }
   async getHotels(): Promise<IHotelFullProfile[] | null> {
       try {
-        return await this._hotelRepository.getAllHotels()
+        return await this._hotelRepository.getAllHotelsInUserSide()
       } catch (error) {
         throw error
       }

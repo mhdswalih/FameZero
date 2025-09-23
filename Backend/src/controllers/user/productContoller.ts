@@ -108,4 +108,13 @@ export class ProductController implements IProductController {
         next(error)
       }
   }
+  async getOrderDetails(req: Request, res: Response, next: NextFunction): Promise<void> {
+      try {
+        const {orderId} = req.params
+        const response = await this._userProductService.getOrderDetails(orderId)
+        res.status(HttpStatus.OK).json(response)
+      } catch (error) {
+        next(error)
+      }
+  }
 }

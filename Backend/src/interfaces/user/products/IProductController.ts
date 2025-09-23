@@ -11,4 +11,5 @@ export interface IProductController {
     getOrderHistory(req:Request,res:Response,next:NextFunction):Promise<void>
     rePayTheOrder(req:Request,res:Response,next:NextFunction):Promise<void>
     rePayUpdateStatus(req:Request,res:Response,next:NextFunction):Promise<void>
+    getOrderDetails(req:Request,res:Response,next:NextFunction):Promise<void>
 }

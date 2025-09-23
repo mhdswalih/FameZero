@@ -27,6 +27,7 @@ export class HotelRepository extends BaseRepository<IUser> implements IHotelRepo
          {
             $unwind: '$userDetails'
          },
+        
          {
             $project: {
                userId:'$userDetails._id',
@@ -44,6 +45,7 @@ export class HotelRepository extends BaseRepository<IUser> implements IHotelRepo
 
       return hotels as IHotelFullProfile[];
    };
+   
    async updateHotel(id: string, userData: Partial<IUser>): Promise<IUser | null> { 
       return await this.update(id, userData);
    }
@@ -78,5 +80,38 @@ export class HotelRepository extends BaseRepository<IUser> implements IHotelRepo
    async checkMobileExists(mobile: string): Promise<boolean> {
       const user = await this.findOne({ mobile });
       return !!user;
+   }
+  async getAllHotelsInUserSide(): Promise<IHotelFullProfile[]> {
+        const hotels = await hotelProfile.aggregate([
+         {
+            $lookup: {
+               from: 'users',
+               localField: 'userId',
+               foreignField: '_id',
+               as: 'userDetails'
+            }
+         },
+         {
+            $unwind: '$userDetails'
+         },
+         {
+            $match : {status : 'Approved'}
+         },
+         {
+            $project: {
+               userId:'$userDetails._id',
+               name: '$name',
+               email: '$userDetails.email',
+               status: '$status',
+               phone: '$phone',
+               location: '$location',
+               city: '$city',
+               profilepic: '$profilepic',
+               idProof: '$idProof'
+            }
+         }
+      ]);
+
+      return hotels as IHotelFullProfile[];
    }
 }

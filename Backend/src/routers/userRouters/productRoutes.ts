@@ -23,6 +23,7 @@ productRoutes.patch('/update-payment-status/:orderId',authenticateToken,productC
 productRoutes.get('/get-order-history/:userId',authenticateToken,productController.getOrderHistory.bind(productController))
 productRoutes.post('/re-pay/:orderId',authenticateToken,productController.rePayTheOrder.bind(productController))
 productRoutes.post('/status-re-pay/:orderId',authenticateToken,productController.rePayUpdateStatus.bind(productController))
+productRoutes.get('/get-order-details/:orderId',authenticateToken,productController.getOrderDetails.bind(productController))
 
 
 export default productRoutes

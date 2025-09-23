@@ -1,5 +1,6 @@
 import { IProductsDetails } from "../../../models/hotelModel/productModel"
 import { ICart } from "../../../models/usermodel/cartModel"
+import { IOrder } from "../../../models/usermodel/orderModel"
 import { IOrderHistory } from "../IOrderHistory"
 
 
@@ -15,4 +16,5 @@ export interface IProductService {
   getOrderHistory(userId:string):Promise<{orderDetails : IOrderHistory[] | null}>
   rePayOrder(orderId:string):Promise<{status:number,message:string,payementStatus:Object | null}>
   rePayUpdateStatus(orderId:string,payementStatus:string):Promise<{status:number,message:string,updatedStatus:Object | null}>
+  getOrderDetails(orderId:string):Promise<{status:number,message:string,orderDetails : IOrderHistory[] | null}>
 } 

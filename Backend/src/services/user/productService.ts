@@ -8,6 +8,7 @@ import { BaseRepository } from "../../repositories/userrepository/baseRepository
 import { createHttpError } from "../../utils/httperr";
 import { HttpStatus } from "../../constants/HttpStatus";
 import { IOrderHistory } from "../../interfaces/user/IOrderHistory";
+import { IOrder } from "../../models/usermodel/orderModel";
 export class ProductService extends BaseRepository<IProducts> implements IProductService {
   constructor(private _userProducteRepository: IProductRepository) {
     super(Product)
@@ -149,6 +150,24 @@ export class ProductService extends BaseRepository<IProducts> implements IProduc
           status : 200,
           message : 'Paid Successfully',
           updatedStatus : updatedStatus
+        }
+      } catch (error) {
+        throw error
+      }
+  }
+  async getOrderDetails(orderId: string): Promise<{ status: number; message: string; orderDetails: IOrderHistory[] | null; }> {
+      try {
+        if(!orderId){
+          throw createHttpError(HttpStatus.BAD_REQUEST,Messages.INVALID_ORDER_ID_PROVIDED)
+        }
+        const  orderDetails  = await this._userProducteRepository.getOrderDetails(orderId)
+
+        console.log(orderDetails,'THIS IS ORDER DETAILS ');
+        
+        return {
+          status : 200,
+          message : 'Order Details Fetched Successfully',
+         orderDetails : orderDetails
         }
       } catch (error) {
         throw error

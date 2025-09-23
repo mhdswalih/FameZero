@@ -132,7 +132,11 @@ const HotelProfileSheet = () => {
     idProof: string;
     profilepic: string;
     phone: string;
-    location: string;
+      location: {
+    type: string;
+    coordinates: number[];
+    locationName : string;
+  };
     city: string;
   }
   const [hotelProfile, setHotelProfile] = useState<HotelProfile>({
@@ -143,7 +147,11 @@ const HotelProfileSheet = () => {
     status:'',
     profilepic: "",
     phone: '',
-    location: '',
+      location: {
+      type: 'Point',
+      coordinates: [],
+      locationName : '',
+    },
     city: '',
   });
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);

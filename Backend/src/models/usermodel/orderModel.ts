@@ -28,14 +28,9 @@ export interface IOrder extends Document {
 // Order History Schema
 const orderHistorySchema = new Schema<IOrderHistory>(
   {
+    id: { type: String, required: true },
     userId: { type: String, required: true },
     cartId: { type: String, required: true },
-    productId: { type: String, required: true },
-    category: { type: String, required: true },
-    productName: { type: String, required: true },
-    price: { type: Number, required: true },
-    quantity: { type: Number, required: true },
-    cartQuantity: { type: Number, required: true },
     totalAmount: { type: Number, required: true },
     orderStatus: { type: String, required: true },
     selectedPaymentMethod: { type: String, required: true },
@@ -45,17 +40,26 @@ const orderHistorySchema = new Schema<IOrderHistory>(
     // Hotel profile fields
     hotelId: { type: String, required: true },
     hotelName: { type: String },
-    hotelEmail: { type: String },
     hotelProfilePic: { type: String },
-    hotelIdProof: { type: String },
-    hotelStatus: { type: String },
-    hotelLocation: { type: String },
+    hotelEmail: { type: String },
     hotelCity: { type: String },
+    hotelLocation: { type: String },
     hotelPhone: { type: String },
-  },
-  { _id: false }
-);
 
+    // Array of products
+    products: [{
+      productId: { type: String, required: true },
+      productDetails: {
+        category: { type: String, required: true },
+        productName: { type: String, required: true },
+        price: { type: Number, required: true },
+        quantity: { type: Number, required: true }
+      },
+      cartQuantity: { type: Number, required: true }
+    }]
+  },
+  { timestamps: true }
+);
 // Order Schema
 const orderSchema = new Schema<IOrder>(
   {
@@ -66,7 +70,7 @@ const orderSchema = new Schema<IOrder>(
     },
     hotelId: {
       type: Schema.Types.ObjectId,
-      ref: "HotelProfile",
+      ref: "hotelProfile",
       required: true,
     },
     cartId: {
