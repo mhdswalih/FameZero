@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from "express";
+import { Request, Response, NextFunction, response } from "express";
 import { IProfileController } from "../../interfaces/user/profile/IProfileController";
 import { IProfileService } from "../../interfaces/user/profile/IProfileService";
 import { HttpStatus } from "../../constants/HttpStatus";
@@ -57,4 +57,25 @@ export class ProfileController implements IProfileController {
        next(error) 
       }
   }
+  async getHotelDetails(req: Request, res: Response, next: NextFunction): Promise<void> {
+      try {
+        const {hotelId} = req.params
+        const response = await this._profileService.getHotelDetails(hotelId)
+        res.status(HttpStatus.OK).json(response)
+      } catch (error) {
+       next(error) 
+      }
+  }
+  async ratingAndReview(req: Request, res: Response, next: NextFunction): Promise<void> {
+      try {
+        const {hotelId} = req.params
+        const {review} = req.body
+        
+        const response = await this._profileService.ratingAndReview(hotelId,review)
+        res.status(HttpStatus.OK).json(response)
+      } catch (error) {
+        next(error)
+      }
+  }
 }
+

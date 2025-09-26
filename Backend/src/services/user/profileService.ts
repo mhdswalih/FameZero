@@ -1,17 +1,20 @@
+import { HttpStatus } from "../../constants/HttpStatus";
 import { Messages } from "../../constants/Messeges";
 import { IHotelRepository } from "../../interfaces/hotel/IHotelRepository";
 import { IProfileHotelRepositer } from "../../interfaces/hotel/profile/IProfileHotelRepository";
 import { IUserRepository } from "../../interfaces/user/IUserRepository";
 import { IProfileService } from "../../interfaces/user/profile/IProfileService";
-import userProfile, {
+import { IHotelProfile, IReview } from "../../models/hotelModel/hotelProfileModel";
+import  {
   IUserProfile,
 } from "../../models/usermodel/userProfileModel";
 import { IHotelFullProfile } from "../../repositories/hotelRepository/hotelInterface";
 import { ProfileRepository } from "../../repositories/userrepository/profileRepository";
 import { comparePassword, hashPassword } from "../../utils/hashPassword";
+import { createHttpError } from "../../utils/httperr";
 
 export class ProfileService implements IProfileService {
-  constructor(private _profileRepository: ProfileRepository, private _userRepository: IUserRepository,private _hotelRepository:IHotelRepository) { }
+  constructor(private _profileRepository: ProfileRepository, private _userRepository: IUserRepository,private _hotelRepository:IHotelRepository,private _hotelProfileRepostory:IProfileHotelRepositer) { }
 
   async getProfile(userId: string): Promise<IUserProfile | null> {
     return await this._profileRepository.findByUserId(userId);
@@ -87,6 +90,28 @@ export class ProfileService implements IProfileService {
   async getHotels(): Promise<IHotelFullProfile[] | null> {
       try {
         return await this._hotelRepository.getAllHotelsInUserSide()
+      } catch (error) {
+        throw error
+      }
+  }
+  async getHotelDetails(hotelId: string): Promise<IHotelFullProfile[] | null> {
+      try {
+        if(!hotelId){
+          throw createHttpError(HttpStatus.BAD_REQUEST,Messages.USER_ID_REQUIRED)
+        }
+        return await this._hotelProfileRepostory.getHotelDetails(hotelId)
+      } catch (error) {
+       throw error
+      }
+  }
+  async ratingAndReview(hotelId: string, review: IReview[]): Promise<IHotelProfile | undefined> {
+    console.log(hotelId,review,'THIS IS FROM SERVICE');
+    
+      try {
+        if(!hotelId){
+          throw createHttpError(HttpStatus.BAD_REQUEST,Messages.USER_ID_REQUIRED)
+        }
+        return await this._hotelProfileRepostory.ratingAndReview(hotelId,review)
       } catch (error) {
         throw error
       }

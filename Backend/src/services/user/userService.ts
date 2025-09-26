@@ -87,8 +87,7 @@ export class UserService implements IUserService {
         }
 
         if (user.role === 'hotel') {
-
-          const succ =   await this._profileHotelRepository.create({
+         await this._profileHotelRepository.create({
                 userId: user.id,
                 name: user.name,
                 email: user.email,
@@ -98,11 +97,11 @@ export class UserService implements IUserService {
                     coordinates: [],
                     locationName:''
                 },
+                review : [],
                 idProof: '',
                 city: '',
                 phone: '',
             })
-            console.log(succ,'THIS IS AFTER THE ');
         }
             
         return { status: HttpStatus.CREATED, messege: Messages.USER_CREATED }

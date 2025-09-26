@@ -1,6 +1,17 @@
 import mongoose, { Document, Schema } from "mongoose";
 import { IUser } from "../usermodel/userModel";
 
+export interface IReview {
+    userId: Schema.Types.ObjectId | IUser
+    _id:string;
+    profilePic:string;
+    name: string;
+    reviweIMG:string
+    rating: number;
+    comment: string;
+    like: number;
+    createAt: Date;
+}
 
 export interface IHotelProfile extends Document {
     _id: string;
@@ -11,13 +22,26 @@ export interface IHotelProfile extends Document {
     status: string;
     profilepic: string;
     location: {
-    type: "Point";       
-    coordinates: number[];
-    locationName: string;
-  };
+        type: "Point";
+        coordinates: number[];
+        locationName: string;
+    };
+    review: IReview[]
     city: string;
     phone: string;
+    rating: number;
 }
+
+const reviewScheme = new mongoose.Schema<IReview>({
+    userId : {type : Schema.Types.ObjectId,ref:'Users'},
+    name : {type : String},
+    profilePic : {type : String},
+    rating : {type : Number},
+    reviweIMG : {type : String},
+    comment : {type:String},
+    like:{type : Number},
+    createAt : {type : Date,default: Date.now}
+})
 
 const hotelProfileSchema = new mongoose.Schema<IHotelProfile>({
     userId: {
@@ -36,7 +60,7 @@ const hotelProfileSchema = new mongoose.Schema<IHotelProfile>({
     email: {
         type: String,
         trim: true,
-        unique : true
+        unique: true
     },
     idProof: {
         type: String,
@@ -49,10 +73,10 @@ const hotelProfileSchema = new mongoose.Schema<IHotelProfile>({
         },
         coordinates: {
             type: [Number],
-            
+
         },
-        locationName : {
-            type : String,
+        locationName: {
+            type: String,
         }
     },
     status: {
@@ -64,10 +88,17 @@ const hotelProfileSchema = new mongoose.Schema<IHotelProfile>({
         type: String,
         trim: true
     },
+    review: {
+        type: [reviewScheme]
+    },
     phone: {
         type: String,
         trim: true,
 
+    },
+    rating : {
+        type:Number,
+        default : 0
     }
 });
 

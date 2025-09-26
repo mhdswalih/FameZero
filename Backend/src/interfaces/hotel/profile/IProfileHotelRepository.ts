@@ -1,5 +1,6 @@
-import { IHotelProfile } from "../../../models/hotelModel/hotelProfileModel";
+import { IHotelProfile, IReview } from "../../../models/hotelModel/hotelProfileModel";
 import { IProducts, IProductsDetails } from "../../../models/hotelModel/productModel";
+import { IHotelFullProfile } from "../../../repositories/hotelRepository/hotelInterface";
 import { IBaseRepository } from "../../baserepo/IbaseRepo";
 
 export interface IProfileHotelRepositer extends IBaseRepository<IHotelProfile> {
@@ -9,7 +10,8 @@ export interface IProfileHotelRepositer extends IBaseRepository<IHotelProfile> {
      reRequstHotelProfile(id:string):Promise<IHotelProfile | null>;
      addProducts(hotelId:string,newProduct:IProductsDetails[]):Promise<IProducts>
      getAllMenu(userId:string):Promise<IProductsDetails[] | null>
-  
+     getHotelDetails(hotelId:string):Promise<IHotelFullProfile[] | null>
+     ratingAndReview(hotelId:string,review:IReview[]):Promise<IHotelProfile | undefined>  
 }
 
 
