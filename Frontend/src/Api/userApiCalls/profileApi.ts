@@ -1,3 +1,4 @@
+import { IReview } from "../../Components/User/RatingAndReview";
 import { axiosInstance } from "../Instance/axiosInstance";
 
 export const getUserDetails = async (id: string) => {
@@ -60,6 +61,25 @@ export const changePassword = async(id:string,currentPasswords:string,newPasswor
 export const fetchHotelProfiles  =  async()=>{
   try {
     const response = await axiosInstance.get('/get-hotels')  
+    return response.data
+  } catch (error) {
+    
+  }
+}
+
+export const getHotelDetails = async(hotelId:string) => {
+  try {
+    const response = await axiosInstance.get(`/get-hotel/${hotelId}`)
+    return response.data
+  } catch (error) {
+    
+  }
+}
+
+export const ratingandReview = async(hotelId:string,review:IReview[]) => {  
+  console.log(hotelId,review,'THIS IS API SIDE');
+  try {
+    const response = await axiosInstance.post(`/rating-review/${hotelId}`,{review})
     return response.data
   } catch (error) {
     

@@ -16,18 +16,14 @@ import {
   Receipt,
   Calendar,
   IndianRupee,
-  User,
-  Navigation,
   CreditCard,
   DollarSign,
-  DollarSignIcon,
   RefreshCcwIcon,
   MoveRight
 } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../Redux/store';
 import { fetchOrderHistory, RePayOption, RePayUpdatePaymentStatus } from '../../Api/userApiCalls/productApi';
-import { FaDollarSign, FaFileInvoiceDollar } from 'react-icons/fa';
 import { PayPalButtons, usePayPalScriptReducer } from '@paypal/react-paypal-js';
 import toast from 'react-hot-toast';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
@@ -61,7 +57,11 @@ export interface IOrderHistory {
   hotelProfilePic: string;
   hotelIdProof: string;
   hotelStatus: string;
-  hotelLocation: string;
+  hotelLocation:  {
+    type: string;
+    coordinates: number[];
+    locationName: string;
+  };
   hotelCity: string;
   hotelPhone: string;
 }
@@ -79,7 +79,11 @@ interface GroupedOrder {
   hotelProfilePic: string;
   hotelEmail: string;
   hotelCity: string;
-  hotelLocation: string;
+   hotelLocation:  {
+    type: string;
+    coordinates: number[];
+    locationName: string;
+  };
   hotelPhone: string;
   products: {
     productId: string;
@@ -707,7 +711,7 @@ const OrderHistoryPage = () => {
                               </div>
                               <div>
                                 <p className="font-medium text-gray-900">{order.hotelName}</p>
-                                <p className="text-sm text-gray-600">{order.hotelLocation || order.hotelCity}</p>
+                                <p className="text-sm text-gray-600">{order.hotelLocation.locationName || order.hotelCity}</p>
                               </div>
                             </div>
                             <div className="flex space-x-2">

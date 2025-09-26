@@ -96,8 +96,8 @@ const MenuListingPage = () => {
       const response = await addToCart(productId,userId as string,hotelId as string)
       toast.success(response.message)
     } catch (error : any) {
-     toast.error(error.response?.data?.message ||error.error ||error.message || "Something went wrong");
-
+     toast.error(error.response?.data?.message ||error.error ||error.message || "Pleas Login");
+    //  window.location.href = '/login'
     }
   }
   return (

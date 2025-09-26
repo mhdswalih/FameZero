@@ -68,10 +68,6 @@ function FoodSection() {
 
     // Convert degrees to radians
     const toRadians = (degree: number) => degree * (Math.PI / 180);
-    console.log(lat1,'THIS IS LAT-2');
-    console.log(lon1,'THIS IS LON 1');
-    console.log(lat2,'THIS IS LAT-2');
-    console.log(lon2,'THIS IS LON-2');
  
     
     const R = 6371; 
@@ -511,7 +507,7 @@ useEffect(() => {
                 <div className="p-5">
                   <h4 className="text-lg font-semibold text-black truncate">{item.name}</h4>
                   <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center">
+                    <div onClick={() => navigate(`/rating/${item.userId}`)} className="flex items-center">
                       {[...Array(5)].map((_, starIndex) => (
                         <motion.svg
                           key={starIndex}

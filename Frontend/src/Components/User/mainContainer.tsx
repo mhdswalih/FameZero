@@ -1,7 +1,5 @@
 import { motion } from "framer-motion";
 import React, { useState, useEffect, useRef } from "react";
-// import ProfileSheet from "../ui/sheet";
-import Navbar from "../UserNav&Footer/Navbar";
 
 interface CarouselImage {
   src: string;
@@ -78,12 +76,6 @@ const CarouselWithText: React.FC = () => {
 
   return (
     <>
-    <div className="fixed top-5 w-full flex justify-center z-20 px-4">
-      <div className="w-full max-w-screen-xl">
-        <Navbar />
-      </div>
-    </div>
-
     <motion.div
       initial={{ opacity: 0, scale: 0.9 }}
       whileInView={{ opacity: 1, scale: 1 }}

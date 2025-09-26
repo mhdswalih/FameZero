@@ -10,7 +10,6 @@ import { isEmailVerified, verifyEmailOtp } from '../../../Api/userApiCalls/userA
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../Redux/store';
 import axios from 'axios';
-import { features } from 'process';
 
 interface HotelDetails {
   _id: string;
@@ -207,10 +206,6 @@ const HotelEditModal = ({
       );
     });
   };
-
-
-
-
   const handleIdProofChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {

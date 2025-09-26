@@ -1,16 +1,14 @@
-import toast from "react-hot-toast";
-import { IHotelUserData } from "../../Components/Hotel/HotelSignup";
 import { axiosInstance } from "../Instance/axiosInstance";
 
 
-export const registerHotel = async(userData:IHotelUserData)=>{
-    try {
-        const response = await axiosInstance.post('/hotel-register',{userData})
-        return response.data
-    } catch (error:any) {
-        throw error.response?.data || 'Register verifycation failed'; 
-  }
-}
+// export const registerHotel = async(userData:IHotelUserData)=>{
+//     try {
+//         const response = await axiosInstance.post('/hotel-register',{userData})
+//         return response.data
+//     } catch (error:any) {
+//         throw error.response?.data || 'Register verifycation failed'; 
+//   }
+// }
 
 export const HotelverifyOtp  = async(email:string,otp:string,userData={}) =>{
    try {
