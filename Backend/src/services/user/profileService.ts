@@ -105,8 +105,6 @@ export class ProfileService implements IProfileService {
       }
   }
   async ratingAndReview(hotelId: string, review: IReview[]): Promise<IHotelProfile | undefined> {
-    console.log(hotelId,review,'THIS IS FROM SERVICE');
-    
       try {
         if(!hotelId){
           throw createHttpError(HttpStatus.BAD_REQUEST,Messages.USER_ID_REQUIRED)
@@ -114,6 +112,22 @@ export class ProfileService implements IProfileService {
         return await this._hotelProfileRepostory.ratingAndReview(hotelId,review)
       } catch (error) {
         throw error
+      }
+  }
+  async likeAndUnlike(reviewId:string,userId: string,hotelId:string): Promise<{ status: number; message: string; }> {
+      try {
+        if(!userId){
+          throw createHttpError(HttpStatus.BAD_REQUEST,Messages.USER_ID_REQUIRED)
+        }
+        await this._hotelProfileRepostory.likeAndUnlike(reviewId,userId,hotelId)
+        return {
+          status : 200,
+          message : 'Liked ..!'
+        }
+      } catch (error) {
+        console.log(error);
+        throw error
+        
       }
   }
 }

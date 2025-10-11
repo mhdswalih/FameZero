@@ -83,3 +83,35 @@ export const getAllMenuList = async (userId: string) => {
   }
 }
 
+export const getOrdersList = async(hotelId:string) => {
+  try {
+    const response = await axiosInstance.get(`/hotel/get-orders/${hotelId}`)
+    return response.data
+  } catch (error) {
+    
+  }
+}
+export const updateOrderStatus = async(orderId:string,userId:string,newStatus:string) => {
+  try {
+    const response = await axiosInstance.post(`/hotel/update-order-status/${orderId}/${userId}`,{newStatus})
+    return response.data
+  } catch (error) {
+    
+  }
+}
+export const deleteProducts = async(producId:string) => {
+  try {
+    const response = await axiosInstance.delete(`/hotel/delete-product/${producId}`)
+    return response.data
+  } catch (error) {
+    
+  }
+}
+export const editProducts = async(updatedProducts:any,productId:string,hotelId:string) => {
+  try {
+    const response = await axiosInstance.put(`/hotel/update-products/${productId}/${hotelId}`,{updatedProducts})
+    return response.data
+  } catch (error) {
+    
+  }
+}

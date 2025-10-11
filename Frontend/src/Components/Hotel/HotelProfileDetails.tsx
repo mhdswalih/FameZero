@@ -18,7 +18,8 @@ import HotelEditModal from '../Modals/Hotel/HotelEditModal';
 import { addHotelProfile, removeHotelProfile } from '../../Redux/Slice/ProfileSlice/hotelProfileSlice';
 import { VerifiedIcon, InfoIcon } from 'lucide-react';
 import SocketService from '../../Utils/socket-service';
-import ProductModal from '../Modals/Hotel/ProductModal';
+import ProductModal from '../Modals/Hotel/Products/ProductModal';
+import SideBar from '../HotelNav&Footer/SideBar';
 
 
 interface HotelProfile {
@@ -43,7 +44,7 @@ interface IProductsDetails {
   productName: string;
   price: string;
   quantity: string;
-  _id?: string;
+  _id: string;
 }
 
 const HotelProfilePage = () => {
@@ -73,8 +74,6 @@ const HotelProfilePage = () => {
     idProof: '',
     city: '',
   });
-
- console.log(hotelProfile,'THIS IS HOTEL PROFILE');
  
   const [editedProfile, setEditedProfile] = useState<HotelProfile>({ ...hotelProfile });
 
@@ -172,8 +171,12 @@ const HotelProfilePage = () => {
   const token = useSelector((state: RootState) => state.user.token)
   useEffect(() => {
     const socketService = SocketService.getInstance();
+    
     if (!socketService.isConnected()) {
-      socketService.connect({ role: 'hotel', token });
+      socketService.connect({
+        role: 'hotel', token,
+        id: hotelprofile.userId
+      });
     }
 
     socketService.on("hotel-status-changed", handleStatusUpdate);
@@ -220,12 +223,13 @@ const HotelProfilePage = () => {
   };
 
   return (
+    <>
     <div className="min-h-screen bg-gray-50 flex">
       {/* Overlay for mobile sidebar */}
       {isSidebarOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
-          onClick={() => setIsSidebarOpen(false)}
+        className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+        onClick={() => setIsSidebarOpen(false)}
         />
       )}
 
@@ -242,13 +246,14 @@ const HotelProfilePage = () => {
                 src={hotelProfile.profilepic || "https://images.unsplash.com/photo-1633332755192-727a05c4013d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1480&q=80"}
                 alt="User Avatar"
                 className="border-2 border-gray-900 p-0.5 w-8 h-8 rounded-full object-cover"
-              />
+                />
               <span className="text-sm font-medium text-gray-700">{hotelProfile.name}</span>
             </div>
           </div>
         </header>
 
         {/* Main Content Area */}
+        <SideBar>
         <main className="p-6">
           <div className="flex justify-between items-center mb-4">
             {/* Arrow at the start */}
@@ -432,6 +437,7 @@ const HotelProfilePage = () => {
             </div>
           </div>
         </main>
+              </SideBar>
       </div>
 
       {/* User Edit Modal */}
@@ -453,6 +459,7 @@ const HotelProfilePage = () => {
         handleSaveProducts={handleSaveProducts}
       />
     </div>
+    </>
   );
 };
 

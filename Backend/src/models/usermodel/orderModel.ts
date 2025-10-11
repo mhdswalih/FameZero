@@ -1,7 +1,7 @@
 import mongoose, { Schema, Document } from "mongoose";
 import { IUser } from "./userModel";
 import { ICart } from "./cartModel";
-import { IProducts, IProductsDetails } from "../hotelModel/productModel";
+import { IProductsDetails } from "../hotelModel/productModel";
 import { IHotelProfile } from "../hotelModel/hotelProfileModel";
 import { IOrderHistory } from "../../interfaces/user/IOrderHistory";
 
@@ -12,13 +12,13 @@ export interface IOrder extends Document {
   cartId: mongoose.Types.ObjectId | ICart;
   hotelId: mongoose.Types.ObjectId | IHotelProfile;
   products: {
-    productId: mongoose.Types.ObjectId;
+    productId: mongoose.Types.ObjectId | string;
     productDetails: IProductsDetails;
     cartQuantity: number;
   }[];
   orderDate: Date;
   totalAmount: number;
-  orderStatus: "Pending" | "Delivered";
+  orderStatus: 'Pending' | 'Preparing' | 'Out_for_delivery' | 'Delivered' | 'Cancelled' | 'Returned'
   selectedPaymentMethod: "Online" | "COD";
   paymentStatus: "Pending" | "Failed" | "Paid";
   orderMethod: "delivery" | "takeaway";
@@ -81,7 +81,7 @@ const orderSchema = new Schema<IOrder>(
     products: [
       {
         productId: {
-          type: Schema.Types.ObjectId,
+          type: String,
           ref: "Product",
           required: true,
         },
@@ -104,7 +104,12 @@ const orderSchema = new Schema<IOrder>(
     },
     orderStatus: {
       type: String,
-      enum: ["Pending", "Delivered"],
+      enum: ['Pending',
+        'Preparing',
+        'Out_for_delivery',
+        'Delivered',
+        'Cancelled',
+        'Returned'],
       default: "Pending",
     },
     selectedPaymentMethod: {

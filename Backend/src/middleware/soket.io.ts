@@ -1,5 +1,4 @@
-import { timeStamp } from "console";
-import { Server } from "socket.io";
+;import { Server } from "socket.io";
 
 declare module "express-serve-static-core" {
   interface Request {
@@ -69,4 +68,28 @@ export const emitToHotel = (hotelId: string, status: string) => {
     console.error("❌ Socket instance not available");
     return false;
   }
+
+};
+export const orderStatusUpdates = (userId: string, message: string) => {
+  if (!socketInstance) {
+    console.error("❌ Socket instance not available");
+    return false;
+  }
+
+  const eventData = {
+    userId: userId,
+    message,
+    timestamp: new Date().toISOString(),
+  };
+
+  const roomName = `user-${userId}`;
+    console.log("📤 Emitting to User room:", roomName);
+  
+  socketInstance.to(roomName).emit("order-new-notification", eventData);
+  
+  const room = socketInstance.sockets.adapter.rooms.get(roomName);
+  const clients = room ? Array.from(room) : [];
+  console.log(`📊 Room ${roomName} has ${clients.length} clients:`, clients);
+
+  return true;
 };

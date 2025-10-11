@@ -5,7 +5,7 @@ import { IProductRepository } from "../../interfaces/user/products/IProductRepos
 import hotelProfile from "../../models/hotelModel/hotelProfileModel";
 import Product, { IProducts, IProductsDetails } from "../../models/hotelModel/productModel";
 import Cart, { ICart } from "../../models/usermodel/cartModel";
-import Order, { IOrder } from "../../models/usermodel/orderModel";
+import Order from "../../models/usermodel/orderModel";
 import { createHttpError } from "../../utils/httperr";
 import { BaseRepository } from "./baseRepository";
 import mongoose from "mongoose";
@@ -14,63 +14,95 @@ export class ProductRepository extends BaseRepository<IProducts> implements IPro
     constructor() {
         super(Product);
     }
-    async addToCart(productId: string, userId: string, hotelId: string): Promise<void> {
-        const product = await Product.findOne({ "productDetails._id": productId });
-        if (!product) {
-            throw createHttpError(HttpStatus.BAD_REQUEST, Messages.PRODUCT_NOT_FOUND);
-        }
-
-        const hotel = await hotelProfile.findOne({ userId: hotelId });
-        if (!hotel) {
-            throw createHttpError(HttpStatus.BAD_REQUEST, "Hotel Not found");
-        }
-        let cart = await Cart.findOne({ userId });
-        const productDetails = product.productDetails.find(
-            (p) => p._id.toString() === productId
-        );
-        if (!productDetails) {
-            throw createHttpError(HttpStatus.BAD_REQUEST, Messages.PRODUCT_NOT_FOUND);
-        }
-        if (cart) {
-            if (cart.hotelId.toString() !== hotelId.toString()) {
-                throw createHttpError(
-                    HttpStatus.BAD_REQUEST,
-                    "This cart belongs to another hotel. Please checkout or clear your cart first."
-                );
-            }
-        }
-
-        if (!cart) {
-            cart = new Cart({
-                userId,
-                hotelId,
-                products: [
-                    {
-                        productId: productDetails._id,
-                        productDetails,
-                        cartQuantity: 1,
-                    },
-                ],
-            });
-        } else {
-            const existingProduct = cart.products.find(
-                (p) => p.productId.toString() === productId
-            );
-
-            if (existingProduct) {
-                throw createHttpError(HttpStatus.BAD_REQUEST, Messages.DUBLICATE_PRODUCT_IN_CART)
-            } else {
-                cart.products.push({
-                    productId: new mongoose.Types.ObjectId(productDetails._id),
-                    productDetails,
-                    cartQuantity: 1,
-                });
-            }
-        }
-
-        await cart.save();
+  async addToCart(productId:string,userId:string,hotelId:string):Promise<void> {
+  try {
+    const product = await Product.findOne({ 
+      "productDetails._id": productId 
+    });
+    
+    if (!product) {
+      throw createHttpError(
+        HttpStatus.BAD_REQUEST, 
+        "Product not found"
+      );
     }
 
+    const hotel = await hotelProfile.findOne({ userId: hotelId });
+    
+    if (!hotel) {
+      throw createHttpError(
+        HttpStatus.BAD_REQUEST, 
+        "Hotel not found"
+      );
+    }
+
+   
+    let cart = await Cart.findOne({ userId });
+
+    const productDetails = product.productDetails.find(
+      (p: any) => p._id.toString() === productId
+    );
+    
+    if (!productDetails) {
+      throw createHttpError(
+        HttpStatus.BAD_REQUEST, 
+        "Product details not found"
+      );
+    }
+    if (cart) {
+      if (cart.hotelId.toString() !== hotelId.toString()) {
+        throw createHttpError(
+          HttpStatus.BAD_REQUEST,
+          "This cart belongs to another hotel. Please checkout or clear your cart first."
+        );
+      }
+      const existingProduct = cart.products.find(
+        (p) => p.productId.toString() === productId
+      );
+
+      if (existingProduct) {
+        throw createHttpError(
+          HttpStatus.BAD_REQUEST, 
+          "Product already in cart"
+        );
+      }
+
+      cart.products.push({
+        productId: productDetails._id.toString(), 
+        productDetails: {
+          _id: productDetails._id.toString(),
+          category: productDetails.category,
+          productName: productDetails.productName,
+          price: productDetails.price,
+          quantity: productDetails.quantity,
+        },
+        cartQuantity: 1,
+      });
+    } else {
+      cart = new Cart({
+        userId,
+        hotelId,
+        products: [
+          {
+            productId: productDetails._id.toString(), 
+            productDetails: {
+              _id: productDetails._id.toString(),
+              category: productDetails.category,
+              productName: productDetails.productName,
+              price: productDetails.price,
+              quantity: productDetails.quantity,
+            },
+            cartQuantity: 1,
+          },
+        ],
+      });
+    }
+
+   await cart.save();
+  } catch (error: any) {
+    throw error;
+  }
+}
     async getCart(userId: string): Promise<IProductsDetails[] | null> {
         return await Cart.findOne({ userId });
     }
@@ -92,7 +124,7 @@ export class ProductRepository extends BaseRepository<IProducts> implements IPro
         const cart = await Cart.findOne({ userId, "products.productId": productId });
         if (!cart) throw createHttpError(HttpStatus.BAD_REQUEST, "Cart not found");
 
-        // Look inside the products array
+      
         const cartProduct = cart.products.find(
             (p) => p.productId.toString() === productId
         );
@@ -128,8 +160,8 @@ export class ProductRepository extends BaseRepository<IProducts> implements IPro
         paymentMethod: "Online" | "COD",
         selectedDeliveryOption: "delivery" | "takeaway"
     ): Promise<{ totalAmount: number; orderId: string }> {
-        // 1. Fetch cart
-        const cart = await Cart.findOne({ userId }).lean();
+     try {
+           const cart = await Cart.findOne({ userId }).lean();        
         if (!cart || cart.products.length === 0) {
             throw createHttpError(HttpStatus.BAD_REQUEST, "Cart not found or empty");
         }
@@ -144,7 +176,8 @@ export class ProductRepository extends BaseRepository<IProducts> implements IPro
 
         const hotelId = cart.hotelId;
         const firstProductId = cart.products[0]?.productId;
-
+        console.log();
+        
 
         const newOrder = new Order({
             userId,
@@ -173,6 +206,9 @@ export class ProductRepository extends BaseRepository<IProducts> implements IPro
             totalAmount: calculatedAmount,
             orderId: savedOrder._id.toString(),
         };
+     } catch (error) {
+        throw error
+     }
     }
 
     async updatePayementStatus(orderId: string, paymentStatus: string, paypalOrderId: string): Promise<{ paymentStatus: string } | null> {
@@ -279,7 +315,6 @@ export class ProductRepository extends BaseRepository<IProducts> implements IPro
 
             return { orderDetails };
         } catch (err) {
-            console.error("Error fetching order history:", err);
             return { orderDetails: [] };
         }
     }
@@ -293,8 +328,6 @@ export class ProductRepository extends BaseRepository<IProducts> implements IPro
         try {
             const order = await Order.aggregate<IOrderHistory>([
                 { $match: { _id: new mongoose.Types.ObjectId(orderId) } },
-
-                // Convert hotelId for lookup (if exists)
                 {
                     $addFields: {
                         hotelObjectId: {
@@ -306,8 +339,6 @@ export class ProductRepository extends BaseRepository<IProducts> implements IPro
                         },
                     },
                 },
-
-                // Lookup hotel profile
                 {
                     $lookup: {
                         from: "hotelProfile",
@@ -316,14 +347,8 @@ export class ProductRepository extends BaseRepository<IProducts> implements IPro
                         as: "hotelData",
                     },
                 },
-
-                // Pick only the first hotel profile
                 { $addFields: { hotel: { $arrayElemAt: ["$hotelData", 0] } } },
-
-                // Unwind products to get per-product details
                 { $unwind: "$products" },
-
-                // Project into your IOrderHistory shape
                 {
                     $project: {
                         userId: { $toString: "$userId" },
@@ -341,7 +366,7 @@ export class ProductRepository extends BaseRepository<IProducts> implements IPro
                         paymentStatus: "$paymentStatus",
                         orderDate: "$orderDate",
 
-                        // Hotel profile details
+                       
                         hotelId: {
                             $cond: {
                                 if: { $ne: ["$hotel", null] },
@@ -363,7 +388,6 @@ export class ProductRepository extends BaseRepository<IProducts> implements IPro
 
             return order.length > 0 ? order : null;
         } catch (err) {
-            console.error("Error fetching order details:", err);
             return null;
         }
     }

@@ -4,6 +4,7 @@ import storage from "redux-persist/lib/storage";
 import adminReducer from "../Redux/Slice/adminSlice"
 import userProfileReducer from '../Redux/Slice/ProfileSlice/userProfileSlice' 
 import hotelProfileReducer from '../Redux/Slice/ProfileSlice/hotelProfileSlice'
+import productReducer from '../Redux/Slice/ProductSlice/productSlice'
 import {
   persistReducer,
   persistStore,
@@ -36,7 +37,12 @@ const userProfilePersistConfig = {
 const hotelProfilePersistConfig = {
   key : "hotelProfile",
   storage,
-  whitelist : ['_id','name','profilepic','phone','locaton','city','idProof','status']
+  whitelist : ['_id','userId','name','profilepic','phone','locaton','city','idProof','status']
+}
+const productPersistConfig = {
+  key : 'products',
+  storage,
+  whitelist : ['_id','productName','price','quantity']
 }
 
 // Persisted reducers with separate configs
@@ -44,6 +50,7 @@ const persistedUserReducer = persistReducer(userPersistConfig, userReducer);
 const persistedAdminReducer = persistReducer(adminPersistConfig, adminReducer);
 const persistedUserProfileReducer = persistReducer(userProfilePersistConfig, userProfileReducer);
 const persistedHotelProfileReducer = persistReducer(hotelProfilePersistConfig,hotelProfileReducer)
+const persistedProductsReducer = persistReducer(productPersistConfig,productReducer)
 
 // Configure store
 const store = configureStore({
@@ -52,6 +59,7 @@ const store = configureStore({
     admin: persistedAdminReducer,
     userProfile: persistedUserProfileReducer,
     hotelProfile: persistedHotelProfileReducer,
+    product : persistedProductsReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

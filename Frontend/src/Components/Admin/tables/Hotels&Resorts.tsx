@@ -4,7 +4,6 @@ import CombinedLayout from '../sidesheet/AdminSideSheet';
 import { fetchHotels, accptRequst, rejectrequst, blockHotel } from '../../../Api/adminApiCalls/adminApi'; 
 import toast from 'react-hot-toast';
 import SocketService from '../../../Utils/socket-service';
-import { data } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../Redux/store';
 
@@ -81,27 +80,27 @@ const HotelsTable = () => {
     }
 },[])
 
-  useEffect(() => {
-  const socketService = SocketService.getInstance();
+//   useEffect(() => {
+//   const socketService = SocketService.getInstance();
    
-  if (!socketService.isConnected()) {
-    socketService.connect({role:'admin',token});
-  }
-  // Listen for status updates
-  socketService.on("admin-hotel-status-changed", handleStatusUpdate);
-  // Join room
+//   if (!socketService.isConnected()) {
+//     socketService.connect({role:'admin',token});
+//   }
+//   // Listen for status updates
+//   socketService.on("admin-hotel-status-changed", handleStatusUpdate);
+//   // Join room
 
-  // Cleanup function
-  return () => {
-    socketService.off("admin-hotel-status-changed", handleStatusUpdate);
-  };
-}, [handleStatusUpdate]); 
+//   // Cleanup function
+//   return () => {
+//     socketService.off("admin-hotel-status-changed", handleStatusUpdate);
+//   };
+// }, [handleStatusUpdate]); 
 
 
   useEffect(() => {
     const socketService = SocketService.getInstance();
     if (!socketService.isConnected()) {
-      socketService.connect({role:'admin',token});
+      socketService.connect({role:'admin',token,id:''});
     }
     socketService.on("hotel-status-changed", handleStatusUpdate);
    // Cleanup function

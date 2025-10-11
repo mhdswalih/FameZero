@@ -2,6 +2,8 @@ import toast from "react-hot-toast"
 import { axiosInstance } from "../Instance/axiosInstance"
 
 export const addToCart = async (productId: string, userId: string, hotelId: string) => {
+  console.log(productId,userId,hotelId,'THIS IS FROM USER SIDE');
+  
   try {
     const response = await axiosInstance.post(`/add-to-cart/${productId}/${userId}/${hotelId}`)
     return response.data

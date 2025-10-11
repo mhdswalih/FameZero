@@ -2,6 +2,8 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 interface HotelProfile {
+    _id:string;
+    userId:string;
     name: string,
     profilepic:string,
     status:string,
@@ -14,7 +16,9 @@ interface HotelProfile {
 }
 
 const initialState : HotelProfile = {
+    _id:'',
     name: '',
+    userId : '',
     profilepic: "",
     role:'',
     status:'',
@@ -29,6 +33,8 @@ const hotelProfileSlice = createSlice({
     initialState,
     reducers : {
         addHotelProfile : (state,action) =>{
+            state._id = action.payload._id,
+            state.userId = action.payload.userId,
             state.name =  action.payload.name, 
             state.profilepic = action.payload.profilepic,
             state.status = action.payload.status,

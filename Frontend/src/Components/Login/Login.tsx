@@ -37,6 +37,7 @@ const LoginPage = () => {
         city: response.user?.city || ''
       }))
       dispatch(addHotelProfile({
+        userId:response.user?._id || '',
         profilepic: response.user?.prifilepic || '',
         role: response.user?.role || '',
         status: response.user?.status || '',

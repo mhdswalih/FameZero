@@ -1,5 +1,11 @@
-import mongoose, { Document, Schema } from "mongoose";
+import mongoose, { Document, Mongoose, Schema } from "mongoose";
 import { IUser } from "../usermodel/userModel";
+
+export interface ILike {
+    _id:string;
+    like:number;
+    userId:Schema.Types.ObjectId | IUser
+}
 
 export interface IReview {
     userId: Schema.Types.ObjectId | IUser
@@ -9,7 +15,8 @@ export interface IReview {
     reviweIMG:string
     rating: number;
     comment: string;
-    like: number;
+    like: ILike[];
+    totalLike : number;
     createAt: Date;
 }
 
@@ -32,6 +39,12 @@ export interface IHotelProfile extends Document {
     rating: number;
 }
 
+const likeSchema = new mongoose.Schema<ILike>({
+    _id:{type:String},
+    like : {type : Number},
+    userId : {type : Schema.Types.ObjectId,ref : 'Users'}
+})
+
 const reviewScheme = new mongoose.Schema<IReview>({
     userId : {type : Schema.Types.ObjectId,ref:'Users'},
     name : {type : String},
@@ -39,7 +52,8 @@ const reviewScheme = new mongoose.Schema<IReview>({
     rating : {type : Number},
     reviweIMG : {type : String},
     comment : {type:String},
-    like:{type : Number},
+    like:[likeSchema],
+    totalLike : {type:Number},
     createAt : {type : Date,default: Date.now}
 })
 

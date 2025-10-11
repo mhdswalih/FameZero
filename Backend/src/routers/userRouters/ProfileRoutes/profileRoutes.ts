@@ -23,7 +23,9 @@ profileRouter.post('/update-userprofile/:id',authenticateToken,upload.single('pr
 profileRouter.post('/change-password/:id',authenticateToken,profileController.changePassword.bind(profileController))
 profileRouter.get('/get-hotels',profileController.getHotels.bind(profileController))
 profileRouter.get('/get-hotel/:hotelId',profileController.getHotelDetails.bind(profileController))
-profileRouter.post('/rating-review/:hotelId',authenticateToken,profileController.ratingAndReview.bind(profileController))
+profileRouter.post("/rating-review/:hotelId",authenticateToken,upload.single("reviweIMG"), profileController.ratingAndReview.bind(profileController));
+profileRouter.post('/like-unlike/:reviewId/:userId/:hotelId',authenticateToken,profileController.likeAndUnlike.bind(profileController))
+
 
 
 export default profileRouter

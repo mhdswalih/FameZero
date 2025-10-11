@@ -30,7 +30,7 @@ const app = express()
 
 const server = http.createServer(app)
 
-const io = new Server(server, {
+export const io = new Server(server, {
   cors: {
     origin: process.env.CLIENT_URL,
     methods: ["GET", "POST"],
@@ -56,16 +56,25 @@ io.use((socket, next) => {
 });
 
 
+// Fixed server-side socket logic
+
 io.on("connection", (socket) => {
   console.log("⚡️ New client connected", socket.id);
 
+  // Auto-join based on role
   if (socket.data.role === 'admin') {
-    socket.join('admin')
+    socket.join('admin');
+    console.log(`✅ Admin joined admin room with socket ${socket.id}`);
   } else if (socket.data.role === 'hotel') {
-    socket.join(`hotel-${socket.data.id}`)
+    const roomName = `hotel-${socket.data.id}`;
+    socket.join(roomName);
+    console.log(`✅ Hotel ${socket.data.id} auto-joined room ${roomName}`);
+  } else if (socket.data.role === 'user') {
+    const roomName = `user-${socket.data.id}`;
+    socket.join(roomName);
+    console.log(`✅ User ${socket.data.id} auto-joined room ${roomName}`);
   }
-
-  // FIXED: Change parameter name from userId to hotelId
+  
   socket.on("join-hotel-room", (hotelId) => {
     if (!hotelId) {
       console.log('❌ No hotelId provided for room joining');
@@ -76,14 +85,12 @@ io.on("connection", (socket) => {
     socket.join(roomName);
     console.log(`✅ Hotel ${hotelId} joined room ${roomName} with socket ${socket.id}`);
 
-    // Confirm room joining - send back the actual hotelId
     socket.emit("room-joined", {
       room: roomName,
       hotelId: hotelId,
       success: true
     });
 
-    // Debug: check room clients
     const room = io.sockets.adapter.rooms.get(roomName);
     console.log(`📊 Room ${roomName} now has ${room ? room.size : 0} clients`);
   });
@@ -94,17 +101,42 @@ io.on("connection", (socket) => {
     console.log(`❌ Hotel ${hotelId} left room ${roomName}`);
   });
 
+  // User room join handler - MOVED OUTSIDE, not nested
+  socket.on('join-user-room', (userId) => {
+    if (!userId) {
+      console.log('❌ userId missing');
+      return;
+    }
+
+    const roomName = `user-${socket.data.id}`;
+    socket.join(roomName);
+
+    console.log(`✅ User ${socket.data.id} joined room ${roomName} with socket ${socket.id}`);
+
+    socket.emit('room-joined', {
+      room: roomName,
+      userId,
+      success: true
+    });
+
+    const room = io.sockets.adapter.rooms.get(roomName);
+    console.log(`📊 Room ${roomName} now has ${room ? room.size : 0} clients`);
+  });
+
+  socket.on("leave-user-room", (userId) => {
+    const roomName = `user-${socket.data.id}`;
+    socket.leave(roomName);
+    console.log(`❌ User ${socket.data.id} left room ${roomName}`);
+  });
+
   socket.on("disconnect", () => {
     console.log("❌ Client disconnected", socket.id);
   });
 });
 
 setSocketInstance(io);
-console.log(process.env.CLIENT_URL);
-
-
 app.use(cors({
-  origin: 'http://localhost:5173',
+  origin: process.env.CLIENT_URL,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true

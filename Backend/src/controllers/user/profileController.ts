@@ -2,6 +2,8 @@ import { Request, Response, NextFunction, response } from "express";
 import { IProfileController } from "../../interfaces/user/profile/IProfileController";
 import { IProfileService } from "../../interfaces/user/profile/IProfileService";
 import { HttpStatus } from "../../constants/HttpStatus";
+import { uploadBase64ToS3 } from "../../../src/config/s3";
+import { IReview } from "../../models/hotelModel/hotelProfileModel";
 
 export class ProfileController implements IProfileController {
   constructor(private _profileService: IProfileService) { }
@@ -28,7 +30,8 @@ export class ProfileController implements IProfileController {
       } else {
         userProfile = req.body.userProfile || req.body;
       }
-      
+     console.log(req.file?.path,'THIS IS USER PROFILE FROM CONTRLOLLER');
+     
       // if (userProfile.userId && typeof userProfile.userId === 'object' && userProfile.userId._id) {
       //   userProfile.userId = userProfile.userId._id;
       // }
@@ -40,42 +43,92 @@ export class ProfileController implements IProfileController {
     }
   }
   async changePassword(req: Request, res: Response, next: NextFunction): Promise<void> {
-      try {
-        const {id} = req.params  
-        const {currentPasswords,newPassword,confirmPassword} = req.body  
-        const response = await this._profileService.changePassword(id,currentPasswords,newPassword,confirmPassword)
-        res.status(HttpStatus.OK).json({response})
-      } catch (error) {
-        next(error)
-      }
+    try {
+      const { id } = req.params
+      const { currentPasswords, newPassword, confirmPassword } = req.body
+      const response = await this._profileService.changePassword(id, currentPasswords, newPassword, confirmPassword)
+      res.status(HttpStatus.OK).json({ response })
+    } catch (error) {
+      next(error)
+    }
   }
   async getHotels(req: Request, res: Response, next: NextFunction): Promise<void> {
-      try {
-        const hotels = await this._profileService.getHotels()
-        res.status(HttpStatus.OK).json({hotels})
-      } catch (error) {
-       next(error) 
-      }
+    try {
+      const hotels = await this._profileService.getHotels()
+      res.status(HttpStatus.OK).json({ hotels })
+    } catch (error) {
+      next(error)
+    }
   }
   async getHotelDetails(req: Request, res: Response, next: NextFunction): Promise<void> {
-      try {
-        const {hotelId} = req.params
-        const response = await this._profileService.getHotelDetails(hotelId)
-        res.status(HttpStatus.OK).json(response)
-      } catch (error) {
-       next(error) 
-      }
+    try {
+      const { hotelId } = req.params
+      const response = await this._profileService.getHotelDetails(hotelId)
+      res.status(HttpStatus.OK).json(response)
+    } catch (error) {
+      next(error)
+    }
   }
-  async ratingAndReview(req: Request, res: Response, next: NextFunction): Promise<void> {
-      try {
-        const {hotelId} = req.params
-        const {review} = req.body
-        
-        const response = await this._profileService.ratingAndReview(hotelId,review)
-        res.status(HttpStatus.OK).json(response)
-      } catch (error) {
-        next(error)
+async ratingAndReview(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const { hotelId } = req.params;
+
+    // Ensure review is an array
+    let review: IReview[] = [];
+
+    if (req.body.review) {
+      review = typeof req.body.review === "string"
+        ? JSON.parse(req.body.review)
+        : req.body.review;
+    }
+
+    // If review array is empty but still a file is uploaded, create a new review object
+    if (req.file) {
+      if (review.length === 0) {
+        review.push({
+          comment: req.body.comment || "", // fallback
+          rating: Number(req.body.rating) || 0,
+          userId: (req as any).user?.id, // assuming user id comes from token
+          reviweIMG: (req.file as any).path,
+          createAt: new Date(),
+          _id: "",
+          profilePic: "",
+          name: "",
+          like: [],
+          totalLike: 0
+        });
+      } else {
+        // If review already exists, attach image
+        review[0] = {
+          ...review[0],
+          reviweIMG: (req.file as any).path,
+        };
       }
+    }
+
+    const response = await this._profileService.ratingAndReview(hotelId, review);
+
+    res.status(HttpStatus.OK).json({
+      success: true,
+      review: response,
+    });
+  } catch (error) {
+    console.error("Rating & Review Error:", error);
+    res.status(500).json({ error: "Internal server error" }); // direct handling
   }
 }
 
+
+async likeAndUnlike(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const {reviewId,userId,hotelId} = req.params
+      console.log(req.params,'TJHI from CONTROLLEREJKNRJANDF');
+      
+      const response = await this._profileService.likeAndUnlike(reviewId,userId,hotelId)
+      res.status(HttpStatus.OK).json(response)
+    } catch (error) {
+      next(error)
+    }
+}
+
+}

@@ -75,7 +75,8 @@ export class HotelProfileController implements IProfileHotelController {
     try {
       const { hotelId } = req.params;
       const { products } = req.body;
-
+     console.log(hotelId,products,'THIS IS FRON NASKJDBSAHDBASHDBAHSd');
+     
       const response = await this._hotelProfileService.addProducts(hotelId, products);
         res.status(HttpStatus.OK).json({
       success: true,
@@ -90,7 +91,6 @@ export class HotelProfileController implements IProfileHotelController {
   async getAllMenu(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { userId } = req.params;
-      console.log(userId, 'this si userId');
 
       const response = await this._hotelProfileService.getAllMenu(userId)
       res.status(HttpStatus.OK).json({ response })
@@ -98,4 +98,43 @@ export class HotelProfileController implements IProfileHotelController {
       next(error)
     }
   }
+  async getOrderList(req: Request, res: Response, next: NextFunction): Promise<void> {
+      try {
+        const {hotelId} = req.params
+        const response = await this._hotelProfileService.getOrderList(hotelId)
+        res.status(HttpStatus.OK).json(response)
+      } catch (error) {
+        next(error)
+      }
+  }
+  async updateOrderStatus(req: Request, res: Response, next: NextFunction): Promise<void> {
+      try {
+        const {orderId,userId} = req.params;
+        const {newStatus} = req.body
+        const response = await this._hotelProfileService.updateOrderStatus(orderId,userId,newStatus)
+        res.status(HttpStatus.OK).json(response)
+      } catch (error) {
+        next(error)
+      }
+  }
+  async deleteProducts(req: Request, res: Response, next: NextFunction): Promise<void> {
+      try {
+        const {producId} = req.params
+        const response = await this._hotelProfileService.deleteProducts(producId)
+        res.status(HttpStatus.OK).json(response)
+      } catch (error) {
+        next(error)
+      }
+  }
+  async updateProducts(req: Request, res: Response, next: NextFunction): Promise<void> {
+      try {
+        const {productId,hotelId} = req.params;
+        const {updatedProducts} = req.body;
+        const respone = await this._hotelProfileService.updatedProducts(updatedProducts,productId,hotelId)
+        res.status(HttpStatus.OK).json(respone)
+      } catch (error) {
+        next(error)
+      }
+  }
+  
 }

@@ -13,6 +13,8 @@ import { getUserDetails, updateUser } from "../../Api/userApiCalls/profileApi";
 import UserEditModal from "../Modals/User/UserEditModal";
 import { addUserProfile, removeUserProfile } from '../../Redux/Slice/ProfileSlice/userProfileSlice'
 import { logoutUser } from "../../Api/userApiCalls/userApi";
+import PreviewModal from "../Modals/User/PreviewModal";
+import ChatBotModal from "../Modals/ChatBoat/ChatBoat";
 
 const SheetContext = createContext<{
   open: boolean;
@@ -145,6 +147,7 @@ const ProfileSheet = () => {
 
   const [editedProfile, setEditedProfile] = useState<UserProfile>({ ...userProfile });
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [previewModal, setPreviewModal] = useState(false)
 
   const handleLogout = async () => {
     dispatch(removeUser());
@@ -257,6 +260,7 @@ const ProfileSheet = () => {
           className="flex items-center gap-2 rounded-full py-2 px-3 hover:bg-gray-100 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-offset-2"
         >
           <img
+          
             src={userprofile.profilepic || "https://images.unsplash.com/photo-1633332755192-727a05c4013d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1480&q=80"}
             alt="User Avatar"
             className="w-8 h-8 rounded-full object-cover border-2 border-gray-300"
@@ -279,6 +283,7 @@ const ProfileSheet = () => {
             size="lg"
             alt="User Avatar"
             className="border-2 border-gray-900 w-12 h-12 rounded-full object-cover"
+             onClick={() => setPreviewModal(true) }
             src={userprofile.profilepic || 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1480&q=80'}
           />
           <div>
@@ -343,6 +348,11 @@ const ProfileSheet = () => {
         setEditedProfile={setEditedProfile}
         handleEditUser={handleEditUser}
       />
+      <PreviewModal 
+      previewImg={userprofile.profilepic}
+      onClose={() => setPreviewModal(false)}
+       open={previewModal}
+      />
     </Sheet>
   );
 };
@@ -354,6 +364,7 @@ const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const { scrollY } = useScroll();
   const dispatch = useDispatch();
+  const GEMINI_API_KEY = import.meta.env.REACT_APP_GEMINI_API_KEY || '';
 
 
 
@@ -504,55 +515,11 @@ const Navbar = () => {
             />
           </svg>
         </button>
-
-        <AnimatePresence>
-          {isChatOpen && (
-            <motion.div
-              initial={{ opacity: 0, y: 20, scale: 0.9 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 20, scale: 0.9 }}
-              transition={{
-                duration: 0.2,
-                type: "spring",
-                stiffness: 300,
-                damping: 20
-              }}
-              className="absolute bottom-20 right-0 w-80 bg-white rounded-lg shadow-lg p-4"
-            >
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold">Chat Bot</h3>
-                <button
-                  onClick={() => setIsChatOpen(false)}
-                  className="text-gray-500 hover:text-gray-700 focus:outline-none"
-                  aria-label="Close chat"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth="2"
-                    stroke="currentColor"
-                    className="w-6 h-6"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
-                </button>
-              </div>
-              <div className="h-48 overflow-y-auto mb-4">
-                <p className="text-sm text-gray-600">Hello! How can I help you today?</p>
-              </div>
-              <input
-                type="text"
-                placeholder="Type a message..."
-                className="w-full p-2 border border-gray-200 rounded-lg focus:outline-none focus:border-orange-400 focus:ring-1 focus:ring-orange-400"
-              />
-            </motion.div>
-          )}
-        </AnimatePresence>
+       <ChatBotModal
+        isChatOpen={isChatOpen}
+        setIsChatOpen={setIsChatOpen}
+        apiKey={GEMINI_API_KEY}
+      />
       </motion.div>
     </>
   );

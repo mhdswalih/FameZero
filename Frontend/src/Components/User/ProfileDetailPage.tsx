@@ -10,6 +10,7 @@ import toast from 'react-hot-toast';
 import UserEditModal from '../Modals/User/UserEditModal';
 import { getUserDetails, updateUser } from '../../Api/userApiCalls/profileApi';
 import { logoutUser } from '../../Api/userApiCalls/userApi';
+import PreviewModal from '../Modals/User/PreviewModal';
 
 interface userDetails {
   _id:string
@@ -34,6 +35,7 @@ interface userEditDetails {
 const ProfilePage = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const userDetails = useSelector((state:RootState)=> state.userProfile)
+  const [previewModal, setPreviewModal] = useState(false)
   const user = useSelector((state: RootState) => state.user);
   const [userProfile, setUserProfile] = useState<userDetails>({
     _id:'',
@@ -142,6 +144,7 @@ const ProfilePage = () => {
             <h2 className="text-lg font-semibold text-gray-900">Profile</h2>
             <div className="flex items-center gap-2 rounded-full py-1 pr-3 pl-1">
               <img
+               onClick={() => setPreviewModal(true)}
                 src={userProfile.profilepic || "https://images.unsplash.com/photo-1633332755192-727a05c4013d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1480&q=80"}
                 alt="User Avatar"
                 className="border-2 border-gray-900 p-0.5 w-8 h-8 rounded-full object-cover"
@@ -169,6 +172,7 @@ const ProfilePage = () => {
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                   <div className="relative">
                     <img
+                    onClick={() => setPreviewModal(true)}
                       src={userProfile.profilepic || "https://images.unsplash.com/photo-1633332755192-727a05c4013d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1480&q=80"}
                       alt="Profile"
                       className="w-12 h-12 sm:w-16 sm:h-16 rounded-full object-cover border-2 border-gray-900 p-0.5"
@@ -262,6 +266,11 @@ const ProfilePage = () => {
         editedProfile={editedProfile}
         setEditedProfile={setEditedProfile}
         handleEditUser={handleEditUser}
+      />
+      <PreviewModal 
+       previewImg={userDetails.profilepic}
+       onClose={() => setPreviewModal(false)}
+       open ={previewModal}
       />
     </div>
   );

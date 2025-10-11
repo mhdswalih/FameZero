@@ -25,7 +25,7 @@ export class ProductService extends BaseRepository<IProducts> implements IProduc
       const existingProductInCart = await Cart.findOne({
         userId,
         hotelId,
-        "productDetails.productsId": new mongoose.Types.ObjectId(productId)
+        "productDetails.productsId": productId
       });
       if (existingProductInCart) {
         throw createHttpError(HttpStatus.BAD_REQUEST, Messages.DUBLICATE_PRODUCT_IN_CART);

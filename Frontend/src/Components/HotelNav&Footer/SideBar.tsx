@@ -1,13 +1,14 @@
-import { ReactNode, useState, useEffect } from "react";
+import { ReactNode, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "../../../Redux/store";
-import { removeUser } from "../../../Redux/Slice/userSlice";
-import { removeHotelProfile } from "../../../Redux/Slice/ProfileSlice/hotelProfileSlice";
+import { RootState } from "../../Redux/store";
+import { removeUser } from "../../Redux/Slice/userSlice";
+import { removeHotelProfile } from "../../Redux/Slice/ProfileSlice/hotelProfileSlice";
 import toast from "react-hot-toast";
 import {
   UserCircleIcon,
+  Cog6ToothIcon,
   InboxArrowDownIcon,
   LifebuoyIcon,
   PowerIcon,
@@ -28,22 +29,12 @@ interface MenuItem {
 }
 
 const SideBar = ({ children }: ISidebar) => {
-  const location = useLocation();
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [activeItem, setActiveItem] = useState("");
+  const [activeItem, setActiveItem] = useState("Profile");
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const user = useSelector((state: RootState) => state.user);
   const hotelProfile = useSelector((state: RootState) => state.hotelProfile);
-
-  // Set active item based on current route
-  useEffect(() => {
-    const path = location.pathname;
-    if (path.includes('hotel-profile-page')) setActiveItem('Profile');
-    else if (path.includes('inbox')) setActiveItem('Inbox');
-    else if (path.includes('order-page')) setActiveItem('Order List');
-    else if (path.includes('help')) setActiveItem('Help');
-  }, [location]);
 
   const handleLogout = () => {
     dispatch(removeUser());
@@ -60,6 +51,15 @@ const SideBar = ({ children }: ISidebar) => {
       onClick: () => {
         setActiveItem("Profile");
         navigate("/hotel/hotel-profile-page");
+      },
+    },
+    {
+      label: "Edit Profile",
+      icon: Cog6ToothIcon,
+      path: "/hotel/edit-profile",
+      onClick: () => {
+        setActiveItem("Edit Profile");
+        navigate("/hotel/edit-profile");
       },
     },
     {
@@ -163,26 +163,29 @@ const SideBar = ({ children }: ISidebar) => {
         {/* Menu Items */}
         <nav className="p-4 space-y-2">
           {menuItems.map((item, index) => (
-            <li
+            <motion.button
               key={item.label}
               onClick={item.onClick}
-              title={isCollapsed ? item.label : undefined}
+              whileTap={{ scale: 0.98 }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.05 }}
               className={`
-                list-none flex items-center gap-3 px-4 py-3 rounded-lg
-                cursor-pointer transition-all duration-200 relative
+                w-full flex items-center gap-3 px-4 py-3 rounded-lg
+                transition-all duration-200 group relative
+                hover:scale-[1.02] hover:shadow-sm
                 ${
                   activeItem === item.label
-                    ? "bg-orange-500 text-white shadow-md"
-                    : "text-gray-700 hover:bg-orange-50 hover:text-orange-600"
+                    ? "bg-orange-50 text-orange-600 shadow-sm"
+                    : "text-gray-700 hover:bg-gray-50"
                 }
-                ${isCollapsed ? "justify-center" : ""}
               `}
             >
               {/* Active Indicator */}
-              {activeItem === item.label && !isCollapsed && (
+              {activeItem === item.label && (
                 <motion.div
                   layoutId="activeIndicator"
-                  className="absolute left-0 w-1 h-8 bg-white rounded-r-full"
+                  className="absolute left-0 w-1 h-8 bg-orange-500 rounded-r-full"
                   transition={{
                     type: "spring",
                     stiffness: 500,
@@ -194,21 +197,42 @@ const SideBar = ({ children }: ISidebar) => {
               <item.icon
                 className={`
                   w-5 h-5 flex-shrink-0
-                  ${activeItem === item.label ? "text-white" : "text-current"}
+                  ${
+                    activeItem === item.label
+                      ? "text-orange-600"
+                      : "text-gray-600 group-hover:text-orange-500"
+                  }
                 `}
               />
 
-              {!isCollapsed && (
-                <span
-                  className={`
-                    text-sm font-medium
-                    ${activeItem === item.label ? "text-white" : "text-current"}
-                  `}
-                >
+              <AnimatePresence>
+                {!isCollapsed && (
+                  <motion.span
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -10 }}
+                    transition={{ duration: 0.2 }}
+                    className={`
+                      text-sm font-medium
+                      ${
+                        activeItem === item.label
+                          ? "text-orange-600"
+                          : "text-gray-700 group-hover:text-orange-600"
+                      }
+                    `}
+                  >
+                    {item.label}
+                  </motion.span>
+                )}
+              </AnimatePresence>
+
+              {/* Tooltip for collapsed state */}
+              {isCollapsed && (
+                <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
                   {item.label}
-                </span>
+                </div>
               )}
-            </li>
+            </motion.button>
           ))}
         </nav>
 

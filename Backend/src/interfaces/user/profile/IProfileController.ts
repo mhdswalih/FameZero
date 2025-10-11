@@ -8,4 +8,5 @@ export interface  IProfileController {
     getHotels(req:Request,res:Response,next:NextFunction):Promise<void>
     getHotelDetails(req:Request,res:Response,next:NextFunction):Promise<void>
     ratingAndReview(req:Request,res:Response,next:NextFunction):Promise<void>
+    likeAndUnlike(req:Request,res:Response,next:NextFunction):Promise<void>
 }

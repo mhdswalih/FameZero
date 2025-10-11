@@ -1,15 +1,17 @@
 import io, { Socket } from 'socket.io-client';
+
 interface SocketOptions {
   role: 'admin' | 'hotel' | 'user';
-  token: string | null
+  token: string | null;
+  id: string; // Make this required
 }
-
 
 class SocketService {
   private socket: Socket | null = null;
   private static instance: SocketService;
   private currentRole: string | null = null;
   private token: string | null = null;
+  private id: string | null = null;
 
   private constructor() { }
 
@@ -22,24 +24,50 @@ class SocketService {
 
   public connect(options: SocketOptions): void {
     if (this.socket?.connected) {
-      console.log("Socket already connected");
+      console.log("✅ Socket already connected");
       return;
     }
+
     this.currentRole = options.role;
     this.token = options.token;
+    this.id = options.id; // Store the ID
 
-  this.socket = io("http://localhost:3000", {
+    // Validate required fields based on role
+    if (options.role === 'user' && !options.id) {
+      console.error("❌ User ID is required for user role");
+      return;
+    }
+
+    if (options.role === 'hotel' && !options.id) {
+      console.error("❌ Hotel ID is required for hotel role");
+      return;
+    }
+
+    console.log(`🔌 Connecting socket with role: ${options.role}, ID: ${options.id}`);
+
+    this.socket = io("http://localhost:3000", {
       transports: ["websocket"],
       forceNew: false,
       reconnection: true,
-      timeout: 5000,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
+      timeout: 10000,
       auth: {
         role: options.role,
-        token: options.token
+        token: options.token,
+        id: options.id // ✅ CRITICAL: Include ID in auth
       }
     });
+
+    this.setupEventListeners();
+  }
+
+  private setupEventListeners(): void {
+    if (!this.socket) return;
+
     this.socket.on("connect", () => {
       console.log("✅ Socket connected:", this.socket?.id);
+      this.autoJoinRoom();
     });
 
     this.socket.on("disconnect", (reason) => {
@@ -47,34 +75,71 @@ class SocketService {
     });
 
     this.socket.on("connect_error", (error) => {
-      console.error("🔥 Socket connection error:", error);
+      console.error("🔥 Socket connection error:", error.message);
     });
 
     this.socket.on("reconnect", (attemptNumber) => {
       console.log("🔄 Socket reconnected after", attemptNumber, "attempts");
+      this.autoJoinRoom();
     });
 
     this.socket.on("room-joined", (data) => {
       console.log("✅ Successfully joined room:", data.room);
     });
+
+    this.socket.on("auth-error", (error) => {
+      console.error("🔐 Authentication error:", error);
+    });
   }
 
-  // In your SocketService
-  // In your SocketService
+  private autoJoinRoom(): void {
+    if (!this.socket?.connected || !this.currentRole || !this.id) return;
+
+    switch (this.currentRole) {
+      case 'user':
+        this.joinUserRoom(this.id);
+        break;
+      case 'hotel':
+        this.joinHotelRoom(this.id);
+        break;
+      case 'admin':
+        // Admin might join admin room or specific rooms
+        this.socket.emit('join-admin-room');
+        break;
+    }
+  }
+
   public joinHotelRoom(hotelId: string): void {
     if (!this.socket?.connected) {
       console.error("❌ Socket not connected. Cannot join room.");
       return;
     }
 
-    this.socket.emit('join-hotel-room', hotelId);
     console.log(`🏨 Requesting to join hotel room: hotel-${hotelId}`);
+    this.socket.emit('join-hotel-room', hotelId);
 
-    // Listen for confirmation with correct parameter name
     this.socket.once('room-joined', (data) => {
       console.log("✅ Successfully joined room:", data.room);
-      console.log("✅ Hotel ID confirmed:", data.hotelId);
     });
+  }
+
+  public joinUserRoom(userId: string): void {
+    if (!this.socket?.connected) {
+      console.error("❌ Socket not connected. Cannot join room.");
+      return;
+    }
+
+    console.log('👤 Requesting to join user room for user:', userId);
+    this.socket.emit('join-user-room', userId);
+
+    this.socket.once('room-joined', (data: any) => {
+      console.log('✅ User successfully joined room:', data.room);
+      if (data.userId) {
+        console.log('✅ User ID confirmed:', data.userId);
+      }
+    });
+  
+    
   }
 
   public disconnect(): void {

@@ -18,10 +18,8 @@ export class UserController implements IUserController {
     async verifyOtp(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
             const { email, otp, userData } = req.body;
-            console.log(email,otp,userData,'THIS IS FROM CONTROLLER');
             
            const response =  await this._userService.verifyOtp(email, otp, userData);
-           console.log(response,'THIS IS RESPONE ');
            
             res.status(HttpStatus.OK).json({
                 message: Messages.EMAIL_VERIFIED
@@ -97,7 +95,6 @@ export class UserController implements IUserController {
                 sameSite: 'strict', 
                 maxAge: 7 * 24 * 60 * 60 * 1000 
             });
-            console.log(response.user,'this si response from yser ');
             
            res.status(HttpStatus.OK).json({message:response.message,accessToken:response.accessToken,
             user:response.user
@@ -118,10 +115,8 @@ export class UserController implements IUserController {
     async otpverificationPhonAuth(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
             const {id} = req.params;
-            console.log(id,'this is params from ...................');
             
             const {email,otp} = req.body
-            console.log(req.body,'................................');
             const response = await this._userService.otpVerifycationPhoneAuth(id,email,otp)
             res.status(HttpStatus.OK).json({response})
         } catch (error) {
@@ -172,7 +167,6 @@ export class UserController implements IUserController {
     async resetPassword(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
             const {token,newPassword,confirmPassword} =req.body
-            console.log(req.body,'this is from reset apasswordsadadasda');
             
             const response = await this._userService.resetPassword(token,newPassword,confirmPassword)
             res.status(HttpStatus.OK).json({success:true,message:response.message})  

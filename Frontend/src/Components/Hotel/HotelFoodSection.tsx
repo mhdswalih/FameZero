@@ -3,10 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Navbar from "../HotelNav&Footer/NavBar";
 import { useEffect, useState } from "react";
 import { fetchHotelProfiles } from "../../Api/userApiCalls/profileApi";
-import { useSelector } from "react-redux";
 import {} from 'react-icons'
-import { RootState } from "../../Redux/store";
-import { BackwardIcon } from "@heroicons/react/24/solid";
 
 function HotelFoodSections() {
   const navigate = useNavigate(); 
@@ -16,13 +13,15 @@ function HotelFoodSections() {
     name:string;
     email:string;
     profilepic:string;
-    location:string;
+    location: {
+      type: string;
+      coordinates: number[];
+      locationName: string;
+    };
     city:string;
     phone:string;
   }
-  const [hotels,setHotels] = useState<hotel[]>([]);
-  const user = useSelector((state:RootState)=> state.userProfile)
-      
+  const [hotels,setHotels] = useState<hotel[]>([]);  
   const getHotels = async () => {
     try {
       const response = await fetchHotelProfiles();
@@ -43,10 +42,8 @@ function HotelFoodSections() {
   },[])
   const { scrollYProgress } = useScroll();
 
-  // Add function to handle opening modal - you can replace this with your modal function
   const handleAddClick = () => {
-    // Call your modal function here
-    console.log("Open modal for adding new food section");
+    
   };
   
   return (
@@ -79,10 +76,10 @@ function HotelFoodSections() {
             <div className="w-full md:w-auto flex items-center gap-4">
               {/* Add Button */}
               <motion.button
-                onClick={handleAddClick}
+                onClick={() => navigate('/hotel/add-food')}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-3 rounded-xl hover:from-green-600 hover:to-green-700 transition-all duration-300 font-medium shadow-md flex items-center gap-2"
+                className="bg-orange-400 text-white px-6 py-3 rounded-xl hover:from-green-600 hover:to-green-700 transition-all duration-300 font-medium shadow-md flex items-center gap-2"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -98,7 +95,7 @@ function HotelFoodSections() {
                     d="M12 4.5v15m7.5-7.5h-15"
                   />
                 </svg>
-                Add
+                Go to Add Product Page
               </motion.button>
 
               {/* Search Input */}
@@ -189,7 +186,7 @@ function HotelFoodSections() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
-                    <span className="truncate">{item.location}</span>
+                    <span className="truncate">{item.location.locationName}</span>
                   </div>
                   
                   <motion.button 

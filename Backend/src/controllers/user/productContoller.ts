@@ -2,9 +2,6 @@ import { NextFunction, Request, Response } from "express";
 import { IProductController } from "../../interfaces/user/products/IProductController";
 import { IProductService } from "../../interfaces/user/products/IProductService";
 import { HttpStatus } from "../../constants/HttpStatus";
-import { JwtPayload } from "jsonwebtoken";
-import Order from "../../models/usermodel/orderModel";
-import { log } from "console";
 
 export class ProductController implements IProductController {
   constructor(private _userProductService: IProductService) { }

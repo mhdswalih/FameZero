@@ -2,6 +2,8 @@ import { Document, Model, FilterQuery, UpdateQuery, QueryOptions } from "mongoos
 import { IBaseRepository } from "../../interfaces/baserepo/IbaseRepo";
 import Product from "../../models/hotelModel/productModel";
 import Cart from "../../models/usermodel/cartModel";
+import hotelProfile from "../../models/hotelModel/hotelProfileModel";
+import Notifications, { INotification } from "../../models/notification/notificationModel";
 
 
 export class BaseRepository<T extends Document> implements IBaseRepository<T> {
@@ -127,4 +129,14 @@ export class BaseRepository<T extends Document> implements IBaseRepository<T> {
     async findByPhone(phone: string): Promise<T | null> {
         return await this.model.findOne({phone})
     }
+    async findByHotelId(hotelId: string): Promise<T | null> {
+        return await hotelProfile.findById(hotelId)
+    }
+    async notificationCreate(orderId: string, messege: string): Promise<INotification> {
+        const notification = new Notifications({ orderId, messege });
+        console.log(notification,'THISIS FROM BASE REPOOOO');
+        
+        return await notification.save();
+    }
+    
 }

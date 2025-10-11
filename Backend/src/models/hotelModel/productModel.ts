@@ -15,6 +15,7 @@ export interface IProducts extends Document {
 }
 
 const productDetailsSchema = new mongoose.Schema<IProductsDetails>({
+  _id:{type:String},
   category: { type: String, required: true },
   productName: { type: String, required: true },
   price: { type: Number, required: true },

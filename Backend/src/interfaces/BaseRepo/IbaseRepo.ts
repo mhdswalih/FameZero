@@ -1,7 +1,9 @@
 import { FilterQuery, UpdateQuery, Document, Model, QueryOptions } from "mongoose"
+import { INotification } from "../../models/notification/notificationModel";
 export interface IBaseRepository<T extends Document> {
     create(data: Partial<T>): Promise<T>
     findById(id: string): Promise<T | null>;
+    findByHotelId(hotelId:string):Promise<T | null>
     findOne(filter: FilterQuery<T>): Promise<T | null>;
     findByEmail(email:string):Promise<T | null> 
     findByPhone(phone:string):Promise<T | null>
@@ -19,4 +21,5 @@ export interface IBaseRepository<T extends Document> {
     updatePassword(email:string,hashedPassword:string):Promise<T | null>
     delete(id: string): Promise<T | null>;
     countDocument(filter: FilterQuery<T>): Promise<number>;
+    notificationCreate(orderId:string,messege:string):Promise<INotification | undefined>
 }

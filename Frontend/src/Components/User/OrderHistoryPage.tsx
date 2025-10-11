@@ -28,6 +28,7 @@ import { PayPalButtons, usePayPalScriptReducer } from '@paypal/react-paypal-js';
 import toast from 'react-hot-toast';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import { useNavigate } from 'react-router-dom';
+import NotificationListener from '../../Notifications/NotificationListner';
 
 // Updated interface to match your backend structure
 export interface IOrderHistory {
@@ -110,20 +111,15 @@ const OrderHistoryPage = () => {
   const handleFetchOrderHistory = async () => {
     try {
       const response = await fetchOrderHistory(user._id)
-      console.log('Order history response:', response);
 
       if (response && response.orderDetails) {
         setOrderHistory(response.orderDetails)
-
-        // Group the orders by cartId or create unique groups
         const grouped = groupOrders(response.orderDetails);
         setGroupedOrders(grouped);
       } else {
-        console.error('Invalid response structure:', response);
         toast.error('Failed to load order history');
       }
     } catch (error) {
-      console.error('Error fetching order history:', error)
       toast.error('Failed to load order history');
     }
   }
@@ -170,9 +166,9 @@ const OrderHistoryPage = () => {
         id: order._id || order.cartId || 'unknown',
         userId: order.userId || 'unknown',
         totalAmount: order.totalAmount || 0,
-        orderStatus: order.orderStatus || 'pending',
+        orderStatus: order.orderStatus || 'Pending',
         selectedPaymentMethod: order.selectedPaymentMethod || 'unknown',
-        paymentStatus: order.paymentStatus || 'pending',
+        paymentStatus: order.paymentStatus || 'Pending',
         paypalOrderId:order.paypalOrderId || '',
         orderDate: order.orderDate || new Date(),
         hotelId: order.hotelId || 'unknown',
@@ -186,9 +182,6 @@ const OrderHistoryPage = () => {
       };
     });
   };
-
-
-  
 
   const handleCustomButtonClick = (orderId: string) => {
     handleRepayment(orderId);
@@ -235,17 +228,18 @@ const OrderHistoryPage = () => {
 
   const shouldShowRepayButton = (paymentStatus: string) => {
     const status = paymentStatus.toLowerCase();
-    return status === 'failed' || status === 'pending';
+    return status === 'Failed' || status === 'Pending';
   };
 
   const getStatusColor = (status: string) => {
     const normalizedStatus = status.toLowerCase();
     switch (normalizedStatus) {
-      case 'delivered': return 'text-green-600 bg-green-50';
-      case 'cancelled': return 'text-red-600 bg-red-50';
-      case 'preparing': return 'text-yellow-600 bg-yellow-50';
-      case 'pending': return 'text-orange-600 bg-orange-50';
-      case 'out_for_delivery': return 'text-blue-600 bg-blue-50';
+      case 'Delivered': return 'text-green-600 bg-green-50';
+      case 'Cancelled': return 'text-red-600 bg-red-50';
+      case 'Preparing': return 'text-yellow-600 bg-yellow-50';
+      case 'Returned': return 'text-yellow-600 bg-yellow-50';
+      case 'Pending': return 'text-orange-600 bg-orange-50';
+      case 'Out_for_delivery': return 'text-blue-600 bg-blue-50';
       default: return 'text-gray-600 bg-gray-50';
     }
   };
@@ -253,11 +247,12 @@ const OrderHistoryPage = () => {
   const getStatusIcon = (status: string) => {
     const normalizedStatus = status.toLowerCase();
     switch (normalizedStatus) {
-      case 'delivered': return <CheckCircle className="w-4 h-4" />;
-      case 'cancelled': return <XCircle className="w-4 h-4" />;
-      case 'preparing': return <Package className="w-4 h-4" />;
-      case 'pending': return <Clock className="w-4 h-4" />;
-      case 'out_for_delivery': return <Truck className="w-4 h-4" />;
+      case 'Delivered': return <CheckCircle className="w-4 h-4" />;
+      case 'Cancelled': return <XCircle className="w-4 h-4" />;
+      case 'Preparing': return <Package className="w-4 h-4" />;
+       case 'Returned': return <Truck className='2-4 h-4' />
+      case 'Pending': return <Clock className="w-4 h-4" />;
+      case 'Out_for_delivery': return <Truck className="w-4 h-4" />;
       default: return <Clock className="w-4 h-4" />;
     }
   };
@@ -265,12 +260,11 @@ const OrderHistoryPage = () => {
   const getPaymentStatusColor = (status: string) => {
     const normalizedStatus = status.toLowerCase();
     switch (normalizedStatus) {
-      case 'paid':
-      case 'completed':
+      case 'Paid':
         return 'text-green-600 bg-green-50 border-green-200';
-      case 'failed':
+      case 'Failed':
         return 'text-red-600 bg-red-50 border-red-200';
-      case 'pending':
+      case 'Pending':
         return 'text-yellow-600 bg-yellow-50 border-yellow-200';
       default:
         return 'text-gray-600 bg-gray-50 border-gray-200';
@@ -322,7 +316,7 @@ const OrderHistoryPage = () => {
   };
    console.log(filteredOrders.map((i)=> i.paypalOrderId) );
    
-  const statusOptions = ['all', 'pending', 'delivered', 'cancelled', 'preparing', 'out_for_delivery'];
+  const statusOptions = ['all', 'Pending', 'Delivered', 'Cancelled', 'Preparing', 'Out_for_delivery','Returned'];
 
   return (
     <div className="min-h-screen bg-white py-8 px-4 sm:px-6 lg:px-8">

@@ -9,6 +9,10 @@ import { comparePassword, hashPassword } from "../../utils/hashPassword";
 import { createHttpError } from "../../utils/httperr";
 import productModel from '../../models/hotelModel/productModel'
 import { HttpStatus } from "../../constants/HttpStatus";
+import { IOrder } from "../../models/usermodel/orderModel";
+import { Socket } from "socket.io";
+import { orderStatusUpdates } from "../../middleware/soket.io";
+import { io } from '../../index'
 
 
 
@@ -81,7 +85,7 @@ export class HotelProfileService implements IProfileHotelService {
             const duplicates = productNames.filter((name, i) => productNames.indexOf(name) !== i);
 
             if (duplicates.length > 0) {
-             throw createHttpError(HttpStatus.BAD_REQUEST,Messages.DUBLICATE_PRODUCT);
+                throw createHttpError(HttpStatus.BAD_REQUEST, Messages.DUBLICATE_PRODUCT);
             }
 
             // 2. Check duplicates in DB
@@ -92,7 +96,7 @@ export class HotelProfileService implements IProfileHotelService {
                     .filter(name => productNames.includes(name));
 
                 if (existingNames.length > 0) {
-                    throw createHttpError(HttpStatus.BAD_REQUEST,Messages.DUBLICATE_PRODUCT);
+                    throw createHttpError(HttpStatus.BAD_REQUEST, Messages.DUBLICATE_PRODUCT);
                 }
             }
 
@@ -115,6 +119,69 @@ export class HotelProfileService implements IProfileHotelService {
             return ListedMenu
         } catch (error) {
             throw error
+        }
+    }
+    async getOrderList(hotelId: string): Promise<IOrder[] | undefined> {
+        try {
+            if (!hotelId) {
+                throw createHttpError(HttpStatus.BAD_REQUEST, Messages.USER_ID_REQUIRED)
+            }
+            const orders = await this._hotelProfileRepository.getOrderList(hotelId)
+            return orders
+        } catch (error) {
+            throw error
+        }
+    }
+    async updateOrderStatus(orderId: string, userId: string, orderStatus: string) {
+       try {
+         if (!orderId || !orderStatus || !userId) {
+            throw createHttpError(HttpStatus.BAD_REQUEST, 'Order ID or Order Status is missing')
+        }
+
+        if (!['Pending', 'Preparing', 'Out_for_delivery', 'Delivered', 'Cancelled', 'Returned'].includes(orderStatus)) {
+            throw createHttpError(HttpStatus.BAD_REQUEST, 'Invalid Order Status')
+        }
+       
+        await this._hotelProfileRepository.updatedOrderStatus(orderId, orderStatus)
+         console.log(orderId,userId,'THIS ISI FROM SERVICE');
+         
+        const message = `Your order #${orderId} status updated to ${orderStatus}`
+
+        // Save in DB
+        await this._hotelProfileRepository.notificationCreate(userId, message)
+
+        // ✅ Emit via socket (only once)
+        orderStatusUpdates(userId, message)
+
+        return { status: 200, message: 'Order Status Updated' }
+       } catch (error) {
+        console.log(error);
+        
+        throw error
+       }
+    }
+    async deleteProducts(producId: string): Promise<{ status: number; message: string; }> {
+        try {
+            if(!producId){
+                throw createHttpError(HttpStatus.BAD_REQUEST,Messages.PRODUCT_ID_NOT_FOUND)
+            }
+            await this._hotelProfileRepository.deleteProduct(producId)
+            return {status : 200 ,message : 'Product Deleted Successfully'}
+        } catch (error) {
+            throw error
+        }
+    }
+    async updatedProducts(updatedProductsData:IProductsDetails,productId:string,hotelId:string):Promise<Object | null>{
+        console.log(updatedProductsData,'THIS IS FROM SERVICE');
+        
+        try {
+            if(!hotelId){
+                throw createHttpError(HttpStatus.BAD_REQUEST,Messages.INVALID_USER_ID)
+            }
+            const updatedProducts = await this._hotelProfileRepository.updateProducts(updatedProductsData,productId ,hotelId);
+            return updatedProducts;
+        } catch (error) {
+           throw error;
         }
     }
 }   

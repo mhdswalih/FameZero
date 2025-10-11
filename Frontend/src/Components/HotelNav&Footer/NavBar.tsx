@@ -118,7 +118,7 @@ const NavBar = () => {
               {[
                 { name: "Home", path: "/hotel/landing-page" },
                 { name: "Food", path: "/hotel/food-section" },
-                { name: "Blocks", path: "#" },
+                // { name: "", path: "/add-food" },
                 { name: "About", path: "/about-page" },
               ].map((item, index) => (
                 <motion.li

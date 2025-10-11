@@ -1,12 +1,13 @@
 import { motion, AnimatePresence } from 'framer-motion'
-import { CheckCircle, Shield, Star, Send, User, ThumbsUp, Calendar, Upload, ImageIcon } from 'lucide-react'
+import { CheckCircle, Shield, Star, Send, ThumbsUp, Calendar, ImageIcon } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import Navbar from '../UserNav&Footer/Navbar'
 import { useParams } from 'react-router-dom'
-import { getHotelDetails, ratingandReview } from '../../Api/userApiCalls/profileApi'
+import { getHotelDetails, likeAndunlike, ratingandReview } from '../../Api/userApiCalls/profileApi'
 import toast from 'react-hot-toast'
 import { useSelector } from 'react-redux'
 import { RootState } from '../../Redux/store'
+import PreviewModal from '../Modals/User/PreviewModal'
 
 interface Location {
     type: string;
@@ -14,16 +15,25 @@ interface Location {
     locationName: string;
 }
 
+export interface ILike {
+    _id:string;
+    userId:string;
+    like : number;
+} 
+
 export interface IReview {
+    _id: string;
     userId: string;
     profilePic: string;
     name: string;
     rating: number;
     comment: string;
-    like: number;
-    ratingIMG:string;
+    like: ILike[];
+    totalLike:number;
+    reviweIMG: string;
     createAt: Date;
 }
+
 interface HotelDetails {
     name: string;
     email: string;
@@ -41,10 +51,11 @@ const RatingAndReview = () => {
     const [selectedRating, setSelectedRating] = useState(0)
     const [hoverRating, setHoverRating] = useState(0)
     const [reviewText, setReviewText] = useState('')
-    const [selectedFile, setSelectedFile] = useState<File>()
+    const [selectedFile, setSelectedFile] = useState<File | undefined>()
     const [previewUrl, setPreviewUrl] = useState<string>('')
-    console.log(previewUrl, selectedFile, 'THIS IS FROM RAING REVIEW IMG');
-
+    const [reviews, setReviews] = useState<IReview[]>([])
+    const [previewModal, setPreviewModal] = useState(false)
+    const [previewIMG, setPreviewIMG] = useState('')
     const user = useSelector((state: RootState) => state.userProfile)
     const [showReviewForm, setShowReviewForm] = useState(false)
     const { hotelId } = useParams()
@@ -54,7 +65,6 @@ const RatingAndReview = () => {
         idProof: "",
         status: "",
         profilepic: "",
-        
         rating: 0,
         location: { type: "", coordinates: [], locationName: "" },
         city: "",
@@ -66,6 +76,7 @@ const RatingAndReview = () => {
             const response = await getHotelDetails(hotelId as string)
             setHotelDetails((prev) => ({
                 ...prev,
+                _id: response._id,
                 name: response.name,
                 email: response.email,
                 idProof: response.idProof,
@@ -83,7 +94,7 @@ const RatingAndReview = () => {
 
         }
     }
-    const [reviews, setReviews] = useState<IReview[]>([])
+
     useEffect(() => {
         if (hotelId) {
             fetchHotelDetails()
@@ -93,19 +104,22 @@ const RatingAndReview = () => {
     const submitReview = async () => {
         if (selectedRating > 0 && reviewText.trim()) {
             const newReview: IReview = {
+                _id: '',
                 userId: user._id,
                 profilePic: user.profilepic,
                 name: user.name,
                 rating: selectedRating,
-                ratingIMG:previewUrl,
+                reviweIMG: '',
                 comment: reviewText,
-                like: 0,
+                like: [],
+                totalLike : 0,
                 createAt: new Date(),
             };
 
             try {
-                // Call API immediately with new review
-                await ratingandReview(hotelId as string, [newReview]);
+                if (selectedFile) {
+                    await ratingandReview(hotelId as string, [newReview], selectedFile);
+                }
 
                 // Update local state
                 setReviews([newReview, ...reviews]);
@@ -114,6 +128,7 @@ const RatingAndReview = () => {
                 setSelectedRating(0);
                 setShowReviewForm(false);
                 toast.success("Review submitted!");
+                setPreviewUrl('')
             } catch (error) {
                 toast.error("Failed to submit review");
                 console.error(error);
@@ -133,6 +148,27 @@ const RatingAndReview = () => {
             reader.readAsDataURL(file);
         }
     };
+    const hadndleViewImg = async (ImageId: string) => {
+
+        const selectedImgage = reviews.find((r) => r._id === ImageId)
+        if (selectedImgage) {
+            setPreviewIMG(selectedImgage?.reviweIMG)
+        }
+
+    }
+    const handleLikeAndUnlike = async(reviewId:string) => {
+        try {
+         await likeAndunlike(reviewId,user._id,hotelId as string)
+         toast.success('👍  Liked')
+        } catch (error) { 
+        }
+    }
+    const userProfileView = async(profileId:string) => {
+        const userIMG = reviews.find(r => r._id === profileId)
+        if(userIMG){
+            setPreviewIMG(userIMG?.profilePic)
+        }
+    }
 
     const renderStars = (rating: any, interactive = false, size = "h-4 w-4") => {
         return [...Array(5)].map((_, index) => (
@@ -318,53 +354,97 @@ const RatingAndReview = () => {
                     </div>
 
                     {/* Reviews List */}
-                    <div className="max-h-80 overflow-y-auto">
+                    <div className="max-h-96 overflow-y-auto">
                         {reviews.map((review, index) => (
                             <motion.div
                                 key={review.userId}
-                                className="p-6 border-b border-gray-100 last:border-b-0"
-                                initial={{ opacity: 0, x: -20 }}
-                                animate={{ opacity: 1, x: 0 }}
+                                className="p-6 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors"
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
                                 transition={{ duration: 0.3, delay: index * 0.1 }}
                             >
                                 {/* Review Header */}
-                                <div className="flex items-start justify-between mb-3">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10   flex items-center justify-center">
-                                            <img src={review.profilePic} className="h-10 w-10 rounded-full text-white" />
+                                <div className="flex items-start justify-between mb-4">
+                                    <div className="flex items-start gap-3 flex-1">
+                                        {/* User Avatar */}
+                                        <div className="flex-shrink-0" onClick={() => setPreviewModal(true)}>
+                                            <img
+                                             onClick={() => userProfileView(review._id)}
+                                                src={review.profilePic}
+                                                className="h-12 w-12 rounded-full border-2 border-orange-200 object-cover"
+                                                alt={review.name}
+                                            />
                                         </div>
-                                        <div>
-                                            <h5 className="font-medium text-gray-900">{review.name}</h5>
-                                            <div className="flex items-center gap-2 mt-1">
+
+                                        {/* User Info and Rating */}
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center justify-between mb-2">
+                                                <h5 className="font-semibold text-gray-900 text-lg">{review.name}</h5>
+                                                <span className="text-xs text-gray-500 flex items-center gap-1">
+                                                    <Calendar className="h-3 w-3" />
+                                                    {new Date(review.createAt).toLocaleDateString()}
+                                                </span>
+                                            </div>
+
+                                            {/* Rating Stars */}
+                                            <div className="flex items-center gap-2 mb-3">
                                                 <div className="flex items-center gap-1">
                                                     {renderStars(review.rating)}
                                                 </div>
-                                                <span className="text-xs text-gray-500 flex items-center gap-1">
-                                                    <Calendar className="h-3 w-3" />
-                                                    <p>Day of review: {new Date(review.createAt).getDate()}</p>
+                                                <span className="text-sm font-medium text-amber-600">
+                                                    {review.rating.toFixed(1)}
                                                 </span>
                                             </div>
+
+                                            {/* Review Image - if exists */}
+                                            {review.reviweIMG && (
+                                                <div className="mb-3" onClick={() => hadndleViewImg(review._id)}>
+                                                    <img
+                                                        onClick={() => setPreviewModal(true)}
+                                                        src={review.reviweIMG}
+                                                        alt="Review attachment"
+                                                        className="h-32 w-32 object-cover rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow cursor-zoom-in"
+                                                    />
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
 
                                 {/* Review Text */}
-                                <p className="text-gray-700 text-sm mb-3 leading-relaxed">{review.comment}</p>
+                                <div className="mb-4">
+                                    <p className="text-gray-700 text-base leading-relaxed bg-gray-50 p-4 rounded-lg border-l-4 border-orange-400">
+                                        {review.comment}
+                                    </p>
+                                </div>
 
                                 {/* Review Actions */}
-                                <div className="flex items-center gap-4">
+                                <div className="flex items-center justify-between">
                                     <motion.button
-                                        className="flex items-center gap-1 text-xs text-gray-500 hover:text-orange-500 transition-colors"
+                                    onClick={()=> handleLikeAndUnlike(review._id)}
+                                        className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:text-orange-500 hover:bg-orange-50 rounded-full transition-colors"
                                         whileHover={{ scale: 1.05 }}
                                         whileTap={{ scale: 0.95 }}
                                     >
-                                        <ThumbsUp className="h-3 w-3" />
-                                        Helpful ({review.like})
+                                        <ThumbsUp  className="h-4 w-4" />
+                                        <span>Helpful ({review.totalLike})</span>
                                     </motion.button>
+
+                                    <div className="flex items-center gap-3 text-sm text-gray-500">
+                                        <button className="hover:text-orange-500 transition-colors">Reply</button>
+                                        <button className="hover:text-orange-500 transition-colors">Share</button>
+                                        <button className="hover:text-orange-500 transition-colors">Report</button>
+                                    </div>
                                 </div>
                             </motion.div>
                         ))}
+
                     </div>
+                    <PreviewModal
+                        previewImg={previewIMG}
+                        onClose={() => setPreviewModal(false)}
+                        open={previewModal}
+                    />
                 </motion.div>
             </div>
         </>

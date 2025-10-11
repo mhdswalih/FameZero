@@ -5,12 +5,12 @@ import toast from 'react-hot-toast';
 import { Listbox, Transition } from '@headlessui/react';
 
 interface IProductsDetails {
+    _id: string;
     category: string;
     customCategory: string;
     productName: string;
     price: string;
     quantity: string;
-    _id?: string;
 }
 
 interface ProductModalProps {
@@ -30,12 +30,16 @@ const ProductModal = ({
     handleSaveProducts,
     isSubmitting = false
 }: ProductModalProps) => {
+    const temId =  `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
     const [localProducts, setLocalProducts] = useState<IProductsDetails[]>(products);
     const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
-    const [editingProduct, setEditingProduct] = useState<IProductsDetails | null>(null);
+    const [editingIndex, setEditingIndex] = useState<number | null>(null);
     const [showCustomCategory, setShowCustomCategory] = useState<boolean[]>([]);
     const [newProducts, setNewProducts] = useState<IProductsDetails[]>([
-        { category: '', customCategory: '', productName: '', price: '', quantity: '' }
+        {
+            category: '', customCategory: '', productName: '', price: '', quantity: '',
+            _id: temId
+        }
     ]);
 
     const ProductCategories = [
@@ -70,23 +74,33 @@ const ProductModal = ({
             setLocalProducts(products);
             const categories = new Set(products.map(p => p.category));
             setExpandedCategories(categories);
-            setNewProducts([{ category: '', customCategory: '', productName: '', price: '', quantity: '' }]);
-            setShowCustomCategory(new Array(1).fill(false));
+            setNewProducts([{
+                category: '', customCategory: '', productName: '', price: '', quantity: '',
+                _id: temId
+            }]);
+            setShowCustomCategory([false]);
+            setEditingIndex(null);
         }
     }, [isProductModalOpen, products]);
 
     const handleCancel = () => {
         setLocalProducts(products);
-        setEditingProduct(null);
-        setNewProducts([{ category: '', customCategory: '', productName: '', price: '', quantity: '' }]);
+        setEditingIndex(null);
+        setNewProducts([{
+            category: '', customCategory: '', productName: '', price: '', quantity: '',
+            _id: temId
+        }]);
         setIsProductModalOpen(false);
     };
 
     const handleSave = async () => {
         try {
             await handleSaveProducts(localProducts);
-            setEditingProduct(null);
-            setNewProducts([{ category: '', customCategory: '', productName: '', price: '', quantity: '' }]);
+            setEditingIndex(null);
+            setNewProducts([{
+                category: '', customCategory: '', productName: '', price: '', quantity: '',
+                _id: temId
+            }]);
             setIsProductModalOpen(false);
         } catch (error) {
             console.error('Failed to save products:', error);
@@ -104,13 +118,19 @@ const ProductModal = ({
     };
 
     const addNewProductField = () => {
-        setNewProducts([...newProducts, { category: '', customCategory: '', productName: '', price: '', quantity: '' }]);
+        setNewProducts([...newProducts, {
+            category: '', customCategory: '', productName: '', price: '', quantity: '',
+            _id: temId
+        }]);
         setShowCustomCategory([...showCustomCategory, false]);
     };
 
     const removeNewProductField = (index: number) => {
         if (newProducts.length === 1) {
-            setNewProducts([{ category: '', customCategory: '', productName: '', price: '', quantity: '' }]);
+            setNewProducts([{
+                category: '', customCategory: '', productName: '', price: '', quantity: '',
+                _id: temId
+            }]);
             setShowCustomCategory([false]);
             return;
         }
@@ -156,10 +176,11 @@ const ProductModal = ({
             return;
         }
 
-        // Process products - use customCategory if category is "Other"
+        // Process products - use customCategory if category is "Other" and generate IDs
         const processedProducts = validNewProducts.map(product => ({
             ...product,
-            category: product.category === "Other" ? product.customCategory : product.category
+            category: product.category === "Other" ? product.customCategory : product.category,
+            _id: product._id || `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
         }));
 
         const updatedProducts = [...localProducts, ...processedProducts];
@@ -173,41 +194,59 @@ const ProductModal = ({
         });
         setExpandedCategories(newCategories);
 
-        setNewProducts([{ category: '', customCategory: '', productName: '', price: '', quantity: '' }]);
+        setNewProducts([{
+            category: '', customCategory: '', productName: '', price: '', quantity: '',
+            _id: temId
+        }]);
         setShowCustomCategory([false]);
-
         toast.success(`Added ${validNewProducts.length} product(s)`);
     };
 
-    const startEdit = (product: IProductsDetails, index: number) => {
-        setEditingProduct({ ...product, _id: index.toString() });
+    const startEdit = (index: number) => {
+        setEditingIndex(index);
     };
 
     const saveEdit = () => {
-        if (!editingProduct) return;
-
-        const index = parseInt(editingProduct._id || '0');
-        const updatedProducts = [...localProducts];
-        updatedProducts[index] = {
-            category: editingProduct.category,
-            customCategory: editingProduct.customCategory,
-            productName: editingProduct.productName,
-            price: editingProduct.price,
-            quantity: editingProduct.quantity
-        };
-
-        setLocalProducts(updatedProducts);
-        setEditingProduct(null);
+        if (editingIndex === null) return;
+        setEditingIndex(null);
     };
 
     const cancelEdit = () => {
-        setEditingProduct(null);
+        setEditingIndex(null);
+        setLocalProducts([...localProducts]); 
     };
 
-    const deleteProduct = (index: number) => {
-        const updatedProducts = localProducts.filter((_, i) => i !== index);
+    const updateEditingProduct = (field: keyof IProductsDetails, value: string) => {
+        if (editingIndex === null) return;
+        const updatedProducts = [...localProducts];
+        updatedProducts[editingIndex] = {
+            ...updatedProducts[editingIndex],
+            [field]: value
+        };
         setLocalProducts(updatedProducts);
-        toast.success('Product deleted');
+    };
+
+    const deleteProduct = async (index: number) => {
+        const productToDelete = localProducts[index];
+        
+        // Only send to backend if it has a real ID (not a temporary one)
+        if (productToDelete._id && !productToDelete._id.startsWith('temp_')) {
+            try {
+                const updatedProducts = localProducts.filter((_, i) => i !== index);
+                setLocalProducts(updatedProducts);
+                setEditingIndex(null);
+                toast.success('Product deleted');
+            } catch (error) {
+                console.error('Failed to delete product:', error);
+                toast.error('Failed to delete product');
+            }
+        } else {
+            // For temporary products (not yet saved to database), just remove locally
+            const updatedProducts = localProducts.filter((_, i) => i !== index);
+            setLocalProducts(updatedProducts);
+            setEditingIndex(null);
+            toast.success('Product deleted');
+        }
     };
 
     const categories = [...new Set(localProducts.map(p => p.category))];
@@ -219,7 +258,7 @@ const ProductModal = ({
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="fixed inset-0 bg-opacity-30 backdrop-blur-md flex items-center justify-center p-4 z-50"
+                    className="fixed inset-0 bg-black bg-opacity-30 backdrop-blur-md flex items-center justify-center p-4 z-50"
                     onClick={() => setIsProductModalOpen(false)}
                 >
                     <motion.div
@@ -384,7 +423,7 @@ const ProductModal = ({
                                     categories.map((category) => (
                                         <div key={category} className="mb-6">
                                             <div
-                                                className="flex justify-between items-center p-3 bg-gray-100 rounded-t-lg cursor-pointer"
+                                                className="flex justify-between items-center p-3 bg-gray-100 rounded-t-lg cursor-pointer hover:bg-gray-200 transition-colors"
                                                 onClick={() => toggleCategory(category)}
                                             >
                                                 <h4 className="font-medium text-gray-900">{category}</h4>
@@ -400,11 +439,10 @@ const ProductModal = ({
                                             {expandedCategories.has(category) && (
                                                 <div className="border border-gray-200 border-t-0 rounded-b-lg overflow-hidden">
                                                     {localProducts
-                                                        .filter(product => product.category === category)
-                                                        .map((product) => {
-                                                            const globalIndex = localProducts.findIndex(p => p === product);
-
-                                                            return editingProduct && editingProduct._id === globalIndex.toString() ? (
+                                                        .map((product, globalIndex) => ({ product, globalIndex }))
+                                                        .filter(({ product }) => product.category === category)
+                                                        .map(({ product, globalIndex }) => {
+                                                            return editingIndex === globalIndex ? (
                                                                 // Edit Mode
                                                                 <div key={globalIndex} className="p-4 border-b border-gray-200 last:border-b-0 bg-orange-50">
                                                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-4">
@@ -412,8 +450,8 @@ const ProductModal = ({
                                                                             <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
                                                                             <input
                                                                                 type="text"
-                                                                                value={editingProduct.category}
-                                                                                onChange={(e) => setEditingProduct({ ...editingProduct, category: e.target.value })}
+                                                                                value={product.category}
+                                                                                onChange={(e) => updateEditingProduct('category', e.target.value)}
                                                                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-400 focus:border-transparent transition-all"
                                                                             />
                                                                         </div>
@@ -421,8 +459,8 @@ const ProductModal = ({
                                                                             <label className="block text-sm font-medium text-gray-700 mb-1">Product Name</label>
                                                                             <input
                                                                                 type="text"
-                                                                                value={editingProduct.productName}
-                                                                                onChange={(e) => setEditingProduct({ ...editingProduct, productName: e.target.value })}
+                                                                                value={product.productName}
+                                                                                onChange={(e) => updateEditingProduct('productName', e.target.value)}
                                                                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-400 focus:border-transparent transition-all"
                                                                             />
                                                                         </div>
@@ -432,8 +470,8 @@ const ProductModal = ({
                                                                                 type="number"
                                                                                 min="0"
                                                                                 step="0.01"
-                                                                                value={editingProduct.price}
-                                                                                onChange={(e) => setEditingProduct({ ...editingProduct, price: e.target.value })}
+                                                                                value={product.price}
+                                                                                onChange={(e) => updateEditingProduct('price', e.target.value)}
                                                                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-400 focus:border-transparent transition-all"
                                                                             />
                                                                         </div>
@@ -442,8 +480,8 @@ const ProductModal = ({
                                                                             <input
                                                                                 type="number"
                                                                                 min="0"
-                                                                                value={editingProduct.quantity}
-                                                                                onChange={(e) => setEditingProduct({ ...editingProduct, quantity: e.target.value })}
+                                                                                value={product.quantity}
+                                                                                onChange={(e) => updateEditingProduct('quantity', e.target.value)}
                                                                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-400 focus:border-transparent transition-all"
                                                                             />
                                                                         </div>
@@ -484,7 +522,7 @@ const ProductModal = ({
                                                                     </div>
                                                                     <div className="flex gap-2">
                                                                         <button
-                                                                            onClick={() => startEdit(product, globalIndex)}
+                                                                            onClick={() => startEdit(globalIndex)}
                                                                             className="p-2 text-blue-600 hover:bg-blue-50 rounded"
                                                                             title="Edit"
                                                                         >

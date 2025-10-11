@@ -1,4 +1,5 @@
 import multer from "multer";
+import { Request } from "express";
 import { CloudinaryStorage } from 'multer-storage-cloudinary';
 import { v2 as cloudinary } from 'cloudinary';
 
@@ -20,8 +21,8 @@ const storage = new CloudinaryStorage({
     }
 })
 
-const fileFilter = (req: any, file: Express.Multer.File, cb: any) => { 
-    const allowedImageTypes = ['image/jpeg', 'image/png', 'image/gif'];
+const fileFilter = (req: Request, file: Express.Multer.File, cb: any) => { 
+    const allowedImageTypes = ['image/jpeg', 'image/png', 'image/gif','image/webp'];
     if (allowedImageTypes.includes(file.mimetype)) { 
         cb(null, true);
     } else {

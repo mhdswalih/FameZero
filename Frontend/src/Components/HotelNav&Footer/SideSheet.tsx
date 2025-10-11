@@ -5,7 +5,7 @@ import React, { useState, createContext, useContext, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { X } from "lucide-react";
+import { ListOrderedIcon, X } from "lucide-react";
 import { UserCircleIcon, Cog6ToothIcon, InboxArrowDownIcon, LifebuoyIcon, PowerIcon } from "@heroicons/react/24/solid";
 import { RootState } from "../../Redux/store";
 import { Avatar, MenuItem, Typography } from "@material-tailwind/react";
@@ -247,6 +247,14 @@ const HotelProfileSheet = () => {
       path: '',
       onClick: () => {
         console.log("Open inbox");
+      }
+    },
+     {
+      label: "Order",
+      icon: ListOrderedIcon,
+      path: '',
+      onClick: () => {
+        navigate('/hotel/order-page')
       }
     },
     {

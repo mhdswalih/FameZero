@@ -17,6 +17,7 @@ function App() {
       <Router>
         <Suspense fallback={<Loader />}>
           <Routes>
+            
             <Route path="/user/*" element={<UserRoutes />} />
             <Route path="/hotel/*" element={<HotelAuth />} />
             <Route path="/admin/*" element={<AdminAuth />} />

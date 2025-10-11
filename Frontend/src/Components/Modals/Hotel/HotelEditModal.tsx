@@ -264,11 +264,11 @@ const HotelEditModal = ({
     return "https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&auto=format&fit=crop&w=1480&q=80";
   };
 
-  const getIdProofSrc = () => {
-    if (idProofPreviewUrl) return idProofPreviewUrl;
-    if (editedProfile.idProof) return editedProfile.idProof;
-    return null;
-  };
+  // const getIdProofSrc = () => {
+  //   if (idProofPreviewUrl) return idProofPreviewUrl;
+  //   if (editedProfile.idProof) return editedProfile.idProof;
+  //   return null;
+  // };
 
   const handleSendEmailCode = async () => {
     if (!editedProfile.email) {
@@ -333,7 +333,7 @@ const HotelEditModal = ({
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
-            <div className="bg-white p-6 border-b border-gray-100 relative sticky top-0 z-10">
+            <div className="bg-white p-6 border-b border-gray-100 relative  top-0 z-10">
               <button
                 onClick={() => setIsEditModalOpen(false)}
                 className="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-50 transition-colors"

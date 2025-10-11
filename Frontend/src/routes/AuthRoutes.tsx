@@ -18,6 +18,7 @@ import CheckOutPage from '../Components/User/CheckOutPage'
 import OrderHistoryPage from '../Components/User/OrderHistoryPage'
 import InvoiceGenerator from '../Components/User/InvoiceGenarator'
 import RatingAndReview from '../Components/User/RatingAndReview'
+import { NotificationProvider } from '../Notifications/NotificationListner'
 
 const ProtectedRoute = ({ children }: { children:ReactElement }) => {
   const user = useSelector((state: RootState) => state.user);
@@ -33,6 +34,7 @@ const PublicRoute = ({ children }: { children: ReactElement }) => {
 
 const AuthRoutes = () => {
   return (
+      <NotificationProvider>
     <Routes>
       <Route path='/' element={<Landing />} />
       <Route path='signup' element={
@@ -81,6 +83,7 @@ const AuthRoutes = () => {
         </PublicRoute>
       } />
     </Routes>
+      </NotificationProvider>
   );
 }
 
