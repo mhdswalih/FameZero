@@ -2,7 +2,6 @@ import { Request, Response, NextFunction, response } from "express";
 import { IProfileController } from "../../interfaces/user/profile/IProfileController";
 import { IProfileService } from "../../interfaces/user/profile/IProfileService";
 import { HttpStatus } from "../../constants/HttpStatus";
-import { uploadBase64ToS3 } from "../../../src/config/s3";
 import { IReview } from "../../models/hotelModel/hotelProfileModel";
 
 export class ProfileController implements IProfileController {
@@ -30,11 +29,6 @@ export class ProfileController implements IProfileController {
       } else {
         userProfile = req.body.userProfile || req.body;
       }
-     console.log(req.file?.path,'THIS IS USER PROFILE FROM CONTRLOLLER');
-     
-      // if (userProfile.userId && typeof userProfile.userId === 'object' && userProfile.userId._id) {
-      //   userProfile.userId = userProfile.userId._id;
-      // }
 
       const response = await this._profileService.updateUserProfile(id, userProfile);
       res.status(HttpStatus.OK).json({ data: response });
@@ -82,13 +76,12 @@ async ratingAndReview(req: Request, res: Response, next: NextFunction): Promise<
         : req.body.review;
     }
 
-    // If review array is empty but still a file is uploaded, create a new review object
     if (req.file) {
       if (review.length === 0) {
         review.push({
-          comment: req.body.comment || "", // fallback
+          comment: req.body.comment || "",
           rating: Number(req.body.rating) || 0,
-          userId: (req as any).user?.id, // assuming user id comes from token
+          userId: (req as any).user?.id, 
           reviweIMG: (req.file as any).path,
           createAt: new Date(),
           _id: "",
@@ -98,7 +91,6 @@ async ratingAndReview(req: Request, res: Response, next: NextFunction): Promise<
           totalLike: 0
         });
       } else {
-        // If review already exists, attach image
         review[0] = {
           ...review[0],
           reviweIMG: (req.file as any).path,
@@ -113,8 +105,7 @@ async ratingAndReview(req: Request, res: Response, next: NextFunction): Promise<
       review: response,
     });
   } catch (error) {
-    console.error("Rating & Review Error:", error);
-    res.status(500).json({ error: "Internal server error" }); // direct handling
+    next(error)
   }
 }
 
@@ -122,13 +113,20 @@ async ratingAndReview(req: Request, res: Response, next: NextFunction): Promise<
 async likeAndUnlike(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const {reviewId,userId,hotelId} = req.params
-      console.log(req.params,'TJHI from CONTROLLEREJKNRJANDF');
-      
       const response = await this._profileService.likeAndUnlike(reviewId,userId,hotelId)
       res.status(HttpStatus.OK).json(response)
     } catch (error) {
       next(error)
     }
+}
+async getWalletBalance(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const {userId} = req.params
+    const response = await this._profileService.getWalletBalance(userId)
+    res.status(HttpStatus.OK).json(response)
+  } catch (error) {
+    next(error)
+  }
 }
 
 }

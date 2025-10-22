@@ -7,7 +7,8 @@ import {
   TimerIcon,
   RefreshCcwIcon,
   PlusSquareIcon,
-  Plus
+  Plus,
+ 
 } from 'lucide-react';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../../Redux/store';
@@ -19,8 +20,7 @@ import { addHotelProfile, removeHotelProfile } from '../../Redux/Slice/ProfileSl
 import { VerifiedIcon, InfoIcon } from 'lucide-react';
 import SocketService from '../../Utils/socket-service';
 import ProductModal from '../Modals/Hotel/Products/ProductModal';
-import SideBar from '../HotelNav&Footer/SideBar';
-
+import HotelCombinedLayout from '../HotelNav&Footer/Sidebar';
 
 interface HotelProfile {
   _id: string;
@@ -224,6 +224,7 @@ const HotelProfilePage = () => {
 
   return (
     <>
+    <HotelCombinedLayout>
     <div className="min-h-screen bg-gray-50 flex">
       {/* Overlay for mobile sidebar */}
       {isSidebarOpen && (
@@ -237,7 +238,7 @@ const HotelProfilePage = () => {
       <div className="flex-1 lg:ml-0">
         {/* Header */}
         <header className="bg-white shadow-sm border-b border-gray-100">
-          <div className="flex items-center justify-between h-16 px-6">
+          <div className="flex items-center justify-between h-20 px-6">
             <h2 className="text-lg font-semibold text-gray-900">Profile Settings</h2>
 
             {/* Profile Display */}
@@ -252,8 +253,7 @@ const HotelProfilePage = () => {
           </div>
         </header>
 
-        {/* Main Content Area */}
-        <SideBar>
+       
         <main className="p-6">
           <div className="flex justify-between items-center mb-4">
             {/* Arrow at the start */}
@@ -437,7 +437,7 @@ const HotelProfilePage = () => {
             </div>
           </div>
         </main>
-              </SideBar>
+         
       </div>
 
       {/* User Edit Modal */}
@@ -459,7 +459,8 @@ const HotelProfilePage = () => {
         handleSaveProducts={handleSaveProducts}
       />
     </div>
-    </>
+    </HotelCombinedLayout>
+        </>
   );
 };
 

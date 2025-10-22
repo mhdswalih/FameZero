@@ -1,29 +1,29 @@
 import { useCallback, useEffect, useState } from 'react';
-import { FaUserCircle} from 'react-icons/fa';
-import CombinedLayout from '../sidesheet/AdminSideSheet';
+import { FaUserCircle } from 'react-icons/fa';
 import { fetchHotels, accptRequst, rejectrequst, blockHotel } from '../../../Api/adminApiCalls/adminApi'; 
 import toast from 'react-hot-toast';
 import SocketService from '../../../Utils/socket-service';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../Redux/store';
+import CombinedLayout from '../sidesheet/AdminSideSheet';
 
- interface IHotelProfile {
-    _id: string;
-    userId: string; 
-    name:string;
-    email:string;
-    idProof ?: string;
-    status:string;
-    profilepic?: string;
-    location?: string;
-    city?: string;
-    phone?: string;
+interface IHotelProfile {
+  _id: string;
+  userId: string; 
+  name: string;
+  email: string;
+  idProof?: string;
+  status: string;
+  profilepic?: string;
+  location?: string;
+  city?: string;
+  phone?: string;
 }
 
 const HotelsTable = () => {
   const [hotels, setHotels] = useState<IHotelProfile[]>([]);
   const [loading, setLoading] = useState(false);
-  const token = useSelector((state:RootState)=> state.admin.token)
+  const token = useSelector((state: RootState) => state.admin.token);
 
   const getHotels = async () => {
     try {
@@ -40,8 +40,8 @@ const HotelsTable = () => {
       await accptRequst(id);
       await getHotels();
       setHotels(pre => pre.map(hotels => 
-        hotels._id == id ? {...hotels,status:'Approved'}:hotels
-      ))
+        hotels._id == id ? {...hotels, status: 'Approved'} : hotels
+      ));
       toast.success('Request accepted successfully');
     } catch (error) {
       toast.error('Failed to accept request');
@@ -50,204 +50,180 @@ const HotelsTable = () => {
     }
   };
 
-  const rejectRequst = async(id:string) =>{
+  const rejectRequst = async (id: string) => {
     setLoading(true);
     try {
-      await rejectrequst(id)
-      await getHotels()
+      await rejectrequst(id);
+      await getHotels();
       setHotels(pre => pre.map(hotels => 
-        hotels._id === id ? {...hotels,status:'Rejected'}:hotels
-      ))
+        hotels._id === id ? {...hotels, status: 'Rejected'} : hotels
+      ));
       toast.success('Request Rejected successfully');
     } catch (error) {
-        toast.error('Failed to Reject request');
-        await getHotels()
-    }finally{
-      setLoading(false)
+      toast.error('Failed to Reject request');
+      await getHotels();
+    } finally {
+      setLoading(false);
     }
-  }
+  };
 
-  const handleStatusUpdate = useCallback(async(data:{id:string,status:string,timestamp?:string})=>{
-    console.log('Status update recivd',data);
-    
+  const handleStatusUpdate = useCallback(async (data: {id: string, status: string, timestamp?: string}) => {
+    console.log('Status update received', data);
     try {
-      // await getHotels()
       setHotels(pre => pre.map(hotels => 
-        hotels._id === data.id ? {...hotels,status:data.status} : hotels
-      ))
+        hotels._id === data.id ? {...hotels, status: data.status} : hotels
+      ));
     } catch (error) {
-      throw error
+      throw error;
     }
-},[])
-
-//   useEffect(() => {
-//   const socketService = SocketService.getInstance();
-   
-//   if (!socketService.isConnected()) {
-//     socketService.connect({role:'admin',token});
-//   }
-//   // Listen for status updates
-//   socketService.on("admin-hotel-status-changed", handleStatusUpdate);
-//   // Join room
-
-//   // Cleanup function
-//   return () => {
-//     socketService.off("admin-hotel-status-changed", handleStatusUpdate);
-//   };
-// }, [handleStatusUpdate]); 
-
+  }, []);
 
   useEffect(() => {
     const socketService = SocketService.getInstance();
     if (!socketService.isConnected()) {
-      socketService.connect({role:'admin',token,id:''});
+      socketService.connect({role: 'admin', token, id: ''});
     }
     socketService.on("hotel-status-changed", handleStatusUpdate);
-   // Cleanup function
+    
     return () => {
       const socketService = SocketService.getInstance();
       socketService.off("hotel-status-changed", handleStatusUpdate);
       socketService.off("room-joined");
     };
-  }, [handleStatusUpdate]);
-  const blockuser = async(id:string) =>{
+  }, [handleStatusUpdate, token]);
+
+  const blockuser = async (id: string) => {
     try {
-        await blockHotel(id)
-        toast.success('blocked user ')
+      await blockHotel(id);
+      toast.success('Blocked user');
     } catch (error) {
-         toast.error('Failed to Block Hotel..!');
+      toast.error('Failed to Block Hotel..!');
     }
-  }
+  };
 
   useEffect(() => {
     getHotels();
   }, []);
 
-
-  
-
   return (
     <div>
       <CombinedLayout>
-        <div className="overflow-x-auto rounded-lg border border-orange-400 shadow-sm">
-          <table className="min-w-full divide-y divide-gray-200">
-            {/* Table Header */}
-            <thead className="bg-black">
-              <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-orange-400 uppercase tracking-wider">
-                  Name
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-orange-400 uppercase tracking-wider">
-                  Email
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-orange-400 uppercase tracking-wider">
-                  Mobile
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-orange-400 uppercase tracking-wider">
-                  Status
-                </th>
-                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-orange-400 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            
-            {/* Table Body */}
-            <tbody className="bg-black divide-y divide-gray-200">
-              {hotels.map((hotel) => (
-                <tr key={hotel._id} className=""> {/* Use hotel._id instead of index */}
-                  {/* Hotel Column with Avatar and Name */}
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <div className="flex-shrink-0 h-10 w-10">
-                        {hotel.profilepic ? (
-                          // Check for profilepic specifically
-                          <img 
-                            className="h-10 w-10 rounded-full object-cover" 
-                            src={hotel.profilepic} 
-                            alt={hotel.name}
-                            onError={(e) => {
-                              e.currentTarget.style.display = 'none';
-                              e.currentTarget.nextElementSibling?.classList.remove('hidden');
-                            }}
-                          />
-                        ) : (
-                          <FaUserCircle className="h-10 w-10 text-orange-400" />
-                        )}
-                      </div>
-                      <div className="ml-4">
-                        <div className="text-sm font-medium text-gray-100">{hotel.name}</div>
-                      </div>
+      <h3 className="text-lg font-semibold mb-4">Hotels & Resorts Management</h3>
+      <div className="overflow-x-auto rounded-lg border border-orange-400 shadow-sm">
+        <table className="min-w-full divide-y divide-gray-200">
+          {/* Table Header */}
+          <thead className="bg-black">
+            <tr>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-orange-400 uppercase tracking-wider">
+                Name
+              </th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-orange-400 uppercase tracking-wider">
+                Email
+              </th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-orange-400 uppercase tracking-wider">
+                Mobile
+              </th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-orange-400 uppercase tracking-wider">
+                Status
+              </th>
+              <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-orange-400 uppercase tracking-wider">
+                Actions
+              </th>
+            </tr>
+          </thead>
+          
+          {/* Table Body */}
+          <tbody className="bg-black divide-y divide-gray-200">
+            {hotels.map((hotel) => (
+              <tr key={hotel._id} className="">
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0 h-10 w-10">
+                      {hotel.profilepic ? (
+                        <img 
+                          className="h-10 w-10 rounded-full object-cover" 
+                          src={hotel.profilepic} 
+                          alt={hotel.name}
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                            const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+                            if (fallback) fallback.classList.remove('hidden');
+                          }}
+                        />
+                      ) : (
+                        <FaUserCircle className="h-10 w-10 text-orange-400" />
+                      )}
                     </div>
-                  </td>
-                  
-                  {/* Email Column */}
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-100">{hotel.email}</div>
-                  </td>
-                  
-                  {/* Mobile Column */}
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-100">{hotel.phone}</div>
-                  </td>
-                  
-                  {/* Status Column */}
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                      hotel.status === 'Pending' 
-                        ? 'bg-orange-400 text-white' 
-                        : hotel.status === 'Approved'
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-red-100 text-red-800'
-                    }`}>
-                      {hotel.status}
-                    </span>
-                  </td>
-                  
-                  {/* Actions Column */}
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <div className="flex justify-end space-x-2">
-                      {hotel.status === 'Pending' && (
-                        <div className='flex gap-3'>
-                          <button  
-                            onClick={() => acceptRequest(hotel._id)} 
-                            disabled={loading}
-                            className='bg-green-500 hover:bg-green-600 disabled:opacity-50 px-3 py-1 rounded-md text-white text-sm transition-colors'
-                          >
-                            {loading ? 'Processing...' : 'Accept'}
-                          </button>
-                          <button 
-                          onClick={()=>rejectRequst(hotel._id)}
+                    <div className="ml-4">
+                      <div className="text-sm font-medium text-gray-100">{hotel.name}</div>
+                    </div>
+                  </div>
+                </td>
+                
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="text-sm text-gray-100">{hotel.email}</div>
+                </td>
+                
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="text-sm text-gray-100">{hotel.phone}</div>
+                </td>
+                
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                    hotel.status === 'Pending' 
+                      ? 'bg-orange-400 text-white' 
+                      : hotel.status === 'Approved'
+                      ? 'bg-green-100 text-green-800'
+                      : 'bg-red-100 text-red-800'
+                  }`}>
+                    {hotel.status}
+                  </span>
+                </td>
+                
+                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  <div className="flex justify-end space-x-2">
+                    {hotel.status === 'Pending' && (
+                      <div className='flex gap-3'>
+                        <button  
+                          onClick={() => acceptRequest(hotel._id)} 
                           disabled={loading}
-                            className='bg-red-600 hover:bg-red-700 px-3 py-1 rounded-md text-white text-sm transition-colors'
-                          >  {loading ? 'Processing...' : 'Reject'}
-                          </button>
-                        </div>
-                      )}
-                      
-                      {hotel.status === 'Rejected' && (
-                        <div className='text-red-500 font-bold'>
-                          <p>Rejected</p> 
-                        </div>
-                      )}
-                      
-                      {hotel.status === 'Approved' && (
-                        <div>
-                          <button 
-                          onClick={()=> blockuser(hotel.userId)}
-                            className='bg-red-600 hover:bg-red-700 px-3 py-1 rounded-md text-white text-sm transition-colors'
-                          >
-                            Block
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                          className='bg-green-500 hover:bg-green-600 disabled:opacity-50 px-3 py-1 rounded-md text-white text-sm transition-colors'
+                        >
+                          {loading ? 'Processing...' : 'Accept'}
+                        </button>
+                        <button 
+                          onClick={() => rejectRequst(hotel._id)}
+                          disabled={loading}
+                          className='bg-red-600 hover:bg-red-700 px-3 py-1 rounded-md text-white text-sm transition-colors'
+                        >  
+                          {loading ? 'Processing...' : 'Reject'}
+                        </button>
+                      </div>
+                    )}
+                    
+                    {hotel.status === 'Rejected' && (
+                      <div className='text-red-500 font-bold'>
+                        <p>Rejected</p> 
+                      </div>
+                    )}
+                    
+                    {hotel.status === 'Approved' && (
+                      <div>
+                        <button 
+                          onClick={() => blockuser(hotel.userId)}
+                          className='bg-red-600 hover:bg-red-700 px-3 py-1 rounded-md text-white text-sm transition-colors'
+                        >
+                          Block
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
       </CombinedLayout>
     </div>
   );

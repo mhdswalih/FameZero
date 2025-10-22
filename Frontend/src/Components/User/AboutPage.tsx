@@ -6,13 +6,14 @@ function NewspaperPage() {
     const { scrollYProgress } = useScroll();
   return (
     <>
+    <div className='w-screen min-h-screen pt-10 bg-white'>
      <div className="fixed top-5 w-full flex justify-center z-20 px-4">
       <div className="w-full max-w-screen-xl">
         <Navbar />
       </div>
     </div>
 
-    <div className="font-serif bg-orange-350 text-white m-20 mt-40 ">
+    <div className="font-serif b text-black m-20 mt-40">
       {/* Header Section */}
       <motion.div
         initial={{ opacity: 0, x: -50 }}
@@ -135,7 +136,7 @@ function NewspaperPage() {
       </div>
 
       {/* Full-Screen Section */}
-      <div className="font-serif w-full bg-orange-350 text-white p-6 ms-2 h-screen flex flex-col justify-center items-center">
+      <div className="font-serif w-full bg-white text-black p-6 ms-2 min-h-screen flex flex-col justify-center items-center">
         {/* Big Image Section */}
         <motion.div
           initial={{ opacity: 0, y: 50 }}
@@ -178,7 +179,7 @@ function NewspaperPage() {
           cx="25"
           cy="25"
           r="20"
-          stroke="white"
+          stroke="orange"
           strokeWidth="4"
           fill="transparent"
           style={{ pathLength: scrollYProgress }}
@@ -187,6 +188,7 @@ function NewspaperPage() {
       </motion.div>
     </div>
       <FooterWithLogo />
+    </div>
     </>
   );
 }

@@ -8,10 +8,6 @@ import {
     Wallet,
     Truck,
     ShoppingBag,
-    User,
-    Home,
-    Building,
-    Plus,
     Check
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -186,7 +182,7 @@ const CheckOutPage = () => {
 
     const handleCashOrder = async () => {
         try {
-            if (!user.name || !user.phone) {
+            if (!user.name) {
                 toast.error("Please fill in your contact information");
                 return;
             }
@@ -508,7 +504,7 @@ const CheckOutPage = () => {
                                         shape: "rect",
                                         label: "paypal"
                                     }}
-                                    disabled={isPending || !user.name || !user.phone ||
+                                    disabled={isPending || !user.name || 
                                         (selectedDeliveryOption === "delivery" && !user.address)}
                                     createOrder={async (data, actions) => {
                                         try {

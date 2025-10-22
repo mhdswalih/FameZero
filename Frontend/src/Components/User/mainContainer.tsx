@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import React, { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 
 interface CarouselImage {
   src: string;
@@ -17,7 +18,7 @@ const CarouselWithText: React.FC = () => {
   const [copied, setCopied] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
   const autoSlideRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
+  const navigate = useNavigate()
   const handlePrev = () => {
     setActiveIndex((prev) => (prev === 0 ? carouselImages.length - 1 : prev - 1));
     resetAutoSlide();
@@ -152,12 +153,12 @@ const CarouselWithText: React.FC = () => {
           Discover Stunning Visuals
         </h2>
         <p className="text-white italic">
-          "Explore breathtaking images captured by professional photographers.
-          Let these visuals inspire your creativity and bring fresh ideas to your projects."
+          Food is more than sustenance; it’s a celebration of culture, love, and connection that brings people closer with every shared meal"
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <motion.button
+          onClick={() => navigate('/about-page')}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             className="px-6 py-3 bg-white text-orange-400 rounded-lg hover:bg-gray-100 transition font-bold italic"
@@ -166,6 +167,7 @@ const CarouselWithText: React.FC = () => {
           </motion.button>
 
           <motion.button
+          onClick={() =>  navigate('/food-section')}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             className="flex items-center justify-center gap-2 px-6 py-3 bg-orange-400 text-white border-2 border-white rounded-lg hover:bg-orange-400 transition font-bold italic"

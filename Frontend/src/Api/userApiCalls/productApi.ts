@@ -114,3 +114,12 @@ export const fetchOrderDetails = async(orderId:string) => {
     
   }
 }
+
+export const cancelOrder = async(orderId:string,userId:string) => {
+  try {
+    const response= await axiosInstance.post(`/order-cancel/${orderId}/${userId}`)
+    return response.data
+  } catch (error) {
+    
+  }
+}

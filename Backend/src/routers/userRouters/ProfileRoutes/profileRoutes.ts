@@ -25,7 +25,7 @@ profileRouter.get('/get-hotels',profileController.getHotels.bind(profileControll
 profileRouter.get('/get-hotel/:hotelId',profileController.getHotelDetails.bind(profileController))
 profileRouter.post("/rating-review/:hotelId",authenticateToken,upload.single("reviweIMG"), profileController.ratingAndReview.bind(profileController));
 profileRouter.post('/like-unlike/:reviewId/:userId/:hotelId',authenticateToken,profileController.likeAndUnlike.bind(profileController))
-
+profileRouter.get('/get-wallet/:userId',authenticateToken,profileController.getWalletBalance.bind(profileController))
 
 
 export default profileRouter

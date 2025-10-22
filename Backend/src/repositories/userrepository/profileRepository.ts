@@ -2,6 +2,7 @@ import { Messages } from "../../constants/Messeges";
 import { IProfileRepositer } from "../../interfaces/user/profile/IProfileRepository";
 import { User } from "../../models/usermodel/userModel";
 import Profile, { IUserProfile } from "../../models/usermodel/userProfileModel";
+import Wallet, { IWallet } from "../../models/usermodel/walletModel";
 import { BaseRepository } from "./baseRepository";
 
 export class ProfileRepository extends BaseRepository<IUserProfile> implements IProfileRepositer {
@@ -59,5 +60,8 @@ export class ProfileRepository extends BaseRepository<IUserProfile> implements I
   } catch (error: any) {
     throw new Error(`Failed to update profile: ${error.message}`);
   }
+}
+async getWalletBalance(userId: string): Promise<IWallet | null> {
+  return await Wallet.findOne({userId : userId})
 }
 }

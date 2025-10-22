@@ -1,243 +1,161 @@
-import { ReactNode, useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { useNavigate, useLocation } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "../../../Redux/store";
-import { removeUser } from "../../../Redux/Slice/userSlice";
-import { removeHotelProfile } from "../../../Redux/Slice/ProfileSlice/hotelProfileSlice";
-import toast from "react-hot-toast";
-import {
-  UserCircleIcon,
-  InboxArrowDownIcon,
-  LifebuoyIcon,
-  PowerIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
-} from "@heroicons/react/24/solid";
-import { ListOrderedIcon } from "lucide-react";
+import React, { useState } from 'react';
+import { Users, UtensilsCrossed, Menu, X, ChevronDown, LogOut, Settings, BarChart3 } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
 
-interface ISidebar {
-  children?: ReactNode;
-}
-
-interface MenuItem {
-  label: string;
-  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
-  path: string;
-  onClick?: () => void;
-}
-
-const SideBar = ({ children }: ISidebar) => {
-  const location = useLocation();
-  const [isCollapsed, setIsCollapsed] = useState(false);
-  const [activeItem, setActiveItem] = useState("");
+const CombinedLayout = ({children } : any) => {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const navigate = useNavigate();
-  const dispatch = useDispatch();
-  const user = useSelector((state: RootState) => state.user);
-  const hotelProfile = useSelector((state: RootState) => state.hotelProfile);
+  const location = useLocation();
 
-  // Set active item based on current route
-  useEffect(() => {
-    const path = location.pathname;
-    if (path.includes('hotel-profile-page')) setActiveItem('Profile');
-    else if (path.includes('inbox')) setActiveItem('Inbox');
-    else if (path.includes('order-page')) setActiveItem('Order List');
-    else if (path.includes('help')) setActiveItem('Help');
-  }, [location]);
-
-  const handleLogout = () => {
-    dispatch(removeUser());
-    dispatch(removeHotelProfile());
-    navigate("/hotel/landing-page");
-    toast.success("Logged out successfully");
-  };
-
-  const menuItems: MenuItem[] = [
+  const menuItems = [
     {
-      label: "Profile",
-      icon: UserCircleIcon,
-      path: "/hotel/hotel-profile-page",
-      onClick: () => {
-        setActiveItem("Profile");
-        navigate("/hotel/hotel-profile-page");
-      },
+      id: 'dashboard',
+      label: 'Dashboard',
+      icon: BarChart3,
+      path: '/admin/dashboard'
     },
     {
-      label: "Inbox",
-      icon: InboxArrowDownIcon,
-      path: "/hotel/inbox",
-      onClick: () => {
-        setActiveItem("Inbox");
-        navigate("/hotel/inbox");
-      },
+      id: 'users',
+      label: 'User List',
+      icon: Users,
+      path: '/admin/user-table'
     },
     {
-      label: "Order List",
-      icon: ListOrderedIcon,
-      path: "/hotel/order-page",
-      onClick: () => {
-        setActiveItem("Order List");
-        navigate("/hotel/order-page");
-      },
+      id: 'outlets',
+      label: 'Food Outlets',
+      icon: UtensilsCrossed,
+      path: '/admin/hotels-table'
     },
     {
-      label: "Help",
-      icon: LifebuoyIcon,
-      path: "/hotel/help",
-      onClick: () => {
-        setActiveItem("Help");
-        navigate("/hotel/help");
-      },
-    },
-    {
-      label: "Logout",
-      icon: PowerIcon,
-      path: "",
-      onClick: handleLogout,
+      id: 'settings',
+      label: 'Settings',
+      icon: Settings,
+      path: '/admin/settings'
     },
   ];
 
-  return (
-    <div className="flex h-screen bg-gray-50">
-      {/* Sidebar */}
-      <motion.aside
-        initial={false}
-        animate={{
-          width: isCollapsed ? "80px" : "280px",
-        }}
-        transition={{
-          duration: 0.3,
-          ease: "easeInOut",
-        }}
-        className="relative bg-white border-r border-gray-200 shadow-lg"
-      >
-        {/* Toggle Button */}
-        <motion.button
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-          onClick={() => setIsCollapsed(!isCollapsed)}
-          className="absolute -right-3 top-8 z-10 bg-orange-500 text-white rounded-full p-1.5 shadow-md hover:bg-orange-600 transition-colors"
-        >
-          {isCollapsed ? (
-            <ChevronRightIcon className="w-4 h-4" />
-          ) : (
-            <ChevronLeftIcon className="w-4 h-4" />
-          )}
-        </motion.button>
+  // Get active menu based on current path
+  const getActiveMenu = () => {
+    const currentItem = menuItems.find(item => 
+      location.pathname.startsWith(item.path)
+    );
+    return currentItem?.id || 'dashboard';
+  };
 
-        {/* Profile Section */}
-        <div className="p-6 border-b border-gray-200">
-          <motion.div
-            className="flex items-center gap-3"
-            animate={{
-              justifyContent: isCollapsed ? "center" : "flex-start",
-            }}
+  const activeMenu = getActiveMenu();
+
+  const handleLogout = () => {
+    navigate('/login');
+  };
+
+  const handleMenuClick = (path: string) => {
+    navigate(path);
+  };
+
+  return (
+    <div className="flex h-screen bg-gray-100">
+      {/* Sidebar */}
+      <div
+        className={`${
+          isSidebarOpen ? 'w-64' : 'w-20'
+        } bg-black text-white transition-all duration-300 ease-in-out shadow-lg flex flex-col`}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between h-20 px-4 border-b border-gray-800 flex-shrink-0">
+          {isSidebarOpen && (
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-orange-400 to-orange-600 bg-clip-text text-transparent">
+              Flame Zero
+            </h1>
+          )}
+          <button
+            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+            className="p-2 hover:bg-gray-900 rounded-lg transition-colors"
           >
-            <motion.img
-              src={
-                hotelProfile.profilepic ||
-                "https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=100"
-              }
-              alt="Profile"
-              className="w-12 h-12 rounded-full object-cover border-2 border-orange-400 shadow-sm"
-            />
-            <AnimatePresence>
-              {!isCollapsed && (
-                <motion.div
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -10 }}
-                  transition={{ duration: 0.2 }}
-                  className="overflow-hidden"
-                >
-                  <h3 className="font-semibold text-gray-900 text-sm truncate">
-                    {hotelProfile.name || "Hotel Name"}
-                  </h3>
-                  <p className="text-xs text-gray-500 truncate">{user.email}</p>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.div>
+            {isSidebarOpen ? (
+              <X className="w-5 h-5" />
+            ) : (
+              <Menu className="w-5 h-5" />
+            )}
+          </button>
         </div>
 
-        {/* Menu Items */}
-        <nav className="p-4 space-y-2">
-          {menuItems.map((item, index) => (
-            <li
-              key={item.label}
-              onClick={item.onClick}
-              title={isCollapsed ? item.label : undefined}
-              className={`
-                list-none flex items-center gap-3 px-4 py-3 rounded-lg
-                cursor-pointer transition-all duration-200 relative
-                ${
-                  activeItem === item.label
-                    ? "bg-orange-500 text-white shadow-md"
-                    : "text-gray-700 hover:bg-orange-50 hover:text-orange-600"
-                }
-                ${isCollapsed ? "justify-center" : ""}
-              `}
-            >
-              {/* Active Indicator */}
-              {activeItem === item.label && !isCollapsed && (
-                <motion.div
-                  layoutId="activeIndicator"
-                  className="absolute left-0 w-1 h-8 bg-white rounded-r-full"
-                  transition={{
-                    type: "spring",
-                    stiffness: 500,
-                    damping: 30,
-                  }}
-                />
-              )}
+        {/* Navigation Menu */}
+        <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
+          {menuItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = activeMenu === item.id;
 
-              <item.icon
-                className={`
-                  w-5 h-5 flex-shrink-0
-                  ${activeItem === item.label ? "text-white" : "text-current"}
-                `}
-              />
-
-              {!isCollapsed && (
-                <span
-                  className={`
-                    text-sm font-medium
-                    ${activeItem === item.label ? "text-white" : "text-current"}
-                  `}
-                >
-                  {item.label}
-                </span>
-              )}
-            </li>
-          ))}
+            return (
+              <button
+                key={item.id}
+                onClick={() => handleMenuClick(item.path)}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors duration-200 ${
+                  isActive
+                    ? 'bg-orange-500 text-white'
+                    : 'text-gray-300 hover:bg-gray-900 hover:text-white'
+                }`}
+              >
+                <Icon className="w-5 h-5 flex-shrink-0" />
+                {isSidebarOpen && (
+                  <span className="text-sm font-medium">{item.label}</span>
+                )}
+                {isSidebarOpen && isActive && (
+                  <ChevronDown className="w-4 h-4 ml-auto" />
+                )}
+              </button>
+            );
+          })}
         </nav>
 
-        {/* Footer */}
-        <AnimatePresence>
-          {!isCollapsed && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="absolute bottom-4 left-4 right-4 p-3 bg-orange-50 rounded-lg border border-orange-200"
-            >
-              <p className="text-xs text-orange-800 font-medium">
-                Need assistance?
-              </p>
-              <p className="text-xs text-orange-600 mt-1">
-                Contact support 24/7
-              </p>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </motion.aside>
+        {/* Footer Section */}
+        <div className="border-t border-gray-800 p-4 flex-shrink-0">
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-300 hover:bg-gray-900 hover:text-white transition-colors duration-200"
+          >
+            <LogOut className="w-5 h-5 flex-shrink-0" />
+            {isSidebarOpen && (
+              <span className="text-sm font-medium">Logout</span>
+            )}
+          </button>
 
-      {/* Main Content */}
-      <main className="flex-1 overflow-y-auto bg-gray-50">
-        <div className="max-w-7xl mx-auto p-6">{children}</div>
-      </main>
+          {isSidebarOpen && (
+            <div className="mt-4 p-3 bg-gray-900 rounded-lg">
+              <p className="text-xs text-gray-400">Admin Panel</p>
+              <p className="text-xs text-orange-400 font-semibold mt-1">Version 1.0</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Top Header */}
+        <header className="bg-white shadow-sm border-b border-gray-200 h-20 flex items-center px-6 flex-shrink-0">
+          <div className="flex-1">
+            <h2 className="text-2xl font-bold text-gray-900">
+              {menuItems.find((item) => item.id === activeMenu)?.label || 'Dashboard'}
+            </h2>
+          </div>
+          <div className="flex items-center gap-4">
+            <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+              <Settings className="w-5 h-5 text-gray-600" />
+            </button>
+            <div className="h-10 w-10 bg-orange-400 rounded-full flex items-center justify-center text-white font-semibold">
+              A
+            </div>
+          </div>
+        </header>
+
+        {/* Content Area */}
+        <main className="flex-1 overflow-auto p-6">
+          <div className="bg-white rounded-lg shadow p-6">
+            {children}
+          </div>
+        </main>
+      </div>
     </div>
   );
 };
 
-export default SideBar;
+export default CombinedLayout;

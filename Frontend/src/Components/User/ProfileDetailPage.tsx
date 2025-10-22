@@ -5,82 +5,87 @@ import { Phone, MapPin, Edit3, Camera, Settings, Bell, Shield, LogOut, Mail } fr
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../../Redux/store';
 import { addUserProfile, removeUserProfile } from '../../Redux/Slice/ProfileSlice/userProfileSlice';
-import { addUser, removeUser } from '../../Redux/Slice/userSlice';
+import { removeUser } from '../../Redux/Slice/userSlice';
 import toast from 'react-hot-toast';
 import UserEditModal from '../Modals/User/UserEditModal';
 import { getUserDetails, updateUser } from '../../Api/userApiCalls/profileApi';
 import { logoutUser } from '../../Api/userApiCalls/userApi';
 import PreviewModal from '../Modals/User/PreviewModal';
+import { checkGender } from '../../Utils/genderApi';
+import { DotLottieReact } from '@lottiefiles/dotlottie-react';
+import UserCombinedLayout from '../UserNav&Footer/SideBar';
 
 interface userDetails {
-  _id:string
+  _id: string
   name: string;
-  email:string,
-  profilepic: string;
-  phone: string;
-  address: string;
-  city: string; 
-}
-
-interface userEditDetails {
-  _id:string;
-  name: string;
-  email:string;
+  email: string,
   profilepic: string;
   phone: string;
   address: string;
   city: string;
 }
 
+interface userEditDetails {
+  _id: string;
+  name: string;
+  email: string;
+  profilepic: string;
+  phone: string;
+  address: string;
+  city: string;
+}
+
+
+
 const ProfilePage = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const userDetails = useSelector((state:RootState)=> state.userProfile)
+  const userDetails = useSelector((state: RootState) => state.userProfile)
   const [previewModal, setPreviewModal] = useState(false)
+  const [genderAvatar, setGenderAvatar] = useState('')
   const user = useSelector((state: RootState) => state.user);
   const [userProfile, setUserProfile] = useState<userDetails>({
-    _id:'',
+    _id: '',
     name: '',
-    email:'',
+    email: '',
     profilepic: '',
     phone: '',
     address: '',
     city: '',
   });
-  
+
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [editedProfile, setEditedProfile] = useState<userEditDetails>({ ...userProfile });
 
-  const handleLogout = async() => {
+  const handleLogout = async () => {
     dispatch(removeUser());
     dispatch(removeUserProfile());
-     if(user.id) {
-            const welcomeShowModalKey = `welcomeModal_${user.id}`;
-            localStorage.removeItem(welcomeShowModalKey);
-        }
+    if (user.id) {
+      const welcomeShowModalKey = `welcomeModal_${user.id}`;
+      localStorage.removeItem(welcomeShowModalKey);
+    }
     await logoutUser()
     toast.success('Logged out successfully');
     navigate('/');
   };
- 
+
   const handleEditUser = async (selectedFile?: File) => {
-  
-    try { 
-      const response = await updateUser( user.id as string, editedProfile, selectedFile);
+    try {
+      const response = await updateUser(user.id as string, editedProfile, selectedFile);
       if (response.data) {
         const updatedProfile: any = {
-          _id:response.data._id || editedProfile._id,
+          _id: response.data._id || editedProfile._id,
           name: response.data.name || editedProfile.name,
-          email:response.data.email || editedProfile.email,
+          email: response.data.email || editedProfile.email,
           profilepic: response.data.profilepic || editedProfile.profilepic,
           phone: response.data.phone || editedProfile.phone,
           address: response.data.address || editedProfile.address,
           city: response.data.city || editedProfile.city,
         };
-        
+
         setUserProfile(updatedProfile);
         dispatch(addUserProfile(updatedProfile));
-      
+
         toast.success('Profile updated successfully');
         setIsEditModalOpen(false);
       }
@@ -89,20 +94,20 @@ const ProfilePage = () => {
     }
   };
 
-  const handleGetUser = async () => {    
+  const handleGetUser = async () => {
     try {
-      const response = await getUserDetails(user.id as string);  
+      const response = await getUserDetails(user.id as string);
       if (response.data) {
         const profileData = {
-          _id:response.data._id || '',
+          _id: response.data._id || '',
           name: response.data.name || '',
-          email:response.data.email || '',
+          email: response.data.email || '',
           profilepic: response.data.profilepic || '',
           phone: response.data.phone || '',
           address: response.data.address || '',
           city: response.data.city || '',
         };
-        
+
         setUserProfile(profileData);
         dispatch(addUserProfile(profileData));
         setEditedProfile((prev: any) => ({
@@ -115,8 +120,22 @@ const ProfilePage = () => {
     }
   };
 
+  const handleGender = async () => {
+    try {
+      const response = await checkGender(userDetails.name)
+      if (response === 'male') {
+        setGenderAvatar("https://lottie.host/d8572536-f4a3-495d-96c6-3b3dc6a95e2a/uMgS3Dm2WV.lottie")
+      } else if (response === 'female') {
+        setGenderAvatar("https://lottie.host/94a1cbbe-6527-452a-97f1-e4283cf8e852/oylN6XXz7G.lottie")
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
   useEffect(() => {
     handleGetUser();
+    handleGender()
   }, []);
 
   useEffect(() => {
@@ -127,8 +146,8 @@ const ProfilePage = () => {
 
   const profileMenuItems = [
     { label: 'Account Settings', icon: Settings, onClick: () => { navigate('/settings') } },
-    { label: 'Notifications', icon: Bell, onClick: () => {} },
-    { label: 'Privacy & Security', icon: Shield, onClick: () => {} },
+    { label: 'Notifications', icon: Bell, onClick: () => { } },
+    { label: 'Privacy & Security', icon: Shield, onClick: () => { } },
     { label: 'Sign Out', icon: LogOut, onClick: handleLogout },
   ];
 
@@ -136,7 +155,13 @@ const ProfilePage = () => {
     setIsEditModalOpen(true);
   };
 
+  // Determine which image to show
+  const profileImageUrl = userProfile.profilepic 
+  const hasProfilePic = userProfile.profilepic && userProfile.profilepic.trim() !== '';
+
   return (
+    <>
+    <UserCombinedLayout>
     <div className="min-h-screen bg-gray-50">
       <div className="flex-1">
         <header className="bg-white shadow-sm border-b border-gray-100 px-4 sm:px-6">
@@ -144,10 +169,10 @@ const ProfilePage = () => {
             <h2 className="text-lg font-semibold text-gray-900">Profile</h2>
             <div className="flex items-center gap-2 rounded-full py-1 pr-3 pl-1">
               <img
-               onClick={() => setPreviewModal(true)}
-                src={userProfile.profilepic || "https://images.unsplash.com/photo-1633332755192-727a05c4013d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1480&q=80"}
+                onClick={() => setPreviewModal(true)}
+                src={profileImageUrl}
                 alt="User Avatar"
-                className="border-2 border-gray-900 p-0.5 w-8 h-8 rounded-full object-cover"
+                className="border-2 border-gray-900 p-0.5 w-8 h-8 rounded-full object-cover cursor-pointer"
               />
               <span className="hidden sm:inline text-sm font-medium text-gray-700">{userProfile.name}</span>
             </div>
@@ -171,16 +196,35 @@ const ProfilePage = () => {
               <div className="p-4 sm:p-6 border-b border-gray-100">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                   <div className="relative">
-                    <img
-                    onClick={() => setPreviewModal(true)}
-                      src={userProfile.profilepic || "https://images.unsplash.com/photo-1633332755192-727a05c4013d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1480&q=80"}
-                      alt="Profile"
-                      className="w-12 h-12 sm:w-16 sm:h-16 rounded-full object-cover border-2 border-gray-900 p-0.5"
-                    />
+                    {/* Show Lottie animation if no profile pic */}
+                    {!hasProfilePic && genderAvatar && (
+                      <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full overflow-hidden border-2 border-gray-900 p-0.5">
+                        <DotLottieReact
+                        className='w-full h-full'
+                         onClick={() => setPreviewModal(true)}
+                          src={genderAvatar}
+                          loop
+                          autoplay
+                        />
+                      </div>
+                    )}
+
+                    {/* Show profile image if it exists */}
+                    {hasProfilePic && (
+                      <img
+                        onClick={() => setPreviewModal(true)}
+                        src={profileImageUrl}
+                        alt="Profile"
+                        className="w-12 h-12 sm:w-16 sm:h-16 rounded-full object-cover border-2 border-gray-900 p-0.5 cursor-pointer"
+                      />
+                    )}
+
+                    {/* Camera button */}
                     <button className="absolute bottom-0 right-0 bg-orange-400 text-white p-1 rounded-full shadow-lg hover:bg-orange-500 transition-colors">
                       <Camera className="h-3 w-3 sm:h-4 sm:w-4" />
                     </button>
                   </div>
+
                   <div className="flex-1">
                     <h3 className="text-lg sm:text-xl font-semibold text-gray-900">{userProfile.name}</h3>
                     <p className="text-gray-600 text-sm sm:text-base">{userProfile.email}</p>
@@ -191,6 +235,7 @@ const ProfilePage = () => {
                       <span className="text-xs sm:text-sm text-gray-500">Last login: 2 hours ago</span>
                     </div>
                   </div>
+
                   <button
                     onClick={handleEdit}
                     className="mt-3 sm:mt-0 bg-orange-400 hover:bg-orange-500 text-white px-3 py-2 sm:px-4 sm:py-2 rounded-lg font-medium transition-colors duration-200 flex items-center gap-2 w-full sm:w-auto justify-center"
@@ -207,14 +252,16 @@ const ProfilePage = () => {
                     <h4 className="text-sm font-semibold text-gray-700 mb-3">Contact Information</h4>
                     <div className="space-y-3">
                       <div className="flex items-center gap-3">
-                           <a href={`tel:${userProfile.phone}`}>
                         <Phone className="h-4 w-4 text-gray-500" />
-                        <span className="text-sm sm:text-base text-gray-900">{userProfile.phone || '+917034683567'}</span>
+                        <a href={`tel:${userProfile.phone}`} className="text-sm sm:text-base text-gray-900 hover:text-orange-400">
+                          {userProfile.phone || '+917034683567'}
                         </a>
                       </div>
                       <div className="flex items-center gap-3">
                         <Mail className="h-4 w-4 text-gray-500" />
-                        <span className="text-sm sm:text-base text-gray-900">{userProfile.email}</span>
+                        <a href={`mailto:${userProfile.email}`} className="text-sm sm:text-base text-gray-900 hover:text-orange-400">
+                          {userProfile.email}
+                        </a>
                       </div>
                     </div>
                   </div>
@@ -267,12 +314,14 @@ const ProfilePage = () => {
         setEditedProfile={setEditedProfile}
         handleEditUser={handleEditUser}
       />
-      <PreviewModal 
-       previewImg={userDetails.profilepic}
-       onClose={() => setPreviewModal(false)}
-       open ={previewModal}
+      <PreviewModal
+        previewImg={userProfile.profilepic}
+        onClose={() => setPreviewModal(false)}
+        open={previewModal}
       />
     </div>
+     </UserCombinedLayout>
+    </>
   );
 };
 

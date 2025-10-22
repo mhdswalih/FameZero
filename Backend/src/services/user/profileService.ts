@@ -8,6 +8,7 @@ import { IHotelProfile, IReview } from "../../models/hotelModel/hotelProfileMode
 import  {
   IUserProfile,
 } from "../../models/usermodel/userProfileModel";
+import { IWallet } from "../../models/usermodel/walletModel";
 import { IHotelFullProfile } from "../../repositories/hotelRepository/hotelInterface";
 import { ProfileRepository } from "../../repositories/userrepository/profileRepository";
 import { comparePassword, hashPassword } from "../../utils/hashPassword";
@@ -125,9 +126,19 @@ export class ProfileService implements IProfileService {
           message : 'Liked ..!'
         }
       } catch (error) {
-        console.log(error);
         throw error
         
       }
+  }
+  async getWalletBalance(userId: string): Promise<IWallet | null> {
+    try {
+      if(!userId){
+        throw createHttpError(HttpStatus.BAD_REQUEST,Messages.USER_ID_REQUIRED)
+      }
+      const wallet =  await this._profileRepository.getWalletBalance(userId)
+      return wallet
+    } catch (error) {
+      throw error
+    }
   }
 }

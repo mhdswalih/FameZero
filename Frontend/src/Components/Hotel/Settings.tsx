@@ -7,6 +7,7 @@ import toast from "react-hot-toast";
 import { changePassword } from "../../Api/hotelApiCalls/hotelProfileApi";
 import { useSelector } from "react-redux";
 import { RootState } from "../../Redux/store";
+import HotelCombinedLayout from "../HotelNav&Footer/Sidebar";
 
 const HotelSettings = () => {
     const navigate = useNavigate();
@@ -45,11 +46,14 @@ const HotelSettings = () => {
         },
     ];
     return (
+        <>
+        <HotelCombinedLayout>
+
         <div className="min-h-screen bg-gray-50">
             <div className="flex-1">
                 {/* Improved Header with responsive text */}
                 <header className="bg-white shadow-sm border-b border-gray-100 px-4 sm:px-6 sticky top-0 z-10">
-                    <div className="flex items-center justify-between h-16">
+                    <div className="flex items-center justify-between h-20">
                         <h2 className="text-base sm:text-lg font-semibold text-gray-900">
                             Settings
                         </h2>
@@ -114,6 +118,8 @@ const HotelSettings = () => {
                 onChangePassword={handlePasswordChange}
             />
         </div>
+        </HotelCombinedLayout>
+        </>
     );
 };
 

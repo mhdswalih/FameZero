@@ -23,12 +23,12 @@ import {
 } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../Redux/store';
-import { fetchOrderHistory, RePayOption, RePayUpdatePaymentStatus } from '../../Api/userApiCalls/productApi';
-import { PayPalButtons, usePayPalScriptReducer } from '@paypal/react-paypal-js';
+import { cancelOrder, fetchOrderHistory, RePayOption, RePayUpdatePaymentStatus } from '../../Api/userApiCalls/productApi';
+import { PayPalButtons } from '@paypal/react-paypal-js';
 import toast from 'react-hot-toast';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import { useNavigate } from 'react-router-dom';
-import NotificationListener from '../../Notifications/NotificationListner';
+import UserCombinedLayout from '../UserNav&Footer/SideBar';
 
 // Updated interface to match your backend structure
 export interface IOrderHistory {
@@ -103,9 +103,9 @@ const OrderHistoryPage = () => {
   const [orderHistory, setOrderHistory] = useState<IOrderHistory[]>([])
   const [groupedOrders, setGroupedOrders] = useState<GroupedOrder[]>([])
   const [processingPayment, setProcessingPayment] = useState<string | null>(null);
-  const [{ isPending }] = usePayPalScriptReducer();
+  // const [{ isPending }] = usePayPalScriptReducer();
   const [showPayPalButtons, setShowPayPalButtons] = useState<{ [key: string]: boolean }>({});
-
+  const userId = useSelector((state:RootState) => state.user.id)
   const navigate = useNavigate()
 
   const handleFetchOrderHistory = async () => {
@@ -124,6 +124,14 @@ const OrderHistoryPage = () => {
     }
   }
 
+  const handleCanceOrder = async(orderId:string) => {
+    try {
+      const response = await cancelOrder(orderId,userId)
+      toast.success('asdasdasd')
+    } catch (error) {
+      
+    }
+  }
   // Function to safely extract product details
   const getProductDetails = (product:any) => {
     // Check if productDetails exists and has the expected structure
@@ -313,13 +321,14 @@ const OrderHistoryPage = () => {
         damping: 15
       }
     }
-  };
-   console.log(filteredOrders.map((i)=> i.paypalOrderId) );
-   
+  }; 
   const statusOptions = ['all', 'Pending', 'Delivered', 'Cancelled', 'Preparing', 'Out_for_delivery','Returned'];
 
   return (
-    <div className="min-h-screen bg-white py-8 px-4 sm:px-6 lg:px-8">
+
+    <>
+    <UserCombinedLayout>
+    <div className="min-h-screen overflow-auto bg-white py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <motion.div
@@ -396,6 +405,7 @@ const OrderHistoryPage = () => {
                       <div className="flex items-center space-x-2 mt-1">
                         <Calendar className="w-4 h-4 text-gray-400" />
                         <span className="text-sm text-gray-600">{formatDate(order.orderDate)}</span>
+                      
                       </div>
                     </div>
                   </div>
@@ -434,6 +444,7 @@ const OrderHistoryPage = () => {
                       )}
                       <span className="capitalize">{order.paymentStatus}</span>
                     </div>
+<button className='bg-red-400 text-white font-bold w-30 h-7 rounded-md' onClick={() => handleCanceOrder(order.id)}>Cancel Order</button>
                   </div>
 
                   {/* Right side - Actions */}
@@ -491,7 +502,7 @@ const OrderHistoryPage = () => {
                                 label: "pay",
                                 tagline: false,
                               }}
-                              createOrder={(data, actions) => {
+                              createOrder={(_data, actions) => {
                                 try {
                                   if (typeof order.totalAmount !== "number" || order.totalAmount <= 0) {
                                     throw new Error("Invalid order amount");
@@ -520,7 +531,7 @@ const OrderHistoryPage = () => {
                                   return Promise.reject(error);
                                 }
                               }}
-                              onApprove={async (data, actions) => {
+                              onApprove={async (_data, actions) => {
                                 try {
                                   const details = await actions.order?.capture();
                                   console.log("Payment successful:", details);
@@ -789,6 +800,9 @@ const OrderHistoryPage = () => {
         </div>
       </div>
     </div>
+
+      </UserCombinedLayout>
+    </>
   );
 };
 

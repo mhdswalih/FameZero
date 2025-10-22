@@ -24,6 +24,7 @@ productRoutes.get('/get-order-history/:userId',authenticateToken,productControll
 productRoutes.post('/re-pay/:orderId',authenticateToken,productController.rePayTheOrder.bind(productController))
 productRoutes.post('/status-re-pay/:orderId',authenticateToken,productController.rePayUpdateStatus.bind(productController))
 productRoutes.get('/get-order-details/:orderId',authenticateToken,productController.getOrderDetails.bind(productController))
+productRoutes.post('/order-cancel/:orderId/:userId',authenticateToken,productController.cancelOrder.bind(productController))
 
 
 export default productRoutes

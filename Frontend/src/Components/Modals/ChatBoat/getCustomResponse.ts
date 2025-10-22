@@ -183,5 +183,5 @@ export const getCustomResponse = (userText: string): string | null => {
     return goodbyeResponses[Math.floor(Math.random() * goodbyeResponses.length)];
   }
 
-  return null; // No custom match - use Gemini API
+  return null; 
 };

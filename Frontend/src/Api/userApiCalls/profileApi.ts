@@ -112,3 +112,12 @@ export const likeAndunlike = async(reviewId:string,userId:string,hotelId:string)
     
   }
 }
+
+export const getWalletBalance = async(userId:string) => {
+  try {
+    const response = await axiosInstance.get(`/get-wallet/${userId}`)
+    return response.data
+  } catch (error) {
+    
+  }
+}

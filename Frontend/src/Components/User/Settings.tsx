@@ -7,6 +7,7 @@ import toast from "react-hot-toast";
 import { changePassword } from "../../Api/userApiCalls/profileApi";
 import { useSelector } from "react-redux";
 import { RootState } from "../../Redux/store";
+import UserCombinedLayout from "../UserNav&Footer/SideBar";
 
 const UserSettings = () => {
     const navigate = useNavigate();
@@ -45,6 +46,8 @@ const UserSettings = () => {
         },
     ];
     return (
+        <>
+        <UserCombinedLayout>
         <div className="min-h-screen bg-gray-50">
             <div className="flex-1">
                 {/* Improved Header with responsive text */}
@@ -114,6 +117,8 @@ const UserSettings = () => {
                 onChangePassword={handlePasswordChange}
             />
         </div>
+         </UserCombinedLayout>
+    </>
     );
 };
 

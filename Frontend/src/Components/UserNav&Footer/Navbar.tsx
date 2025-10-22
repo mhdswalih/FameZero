@@ -2,7 +2,7 @@ import React, { useState, createContext, useContext, useEffect } from "react";
 import { motion, AnimatePresence, useScroll, useMotionValueEvent } from "framer-motion";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { HeartIcon, Menu, ShoppingCartIcon, X } from "lucide-react";
+import { HeartIcon, Menu, ShoppingCartIcon, Wallet, X } from "lucide-react";
 import { MenuItem, Avatar, Button, Typography } from "@material-tailwind/react";
 import { UserCircleIcon, Cog6ToothIcon, InboxArrowDownIcon, LifebuoyIcon, PowerIcon } from "@heroicons/react/24/solid";
 import { RootState } from "../../Redux/store";
@@ -184,6 +184,11 @@ const ProfileSheet = () => {
       icon: InboxArrowDownIcon,
       onClick: () => console.log("Open inbox")
     },
+     {
+      label: "Wallet",
+      icon: Wallet,
+      onClick: () => navigate('/wallet')
+    },
     {
       label: "Help",
       icon: LifebuoyIcon,
@@ -364,9 +369,7 @@ const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const { scrollY } = useScroll();
   const dispatch = useDispatch();
-  const GEMINI_API_KEY = import.meta.env.REACT_APP_GEMINI_API_KEY || '';
-
-
+  const GEMINI_API_KEY = 'AIzaSyDtO1XocKlx7OwTvdFlBL-re1Et9GVaWl0';
 
   const userData = useSelector((state: RootState) => state.user);
   const user = useSelector((state: RootState) => state.userProfile);
@@ -465,7 +468,7 @@ const Navbar = () => {
 
           <div className="flex items-center gap-4">
            
-              <span className="flex gap-5 italic font-bold"><ShoppingCartIcon onClick={()=> navigate('/cart')} /><HeartIcon onClick={()=>navigate('/wishlist')} /></span>
+              <span className="flex gap-5 italic font-bold"><ShoppingCartIcon onClick={()=> navigate('/cart')} /></span>
            
             {!user.name && (
               <Button

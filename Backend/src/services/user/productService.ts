@@ -160,10 +160,7 @@ export class ProductService extends BaseRepository<IProducts> implements IProduc
         if(!orderId){
           throw createHttpError(HttpStatus.BAD_REQUEST,Messages.INVALID_ORDER_ID_PROVIDED)
         }
-        const  orderDetails  = await this._userProducteRepository.getOrderDetails(orderId)
-
-        console.log(orderDetails,'THIS IS ORDER DETAILS ');
-        
+        const  orderDetails  = await this._userProducteRepository.getOrderDetails(orderId)    
         return {
           status : 200,
           message : 'Order Details Fetched Successfully',
@@ -172,5 +169,16 @@ export class ProductService extends BaseRepository<IProducts> implements IProduc
       } catch (error) {
         throw error
       }
+  }
+  async canceOrder(orderId: string,userId:string): Promise<{ status: number; messege: string; }> {
+    try {
+      if(!orderId){
+        throw createHttpError(HttpStatus.BAD_REQUEST,'Order Id Missing')
+      }
+      await this._userProducteRepository.cancelOrder(orderId,userId)
+      return {status : 200,messege : 'Order Cancel Successfully'}
+    } catch (error) {
+      throw error
+    }
   }
 }

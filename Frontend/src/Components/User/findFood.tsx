@@ -1,5 +1,6 @@
 import React from "react";
 import { motion, useScroll } from "framer-motion";
+import { ArrowBigLeft, ArrowBigRight } from "lucide-react";
 
 const CircleIndicator = () => {
   const { scrollYProgress } = useScroll();
@@ -30,7 +31,7 @@ function ServicesSection() {
       {/* Scroll Indicator */}
       <CircleIndicator />
 
-      <h1 className="flex items-start  text-white font-bold font-mono italic text-4xl max-w-7xl mx-auto">
+      <h1 className="flex items-start text-white font-bold font-mono italic text-4xl max-w-7xl mx-auto">
         ABOUT
       </h1>
       <hr className="text-white font-bold mb-6 max-w-7xl mx-auto" />
@@ -59,9 +60,10 @@ function ServicesSection() {
             OUR SERVICE
           </h2>
           <p className="text-white">
-            We provide high-quality services to help your business grow. From
-            web development to marketing strategies, we cover everything you
-            need to succeed.
+            We provide fast and reliable delivery and takeaway services to make
+            your food experience easy and enjoyable. Whether you prefer dining
+            at home or picking up your order, we’ve got you covered with
+            multiple payment options.
           </p>
           <ul className="mt-4 space-y-2 text-white">
             <motion.li
@@ -70,7 +72,7 @@ function ServicesSection() {
               whileInView={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.7 }}
             >
-              ✅ <span className="ml-2">Custom Web Development</span>
+              <ArrowBigRight/> <span className="ml-2">Quick Delivery Service</span>
             </motion.li>
             <motion.li
               className="flex items-center"
@@ -78,7 +80,7 @@ function ServicesSection() {
               whileInView={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.8 }}
             >
-              ✅ <span className="ml-2">SEO Optimization</span>
+               <ArrowBigRight/> <span className="ml-2">Takeaway Option Available</span>
             </motion.li>
             <motion.li
               className="flex items-center"
@@ -86,15 +88,15 @@ function ServicesSection() {
               whileInView={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.9 }}
             >
-              ✅ <span className="ml-2">E-commerce Solutions</span>
+               <ArrowBigRight/> <span className="ml-2">Online & Offline Payments</span>
             </motion.li>
             <motion.li
               className="flex items-center"
               initial={{ opacity: 0, scale: 0.5 }}
               whileInView={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.10 }}
+              transition={{ duration: 1.0 }}
             >
-              ✅ <span className="ml-2">24/7 Customer Support</span>
+               <ArrowBigRight/> <span className="ml-2">Wallet Payments Accepted</span>
             </motion.li>
           </ul>
         </motion.div>

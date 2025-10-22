@@ -1,5 +1,6 @@
 import { IHotelProfile, IReview } from "../../../models/hotelModel/hotelProfileModel";
 import { IUserProfile } from "../../../models/usermodel/userProfileModel";
+import { IWallet } from "../../../models/usermodel/walletModel";
 import { IHotelFullProfile } from "../../../repositories/hotelRepository/hotelInterface";
 
 
@@ -11,4 +12,5 @@ export interface IProfileService {
    getHotelDetails(hotelId:string):Promise<IHotelFullProfile[] | null>
    ratingAndReview(hotelId:string,review:IReview[]):Promise<IHotelProfile | undefined>
    likeAndUnlike(reviewId:string,userId:string,hotelId:string):Promise<{status:number,message:string}>
+   getWalletBalance(userId:string):Promise<IWallet | null>
 }

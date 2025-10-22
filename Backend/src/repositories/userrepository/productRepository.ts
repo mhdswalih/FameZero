@@ -6,6 +6,7 @@ import hotelProfile from "../../models/hotelModel/hotelProfileModel";
 import Product, { IProducts, IProductsDetails } from "../../models/hotelModel/productModel";
 import Cart, { ICart } from "../../models/usermodel/cartModel";
 import Order from "../../models/usermodel/orderModel";
+import Wallet from "../../models/usermodel/walletModel";
 import { createHttpError } from "../../utils/httperr";
 import { BaseRepository } from "./baseRepository";
 import mongoose from "mongoose";
@@ -14,95 +15,95 @@ export class ProductRepository extends BaseRepository<IProducts> implements IPro
     constructor() {
         super(Product);
     }
-  async addToCart(productId:string,userId:string,hotelId:string):Promise<void> {
-  try {
-    const product = await Product.findOne({ 
-      "productDetails._id": productId 
-    });
-    
-    if (!product) {
-      throw createHttpError(
-        HttpStatus.BAD_REQUEST, 
-        "Product not found"
-      );
+    async addToCart(productId: string, userId: string, hotelId: string): Promise<void> {
+        try {
+            const product = await Product.findOne({
+                "productDetails._id": productId
+            });
+
+            if (!product) {
+                throw createHttpError(
+                    HttpStatus.BAD_REQUEST,
+                    "Product not found"
+                );
+            }
+
+            const hotel = await hotelProfile.findOne({ userId: hotelId });
+
+            if (!hotel) {
+                throw createHttpError(
+                    HttpStatus.BAD_REQUEST,
+                    "Hotel not found"
+                );
+            }
+
+
+            let cart = await Cart.findOne({ userId });
+
+            const productDetails = product.productDetails.find(
+                (p: any) => p._id.toString() === productId
+            );
+
+            if (!productDetails) {
+                throw createHttpError(
+                    HttpStatus.BAD_REQUEST,
+                    "Product details not found"
+                );
+            }
+            if (cart) {
+                if (cart.hotelId.toString() !== hotelId.toString()) {
+                    throw createHttpError(
+                        HttpStatus.BAD_REQUEST,
+                        "This cart belongs to another hotel. Please checkout or clear your cart first."
+                    );
+                }
+                const existingProduct = cart.products.find(
+                    (p) => p.productId.toString() === productId
+                );
+
+                if (existingProduct) {
+                    throw createHttpError(
+                        HttpStatus.BAD_REQUEST,
+                        "Product already in cart"
+                    );
+                }
+
+                cart.products.push({
+                    productId: productDetails._id.toString(),
+                    productDetails: {
+                        _id: productDetails._id.toString(),
+                        category: productDetails.category,
+                        productName: productDetails.productName,
+                        price: productDetails.price,
+                        quantity: productDetails.quantity,
+                    },
+                    cartQuantity: 1,
+                });
+            } else {
+                cart = new Cart({
+                    userId,
+                    hotelId,
+                    products: [
+                        {
+                            productId: productDetails._id.toString(),
+                            productDetails: {
+                                _id: productDetails._id.toString(),
+                                category: productDetails.category,
+                                productName: productDetails.productName,
+                                price: productDetails.price,
+                                quantity: productDetails.quantity,
+                            },
+                            cartQuantity: 1,
+                        },
+                    ],
+                });
+            }
+
+            await cart.save();
+        } catch (error: any) {
+            throw error;
+        }
     }
-
-    const hotel = await hotelProfile.findOne({ userId: hotelId });
-    
-    if (!hotel) {
-      throw createHttpError(
-        HttpStatus.BAD_REQUEST, 
-        "Hotel not found"
-      );
-    }
-
-   
-    let cart = await Cart.findOne({ userId });
-
-    const productDetails = product.productDetails.find(
-      (p: any) => p._id.toString() === productId
-    );
-    
-    if (!productDetails) {
-      throw createHttpError(
-        HttpStatus.BAD_REQUEST, 
-        "Product details not found"
-      );
-    }
-    if (cart) {
-      if (cart.hotelId.toString() !== hotelId.toString()) {
-        throw createHttpError(
-          HttpStatus.BAD_REQUEST,
-          "This cart belongs to another hotel. Please checkout or clear your cart first."
-        );
-      }
-      const existingProduct = cart.products.find(
-        (p) => p.productId.toString() === productId
-      );
-
-      if (existingProduct) {
-        throw createHttpError(
-          HttpStatus.BAD_REQUEST, 
-          "Product already in cart"
-        );
-      }
-
-      cart.products.push({
-        productId: productDetails._id.toString(), 
-        productDetails: {
-          _id: productDetails._id.toString(),
-          category: productDetails.category,
-          productName: productDetails.productName,
-          price: productDetails.price,
-          quantity: productDetails.quantity,
-        },
-        cartQuantity: 1,
-      });
-    } else {
-      cart = new Cart({
-        userId,
-        hotelId,
-        products: [
-          {
-            productId: productDetails._id.toString(), 
-            productDetails: {
-              _id: productDetails._id.toString(),
-              category: productDetails.category,
-              productName: productDetails.productName,
-              price: productDetails.price,
-              quantity: productDetails.quantity,
-            },
-            cartQuantity: 1,
-          },
-        ],
-      });
-    }
-
-   await cart.save();
-  } catch (error: any) {
-    throw error;
-  }
-}
     async getCart(userId: string): Promise<IProductsDetails[] | null> {
         return await Cart.findOne({ userId });
     }
@@ -124,7 +125,7 @@ export class ProductRepository extends BaseRepository<IProducts> implements IPro
         const cart = await Cart.findOne({ userId, "products.productId": productId });
         if (!cart) throw createHttpError(HttpStatus.BAD_REQUEST, "Cart not found");
 
-      
+
         const cartProduct = cart.products.find(
             (p) => p.productId.toString() === productId
         );
@@ -160,55 +161,53 @@ export class ProductRepository extends BaseRepository<IProducts> implements IPro
         paymentMethod: "Online" | "COD",
         selectedDeliveryOption: "delivery" | "takeaway"
     ): Promise<{ totalAmount: number; orderId: string }> {
-     try {
-           const cart = await Cart.findOne({ userId }).lean();        
-        if (!cart || cart.products.length === 0) {
-            throw createHttpError(HttpStatus.BAD_REQUEST, "Cart not found or empty");
+        try {
+            const cart = await Cart.findOne({ userId }).lean();
+            if (!cart || cart.products.length === 0) {
+                throw createHttpError(HttpStatus.BAD_REQUEST, "Cart not found or empty");
+            }
+            let calculatedAmount = cart.products.reduce((sum, item) => {
+                const price = item.productDetails?.price || 0;
+                return sum + price * (item.cartQuantity || 1);
+            }, 0);
+
+            if (selectedDeliveryOption === "delivery") {
+                calculatedAmount += 3.99;
+            }
+
+            const hotelId = cart.hotelId;
+            const firstProductId = cart.products[0]?.productId;
+
+            const newOrder = new Order({
+                userId,
+                cartId: cart._id,
+                hotelId,
+                productId: firstProductId,
+                products: cart.products.map((p) => ({
+                    productId: p.productId,
+                    productDetails: {
+                        category: p.productDetails?.category,
+                        productName: p.productDetails?.productName,
+                        price: p.productDetails?.price,
+                        quantity: p.productDetails?.quantity,
+                    },
+                    cartQuantity: p.cartQuantity,
+                })),
+                totalAmount: calculatedAmount,
+                selectedPaymentMethod: paymentMethod,
+                orderStatus: "Pending",
+                paymentStatus: "Pending",
+                orderMethod: selectedDeliveryOption,
+            })
+            const savedOrder = await newOrder.save();
+            await Cart.deleteMany({ userId });
+            return {
+                totalAmount: calculatedAmount,
+                orderId: savedOrder._id.toString(),
+            };
+        } catch (error) {
+            throw error
         }
-        let calculatedAmount = cart.products.reduce((sum, item) => {
-            const price = item.productDetails?.price || 0;
-            return sum + price * (item.cartQuantity || 1);
-        }, 0);
-
-        if (selectedDeliveryOption === "delivery") {
-            calculatedAmount += 3.99;
-        }
-
-        const hotelId = cart.hotelId;
-        const firstProductId = cart.products[0]?.productId;
-        console.log();
-        
-
-        const newOrder = new Order({
-            userId,
-            cartId: cart._id,
-            hotelId,
-            productId: firstProductId,
-            products: cart.products.map((p) => ({
-                productId: p.productId,
-                productDetails: {
-                    category: p.productDetails?.category,
-                    productName: p.productDetails?.productName,
-                    price: p.productDetails?.price,
-                    quantity: p.productDetails?.quantity,
-                },
-                cartQuantity: p.cartQuantity,
-            })),
-            totalAmount: calculatedAmount,
-            selectedPaymentMethod: paymentMethod,
-            orderStatus: "Pending",
-            paymentStatus: "Pending",
-            orderMethod: selectedDeliveryOption,
-        })
-        const savedOrder = await newOrder.save();
-        await Cart.deleteMany({ userId });
-        return {
-            totalAmount: calculatedAmount,
-            orderId: savedOrder._id.toString(),
-        };
-     } catch (error) {
-        throw error
-     }
     }
 
     async updatePayementStatus(orderId: string, paymentStatus: string, paypalOrderId: string): Promise<{ paymentStatus: string } | null> {
@@ -295,7 +294,7 @@ export class ProductRepository extends BaseRepository<IProducts> implements IPro
                         paymentStatus: { $first: "$paymentStatus" },
                         orderDate: { $first: "$orderDate" },
                         payPalOrderId: { $first: "$paypalOrderId" },
-                        
+
 
                         hotelId: { $first: "$hotelId" },
                         hotelName: { $first: "$hotelName" },
@@ -361,12 +360,12 @@ export class ProductRepository extends BaseRepository<IProducts> implements IPro
                         cartQuantity: "$products.cartQuantity",
                         totalAmount: "$totalAmount",
                         orderStatus: "$orderStatus",
-                        paypalOrderId :"$paypalOrderId",
+                        paypalOrderId: "$paypalOrderId",
                         selectedPaymentMethod: "$selectedPaymentMethod",
                         paymentStatus: "$paymentStatus",
                         orderDate: "$orderDate",
 
-                       
+
                         hotelId: {
                             $cond: {
                                 if: { $ne: ["$hotel", null] },
@@ -391,6 +390,57 @@ export class ProductRepository extends BaseRepository<IProducts> implements IPro
             return null;
         }
     }
+async cancelOrder(orderId: string, userId: string): Promise<void> {
+  try {
+    const order = await Order.findById(orderId);
+    if (!order) {
+      throw createHttpError(HttpStatus.NOT_FOUND, "Order not found");
+    }
+
+    if (order.orderStatus === "Cancelled") {
+      throw createHttpError(HttpStatus.BAD_REQUEST, "Order already cancelled");
+    }
+
+    for (const item of order.products) {
+      const productId = item.productId;
+
+      const product = await Product.findOne({
+        $or: [
+          { "productDetails._id": productId },
+          { "productDetails.productId": productId },
+        ],
+      });
+
+      if (!product) continue;
+
+      const productDetail = product.productDetails.find(
+        (p) => p._id === productId
+      );
+
+      if (productDetail) {
+        productDetail.quantity = productDetail.quantity + item.cartQuantity;
+      }
+
+      const wallet = await Wallet.findOne({ userId: userId });
+
+      if (wallet && productDetail) {
+        let refundAmount = productDetail.price * item.cartQuantity;
+        if (order.orderMethod === "delivery") {
+          refundAmount += 3.99; 
+        }
+        wallet.totalAmount = wallet.totalAmount + refundAmount;
+        await wallet.save();
+      }
+      await product.save();
+    }
+
+    order.orderStatus = "Cancelled";
+    order.paymentStatus = "Refunded";
+    await order.save();
+  } catch (error) {
+    throw error
+  }
+}
 
 
 }

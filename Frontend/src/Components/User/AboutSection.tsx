@@ -1,5 +1,5 @@
-import React from "react";
 import { motion, useScroll } from "framer-motion";
+import { ArrowBigRight } from "lucide-react";
 
 const CircleIndicator = () => {
   const { scrollYProgress } = useScroll();
@@ -31,7 +31,7 @@ function AboutSection() {
       <CircleIndicator />
 
       <h1 className="flex items-start text-white font-bold font-mono italic max-w-7xl mx-auto text-4xl">
-        ABOUT FOOD POSITIVITY
+        FOOD POSITIVITY
       </h1>
       <hr className="text-white font-bold mb-6 max-w-7xl mx-auto" />
 
@@ -58,7 +58,7 @@ function AboutSection() {
         whileInView={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.7 }}
       >
-        ✅ <span className="ml-2">Celebrate Food Diversity</span>
+         <ArrowBigRight/> <span className="ml-2">Celebrate Food Diversity</span>
       </motion.li>
       <motion.li
         className="flex items-center"
@@ -66,7 +66,7 @@ function AboutSection() {
         whileInView={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.8 }}
       >
-        ✅ <span className="ml-2">Promote Mindful Eating</span>
+         <ArrowBigRight/> <span className="ml-2">Promote Mindful Eating</span>
       </motion.li>
       <motion.li
         className="flex items-center"
@@ -74,7 +74,7 @@ function AboutSection() {
         whileInView={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.9 }}
       >
-        ✅ <span className="ml-2">Encourage Balanced Diets</span>
+         <ArrowBigRight/> <span className="ml-2">Encourage Balanced Diets</span>
       </motion.li>
       <motion.li
         className="flex items-center"
@@ -82,7 +82,7 @@ function AboutSection() {
         whileInView={{ opacity: 1, scale: 1 }}
         transition={{ duration: 1.0 }}
       >
-        ✅ <span className="ml-2">Support Sustainable Food Practices</span>
+         <ArrowBigRight/> <span className="ml-2">Support Sustainable Food Practices</span>
       </motion.li>
     </ul>
   </motion.div>

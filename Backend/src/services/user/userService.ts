@@ -14,6 +14,8 @@ import { IProfileRepositer } from '../../interfaces/user/profile/IProfileReposit
 import { IProfileHotelRepositer } from '../../interfaces/hotel/profile/IProfileHotelRepository';
 import { verifyGoogleAndCreateUser } from '../../utils/verifyGoogleToken';
 import { genrateAndStoreResetToken, veryResetToken } from '../../utils/resetPassword';
+import { isUserBlackListed } from '../../utils/blockuser';
+import Wallet from '../../models/usermodel/walletModel';
 
 
 
@@ -51,7 +53,7 @@ export class UserService implements IUserService {
         try {
             const user = await this._userRepository.findById(id);
             if (!user) {
-                throw new Error(Messages.USER_NOT_FOUND);
+                throw createHttpError(HttpStatus.BAD_REQUEST, Messages.USER_NOT_FOUND);
             }
             return user;
         } catch (error: any) {
@@ -60,56 +62,63 @@ export class UserService implements IUserService {
     }
 
     async verifyOtp(email: string, otp: string, userData: Partial<IUser>): Promise<{ status: number, messege: string }> {
-       try {
-         console.log(email,otp,userData,'THIS IS FROM SERVICE ');
-        
-        const validOtp = await verifyOtp(email, otp)
-        if (!validOtp.success) {
-            throw createHttpError(HttpStatus.BAD_REQUEST, Messages.OTP_INVALID)
+        try {
+            const validOtp = await verifyOtp(email, otp)
+            if (!validOtp.success) {
+                throw createHttpError(HttpStatus.BAD_REQUEST, Messages.OTP_INVALID)
+
+            }
+            if (!userData.password) {
+                throw createHttpError(HttpStatus.BAD_REQUEST, 'Password Requird')
+            }
+            userData.password = await hashPassword(userData.password)
+            const user = await this._userRepository.create(userData as IUser) as IUser;
+            await deleteOtp(email)
+            if (user.role === 'user') {
+                await this._profileUserRepository.create({
+                    userId: user.id,
+                    name: user.name,
+                    email: user.email,
+                    profilepic: '',
+                    address: '',
+                    city: '',
+                    phone: '',
+                })
+                const walletExists = await Wallet.findOne({ userId: user.id });
+                if (!walletExists) {
+                    const newWallet = new Wallet({
+                        userId: user.id,
+                        hotelId: '',
+                        productId: '',
+                        totalAmount: 0, 
+                    });
+                    await newWallet.save();
+                }
+            }
+
+            if (user.role === 'hotel') {
+                await this._profileHotelRepository.create({
+                    userId: user.id,
+                    name: user.name,
+                    email: user.email,
+                    profilepic: '',
+                    location: {
+                        type: 'Point',
+                        coordinates: [],
+                        locationName: ''
+                    },
+                    review: [],
+                    idProof: '',
+                    city: '',
+                    phone: '',
+                })
+            }
+
+            return { status: HttpStatus.CREATED, messege: Messages.USER_CREATED }
+        } catch (error) {
+            throw error
 
         }
-        if (!userData.password) {
-            throw new Error('Password Requird')
-        }
-        userData.password = await hashPassword(userData.password)
-        const user = await this._userRepository.create(userData as IUser) as IUser;
-        await deleteOtp(email)
-        if (user.role === 'user') {
-            await this._profileUserRepository.create({
-                userId: user.id,
-                name: user.name,
-                email: user.email,
-                profilepic: '',
-                address: '',
-                city: '',
-                phone: '',
-            })
-        }
-
-        if (user.role === 'hotel') {
-         await this._profileHotelRepository.create({
-                userId: user.id,
-                name: user.name,
-                email: user.email,
-                profilepic: '',
-                location: {
-                    type: 'Point',
-                    coordinates: [],
-                    locationName:''
-                },
-                review : [],
-                idProof: '',
-                city: '',
-                phone: '',
-            })
-        }
-            
-        return { status: HttpStatus.CREATED, messege: Messages.USER_CREATED }
-       } catch (error) {
-           console.log(error);
-           throw error
-           
-       }
     }
     async resendOtp(email: string): Promise<{ status: number; messege: string; }> {
         await deleteOtp(email)
@@ -138,7 +147,12 @@ export class UserService implements IUserService {
             if (!isValid) {
                 throw createHttpError(HttpStatus.BAD_REQUEST, Messages.INVALID_PASSWORD)
             }
-            console.log(user)
+            const isBlocked = await isUserBlackListed(user.id);
+            if (isBlocked) {
+                throw createHttpError(HttpStatus.FORBIDDEN, "Your account has been blocked. Please contact support.")
+
+            }
+
             const accessToken = genrateAccessToken(user.id.toString(), user.role)
             const refreshToken = genrateRefreshToken(user.id.toString())
             return {
@@ -191,6 +205,7 @@ export class UserService implements IUserService {
                     password: '',
                     isGoogleAuth: true,
                 } as IUser);
+                
 
                 if (!user) {
                     throw createHttpError(HttpStatus.INTERNAL_SERVER_ERROR, 'Failed to create user');
@@ -220,6 +235,16 @@ export class UserService implements IUserService {
                         address: '',
                         phone: '',
                     });
+                       const walletExists = await Wallet.findOne({ userId: user.id });
+                if (!walletExists) {
+                    const newWallet = new Wallet({
+                        userId: user.id,
+                        hotelId: '',
+                        productId: '',
+                        totalAmount: 0, 
+                    });
+                    await newWallet.save();
+                }
                 }
             } else if (user.role === 'hotel') {
                 const existingHotelProfile = await this._profileHotelRepository.findByHotelId(user.id.toString());
@@ -233,15 +258,13 @@ export class UserService implements IUserService {
                         location: {
                             type: 'Point',
                             coordinates: [],
-                            locationName : ''
+                            locationName: ''
                         },
                         phone: '',
                         idProof: '',
                     });
                 }
             }
-            console.log('user ', user);
-
             const accessToken = genrateAccessToken(user.id.toString(), user.role);
             const refreshToken = genrateRefreshToken(user.id.toString());
 
@@ -292,8 +315,6 @@ export class UserService implements IUserService {
             let user = await this._userRepository.findByPhone(phone);
 
             if (!user) {
-
-
                 user = await this._userRepository.create({
                     name: name,
                     email: '',
@@ -329,6 +350,16 @@ export class UserService implements IUserService {
                         city: '',
                         address: '',
                     });
+                       const walletExists = await Wallet.findOne({ userId: user.id });
+                if (!walletExists) {
+                    const newWallet = new Wallet({
+                        userId: user.id,
+                        hotelId: '',
+                        productId: '',
+                        totalAmount: 0, 
+                    });
+                    await newWallet.save();
+                }
                 }
             } else if (user.role === 'hotel') {
                 const existingHotelProfile = await this._profileHotelRepository.findByHotelId(user.id.toString());
@@ -343,7 +374,7 @@ export class UserService implements IUserService {
                         location: {
                             type: 'Point',
                             coordinates: [],
-                            locationName : '',
+                            locationName: '',
                         },
                         idProof: '',
                     });
@@ -368,8 +399,6 @@ export class UserService implements IUserService {
                 },
             };
         } catch (error) {
-            // Log the error for debugging
-            console.error('Phone auth error:', error);
             throw error;
         }
     }

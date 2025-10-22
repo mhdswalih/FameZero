@@ -1,9 +1,9 @@
 import { FaUserCircle, FaBan, FaEllipsisH } from 'react-icons/fa';
-import CombinedLayout from '../sidesheet/AdminSideSheet';
 import { fetchUser } from '../../../Api/adminApiCalls/adminApi';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import LoadingSpinner from '../../../Components/ui/Loader'; 
+import CombinedLayout from '../sidesheet/AdminSideSheet';
 
 interface User {
   id: string;
@@ -11,7 +11,7 @@ interface User {
   email: string;
   avatar?: string;
   phone: string;
-  role:string;
+  role: string;
   status: 'active' | 'blocked'; 
 }
 
@@ -24,8 +24,6 @@ const UserTable = () => {
     try {
       setLoading(true);
       const response = await fetchUser();
-      
-      
       setUsers(response.data);
     } catch (error: any) {
       setError(error.message || 'Failed to fetch users');
@@ -36,16 +34,17 @@ const UserTable = () => {
   };
 
   useEffect(() => {
+    
     fetchUsers();
   }, []);
 
-   
-
-  if (loading) return <CombinedLayout><LoadingSpinner /></CombinedLayout>;
-  if (error) return <CombinedLayout><div className="text-red-500 p-4">{error}</div></CombinedLayout>;
+  // if (loading) return ;
+  if (error) return <div className="text-red-500 p-4">{error}</div>;
 
   return (
-    <CombinedLayout>
+    <div>
+      <CombinedLayout >
+      <h3 className="text-lg font-semibold mb-4">User Management</h3>
       <div className="overflow-x-auto rounded-lg border border-orange-400 shadow-sm">
         {users.length === 0 ? (
           <div className="p-4 text-center text-gray-400">No users found</div>
@@ -119,7 +118,6 @@ const UserTable = () => {
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div className="flex justify-end space-x-2">
                       <button
-    
                         className={`p-2 rounded-full ${
                           user.status === 'active' 
                             ? 'text-red-400 hover:bg-red-900' 
@@ -143,7 +141,8 @@ const UserTable = () => {
           </table>
         )}
       </div>
-    </CombinedLayout>
+      </CombinedLayout>
+    </div>
   );
 };
 

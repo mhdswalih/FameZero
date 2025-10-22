@@ -114,4 +114,13 @@ export class ProductController implements IProductController {
         next(error)
       }
   }
+  async cancelOrder(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const {orderId,userId} = req.params;
+      const response = await this._userProductService.canceOrder(orderId,userId)
+      res.status(HttpStatus.OK).json(response)
+    } catch (error) {
+      next(error)
+    }
+  }
 }

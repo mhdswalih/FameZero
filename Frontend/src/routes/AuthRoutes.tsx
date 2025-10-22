@@ -19,6 +19,7 @@ import OrderHistoryPage from '../Components/User/OrderHistoryPage'
 import InvoiceGenerator from '../Components/User/InvoiceGenarator'
 import RatingAndReview from '../Components/User/RatingAndReview'
 import { NotificationProvider } from '../Notifications/NotificationListner'
+import  Wallet  from '../../src/Components/User/Wallet'
 
 const ProtectedRoute = ({ children }: { children:ReactElement }) => {
   const user = useSelector((state: RootState) => state.user);
@@ -60,6 +61,7 @@ const AuthRoutes = () => {
         <Route path='/order-history' element={<OrderHistoryPage />} />
         <Route path='/get-invoice/:orderId' element={<InvoiceGenerator />} />
         <Route path='/rating/:hotelId' element={<RatingAndReview />} />
+        <Route path='/wallet' element={<Wallet />} />
         <Route path='about-page' element={
           <>
           {/* <Navbar /> */}

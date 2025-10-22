@@ -17,4 +17,5 @@ export interface IProductService {
   rePayOrder(orderId:string):Promise<{status:number,message:string,payementStatus:Object | null}>
   rePayUpdateStatus(orderId:string,payementStatus:string):Promise<{status:number,message:string,updatedStatus:Object | null}>
   getOrderDetails(orderId:string):Promise<{status:number,message:string,orderDetails : IOrderHistory[] | null}>
+  canceOrder(orderId:string,userId:string):Promise<{status:number,messege:string}>
 } 

@@ -12,7 +12,7 @@ export interface IOrder extends Document {
   cartId: mongoose.Types.ObjectId | ICart;
   hotelId: mongoose.Types.ObjectId | IHotelProfile;
   products: {
-    productId: mongoose.Types.ObjectId | string;
+    productId: string;
     productDetails: IProductsDetails;
     cartQuantity: number;
   }[];
@@ -20,7 +20,7 @@ export interface IOrder extends Document {
   totalAmount: number;
   orderStatus: 'Pending' | 'Preparing' | 'Out_for_delivery' | 'Delivered' | 'Cancelled' | 'Returned'
   selectedPaymentMethod: "Online" | "COD";
-  paymentStatus: "Pending" | "Failed" | "Paid";
+  paymentStatus: "Pending" | "Failed" | "Paid"  | "Refunded";
   orderMethod: "delivery" | "takeaway";
   orderHistory: IOrderHistory[];
 }
@@ -119,7 +119,7 @@ const orderSchema = new Schema<IOrder>(
     },
     paymentStatus: {
       type: String,
-      enum: ["Pending", "Failed", "Paid"],
+      enum: ["Pending", "Failed", "Paid","Refunded"],
       default: "Pending",
     },
     paypalOrderId: {
