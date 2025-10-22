@@ -5,6 +5,7 @@ import { IProfileHotelRepositer } from "../../interfaces/hotel/profile/IProfileH
 import { IUserRepository } from "../../interfaces/user/IUserRepository";
 import { IProfileService } from "../../interfaces/user/profile/IProfileService";
 import { IHotelProfile, IReview } from "../../models/hotelModel/hotelProfileModel";
+import { INotification } from "../../models/notification/notificationModel";
 import  {
   IUserProfile,
 } from "../../models/usermodel/userProfileModel";
@@ -139,6 +140,41 @@ export class ProfileService implements IProfileService {
       return wallet
     } catch (error) {
       throw error
+    }
+  }
+  async getNotifications(userId: string): Promise<INotification[] | null> {
+    try {
+      if(!userId){
+        throw createHttpError(HttpStatus.BAD_REQUEST,Messages.USER_ID_REQUIRED)
+      }
+      const notifications = await this._profileRepository.getNotifications(userId)
+      return notifications
+    } catch (error) {
+      throw error
+    }
+  }
+  async updateReviews(reviewId: string, hotelId: string, updateReviews: IReview[]): Promise<IReview | null> {
+    try {
+      if(!reviewId || !hotelId || !updateReviews){
+        throw createHttpError(HttpStatus.BAD_REQUEST,Messages.INVALID_DATA_PROVIDED)
+      }
+      console.log(reviewId,hotelId,updateReviews,'THIS IS FROM SERVICE ');
+      
+      const updateReviewssDate = await this._hotelProfileRepostory.updateRreviews(reviewId,hotelId,updateReviews)
+     return null
+    } catch (error) {
+      throw error
+    }
+  }
+  async deleteReviews(reviewId: string, hotelId: string): Promise<{ status: number; message: string; }> {
+    try {
+      if(!reviewId || !hotelId){
+        throw createHttpError(HttpStatus.BAD_REQUEST,Messages.INVALID_DATA_PROVIDED)
+      }
+       await this._hotelProfileRepostory.deleteReviews(reviewId,hotelId)
+        return {status : 200,message : 'Review deleted successfully'}
+      } catch (error) {
+        throw error
     }
   }
 }

@@ -97,14 +97,46 @@ export const ratingandReview = async (
 
     return response.data;
   } catch (error: any) {
-    console.error("Rating and review error:", error);
     throw error.response?.data || { error: "Failed to submit rating and review" };
   }
 };
 
-export const likeAndunlike = async(reviewId:string,userId:string,hotelId:string) => {
-  console.log(reviewId,userId,'THIS IS FROM API SIDE');
-  
+export const editReview = async (
+  reviewId: string,
+  hotelId: string,
+  reviewData: IReview[],
+  reviewIMG?: File
+) => {
+  try {
+    const formData = new FormData();
+    formData.append("reviewData", JSON.stringify(reviewData));
+
+    if (reviewIMG) {
+      formData.append("reviewIMG", reviewIMG);
+    }
+
+    const response = await axiosInstance.put(
+      `/update-reviews/${reviewId}/${hotelId}`,
+      formData,
+      { headers: { "Content-Type": "multipart/form-data" } }
+    );
+
+    return response.data;
+  } catch (error: any) {
+    throw error.response?.data || { error: "Failed to edit review" };
+  }
+};
+
+export const deleteReviews = async(reviewId:string,hotelId:string) =>{
+  try {
+    const response = await axiosInstance.delete(`/delete-reviews/${reviewId}/${hotelId}`)
+    return response.data
+  } catch (error) {
+    
+  }
+}
+
+export const likeAndunlike = async(reviewId:string,userId:string,hotelId:string) => {  
   try {
      const response = await axiosInstance.post(`/like-unlike/${reviewId}/${userId}/${hotelId}`)
      return response.data
@@ -116,6 +148,15 @@ export const likeAndunlike = async(reviewId:string,userId:string,hotelId:string)
 export const getWalletBalance = async(userId:string) => {
   try {
     const response = await axiosInstance.get(`/get-wallet/${userId}`)
+    return response.data
+  } catch (error) {
+    
+  }
+}
+
+export const getUserNotifications = async(userId:string) => {
+  try {
+    const response = await axiosInstance.get(`/get-notifications/${userId}`)
     return response.data
   } catch (error) {
     

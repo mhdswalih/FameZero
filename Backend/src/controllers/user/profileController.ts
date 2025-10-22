@@ -66,7 +66,8 @@ export class ProfileController implements IProfileController {
 async ratingAndReview(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const { hotelId } = req.params;
-
+      console.log(req.body.review,'THISIS FROM CONROLLER');
+      
     // Ensure review is an array
     let review: IReview[] = [];
 
@@ -82,7 +83,7 @@ async ratingAndReview(req: Request, res: Response, next: NextFunction): Promise<
           comment: req.body.comment || "",
           rating: Number(req.body.rating) || 0,
           userId: (req as any).user?.id, 
-          reviweIMG: (req.file as any).path,
+          reviweIMG: (req.file as any).path || "",
           createAt: new Date(),
           _id: "",
           profilePic: "",
@@ -123,6 +124,55 @@ async getWalletBalance(req: Request, res: Response, next: NextFunction): Promise
   try {
     const {userId} = req.params
     const response = await this._profileService.getWalletBalance(userId)
+    res.status(HttpStatus.OK).json(response)
+  } catch (error) {
+    next(error)
+  }
+}
+async getNotifications(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const {userId} = req.params
+    const response = await this._profileService.getNotifications(userId)
+    res.status(HttpStatus.OK).json(response)
+  } catch (error) {
+    next(error)
+  }
+}
+async updateReviews(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const { reviewId, hotelId } = req.params;
+    let updateReviews: IReview[] = [];
+
+    if (req.body.reviewData) {
+      updateReviews =
+        typeof req.body.reviewData === "string"
+          ? JSON.parse(req.body.reviewData)
+          : req.body.reviewData;
+    }
+
+    if (req.file) {
+      updateReviews[0] = {
+        ...updateReviews[0],
+        reviweIMG: req.file.path || "",
+      };
+    }
+
+    const response = await this._profileService.updateReviews(
+      reviewId,
+      hotelId,
+      updateReviews
+    );
+
+    res.status(HttpStatus.OK).json(response);
+  } catch (error) {
+    next(error);
+  }
+}
+
+async deleteReviews(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const {reviewId,hotelId} = req.params
+    const response = await this._profileService.deleteReviews(reviewId,hotelId)
     res.status(HttpStatus.OK).json(response)
   } catch (error) {
     next(error)

@@ -2,12 +2,15 @@ import { useState } from 'react';
 import {  Menu, X, ChevronDown, LogOut, Settings, User, ListOrderedIcon, InboxIcon, Wallet } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { FaRobot } from 'react-icons/fa';
+import { useDispatch } from 'react-redux';
+import { removeUser } from '../../Redux/Slice/userSlice';
+import { removeUserProfile } from '../../Redux/Slice/ProfileSlice/userProfileSlice';
 
 const UserCombinedLayout = ({ children }: any) => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const navigate = useNavigate();
     const location = useLocation();
-
+    const dispatch = useDispatch()
     const menuItems = [
         {
             id: 'profile',
@@ -58,6 +61,8 @@ const UserCombinedLayout = ({ children }: any) => {
     const activeMenu = getActiveMenu();
 
     const handleLogout = () => {
+        dispatch(removeUser())
+        dispatch(removeUserProfile())
         navigate('/login');
     };
 
@@ -119,18 +124,16 @@ const UserCombinedLayout = ({ children }: any) => {
                 </nav>
 
                 {/* Footer Section */}
-                <div className="border-t border-gray-800 p-4 flex-shrink-0">
+                <div className="border-t border-orange-400 p-4 flex-shrink-0">
                     <button
                         onClick={handleLogout}
-                        className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-300 hover:bg-gray-900 hover:text-white transition-colors duration-200"
+                        className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-black hover:bg-orange-500 hover:text-white transition-colors duration-200"
                     >
                         <LogOut className="w-5 h-5 flex-shrink-0" />
                         {isSidebarOpen && (
                             <span className="text-sm font-medium">Logout</span>
                         )}
                     </button>
-
-                  
                 </div>
             </div>
 

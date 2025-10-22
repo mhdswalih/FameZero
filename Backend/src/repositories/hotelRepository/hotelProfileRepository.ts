@@ -36,7 +36,7 @@ export class HotelProfileRepository extends BaseRepository<IHotelProfile> implem
   async addProducts(hotelId: string, newProducts: IProductsDetails[]) {
     try {
       const currentProducts = newProducts.filter(item => item.productName);
-            
+
       for (const product of currentProducts) {
         const existingItem = await productModel.findOne({
           hotelId,
@@ -74,7 +74,7 @@ export class HotelProfileRepository extends BaseRepository<IHotelProfile> implem
     const hotel = await hotelProfile.findOne({ userId: hotelId });
     if (hotel) {
       review.forEach(r => {
-        const { _id, ...rest } = r as any; // remove _id from incoming review
+        const { _id, ...rest } = r as any;
 
         hotel.review.push({
           ...rest,
@@ -192,6 +192,48 @@ export class HotelProfileRepository extends BaseRepository<IHotelProfile> implem
       return res;
     } catch (error) {
       throw error;
+    }
+  }
+  async updateRreviews(reviewId: string, hotelId: string, updateReviews: IReview[]): Promise<void> {
+    try {
+      const updatedHotel = await hotelProfile.findOneAndUpdate(
+        {
+          userId: hotelId,          // match hotel by userId
+          "review._id": reviewId    // match the review inside array
+        },
+        {
+          $set: {
+            "review.$": updateReviews[0] // update only the matched review
+          }
+        },
+        { new: true } // returns the updated document
+      );
+
+      if (!updatedHotel) {
+        console.log("No matching hotel/review found");
+      } else {
+        console.log("Review updated successfully:", updatedHotel.review);
+      }
+    } catch (error) {
+      console.error("Error updating review:", error);
+      throw error;
+    }
+  }
+
+
+  async deleteReviews(reviewId: string, hotelId: string): Promise<IReview[] | null> {
+    try {
+      const updatedHotel = await hotelProfile.findOneAndUpdate(
+        { userId: hotelId },
+        { $pull: { review: { _id: reviewId } } }, 
+        { new: true } 
+      );
+      if (updatedHotel) {
+        return updatedHotel.review;
+      }
+      return null;
+    } catch (error) {
+      throw error
     }
   }
 

@@ -27,26 +27,30 @@ export class HotelRepository extends BaseRepository<IUser> implements IHotelRepo
          {
             $unwind: '$userDetails'
          },
-        
+
          {
             $project: {
-               userId:'$userDetails._id',
-               name: '$name',
+               _id: 1,
+               userId: '$userDetails._id',
+               name: 1,
                email: '$userDetails.email',
-               status: '$status',
-               phone: '$phone',
-               location: '$location',
-               city: '$city',
-               profilepic: '$profilepic',
-               idProof: '$idProof'
+               status: 1,
+               phone: 1,
+               location: 1,
+               city: 1,
+               profilepic: 1,
+               idProof: 1,
+               review: 1,
+               rating: 1,
             }
          }
+
       ]);
 
       return hotels as IHotelFullProfile[];
    };
-   
-   async updateHotel(id: string, userData: Partial<IUser>): Promise<IUser | null> { 
+
+   async updateHotel(id: string, userData: Partial<IUser>): Promise<IUser | null> {
       return await this.update(id, userData);
    }
    async acceptRequstHotel(id: string): Promise<IHotelFullProfile | null> {
@@ -66,12 +70,12 @@ export class HotelRepository extends BaseRepository<IUser> implements IHotelRepo
       );
    }
    async blockHotel(id: string): Promise<IUser | null> {
-       const cleanedId = id.replace(/^:/, '');        
-       const blockedHotels =  await User.findByIdAndUpdate(cleanedId,{isBlocked:true},{new:true})
-       if(blockedHotels){
+      const cleanedId = id.replace(/^:/, '');
+      const blockedHotels = await User.findByIdAndUpdate(cleanedId, { isBlocked: true }, { new: true })
+      if (blockedHotels) {
          await redisClient.sAdd('blacklisted_users', cleanedId)
-       }
-       return blockedHotels
+      }
+      return blockedHotels
    }
    async updateHotelPassword(id: string, hashedPassword: string): Promise<IUser | null> {
       return await this.update(id, { password: hashedPassword });
@@ -81,8 +85,8 @@ export class HotelRepository extends BaseRepository<IUser> implements IHotelRepo
       const user = await this.findOne({ mobile });
       return !!user;
    }
-  async getAllHotelsInUserSide(): Promise<IHotelFullProfile[]> {
-        const hotels = await hotelProfile.aggregate([
+   async getAllHotelsInUserSide(): Promise<IHotelFullProfile[]> {
+      const hotels = await hotelProfile.aggregate([
          {
             $lookup: {
                from: 'users',
@@ -95,11 +99,11 @@ export class HotelRepository extends BaseRepository<IUser> implements IHotelRepo
             $unwind: '$userDetails'
          },
          {
-            $match : {status : 'Approved'}
+            $match: { status: 'Approved' }
          },
          {
             $project: {
-               userId:'$userDetails._id',
+               userId: '$userDetails._id',
                name: '$name',
                email: '$userDetails.email',
                status: '$status',
@@ -107,7 +111,9 @@ export class HotelRepository extends BaseRepository<IUser> implements IHotelRepo
                location: '$location',
                city: '$city',
                profilepic: '$profilepic',
-               idProof: '$idProof'
+               idProof: '$idProof',
+               rating: `$rating`,
+               review : `$review`
             }
          }
       ]);

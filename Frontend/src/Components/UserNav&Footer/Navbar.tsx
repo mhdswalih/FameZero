@@ -182,7 +182,7 @@ const ProfileSheet = () => {
     {
       label: "Inbox",
       icon: InboxArrowDownIcon,
-      onClick: () => console.log("Open inbox")
+      onClick: () => navigate('/inbox')
     },
      {
       label: "Wallet",

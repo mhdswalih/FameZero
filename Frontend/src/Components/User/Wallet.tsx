@@ -38,11 +38,21 @@ const handleGetBalance = async () => {
 
   return (
     <UserCombinedLayout>
+        <header className="bg-white shadow-sm border-b border-gray-100 px-4 sm:px-6 sticky top-0 z-10">
+                    <div className="flex items-center justify-between h-19.5 py-4">
+                        <h2 className="text-base sm:text-lg font-semibold text-gray-900">
+                            My Wallet
+                        </h2>
+                        <div className="flex items-center gap-2">
+                            {/* Empty for potential future icons */}
+                        </div>
+                    </div>
+                </header>
       <div className="min-h-screen bg-white text-black">
         {/* Header */}
         <div className="bg-orange-500 text-white p-6">
           <div className="max-w-3xl mx-auto">
-            <h1 className="text-2xl font-bold mb-6">My Wallet</h1>
+          
 
             {/* Total Balance (Sum of all wallets) */}
             <div className="bg-black rounded-xl p-8 text-white">

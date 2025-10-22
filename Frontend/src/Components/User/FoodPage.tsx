@@ -11,6 +11,18 @@ import axios from "axios";
 function FoodSection() {
   const navigate = useNavigate();
 
+  interface IReview {
+    userId: string
+    _id: string;
+    profilePic: string;
+    name: string;
+    reviweIMG: string
+    rating: number;
+    comment: string;
+    totalLike: number;
+    createAt: Date;
+  }
+
   interface hotel {
     _id: string;
     userId: string;
@@ -24,6 +36,8 @@ function FoodSection() {
     };
     city: string;
     phone: string;
+    rating: number;
+    review: IReview[]
     distance?: number;
   }
 
@@ -57,7 +71,7 @@ function FoodSection() {
   ];
 
   const user = useSelector((state: RootState) => state.userProfile);
-  
+
   const calculateDistance = useCallback((lat1: number, lon1: number, lat2: number, lon2: number): number => {
     if (!lat1 || !lon1 || !lat2 || !lon2 ||
       isNaN(lat1) || isNaN(lon1) || isNaN(lat2) || isNaN(lon2) ||
@@ -68,9 +82,8 @@ function FoodSection() {
 
     // Convert degrees to radians
     const toRadians = (degree: number) => degree * (Math.PI / 180);
- 
-    
-    const R = 6371; 
+
+    const R = 6371;
     const dLat = toRadians(lat2 - lat1);
     const dLon = toRadians(lon2 - lon1);
 
@@ -83,6 +96,30 @@ function FoodSection() {
     return R * c;
   }, []);
 
+  const renderStars = (rating: number) => {
+    const fullStars = Math.floor(rating);
+    const hasHalfStar = rating % 1 >= 0.5;
+    const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+
+    return { fullStars, hasHalfStar, emptyStars };
+  };
+
+  const getHotels = async () => {
+    try {
+      const response = await fetchHotelProfiles();
+      if (Array.isArray(response?.hotels)) {
+        setHotels(response.hotels);
+        console.log(response.hotels, 'THIS IS HOTELS');
+      } else if (Array.isArray(response)) {
+        setHotels(response);
+      } else {
+        setHotels([]);
+      }
+    } catch (error) {
+      console.error('Error fetching hotels:', error);
+      setHotels([]);
+    }
+  };
 
   useEffect(() => {
     if (hotels.length === 0) return;
@@ -98,6 +135,7 @@ function FoodSection() {
         hotel.location.locationName.toLowerCase().includes(query)
       );
     }
+
     if (userLocation) {
       result = result.map(hotel => {
         let hotelLat, hotelLon;
@@ -117,11 +155,13 @@ function FoodSection() {
         }
         return { ...hotel, distance: undefined };
       });
+
       if (selectedDistance !== null) {
         result = result.filter(hotel =>
           hotel.distance !== undefined && hotel.distance <= selectedDistance
         );
       }
+
       if (sortByDistance) {
         result.sort((a, b) => {
           if (a.distance === undefined) return 1;
@@ -133,63 +173,50 @@ function FoodSection() {
 
     setFilteredHotels(result);
   }, [hotels, searchQuery, userLocation, sortByDistance, selectedDistance, calculateDistance]);
-  const getHotels = async () => {
-    try {
-      const response = await fetchHotelProfiles();
-      if (Array.isArray(response?.hotels)) {
-        setHotels(response.hotels);
-      } else if (Array.isArray(response)) {
-        setHotels(response);
-      } else {
-        setHotels([]);
-      }
-    } catch (error) {
-      setHotels([]);
-    }
-  };
 
- // Get user's current location
-useEffect(() => {
-  setLocationLoading(true);
+  // Get user's current location
+  useEffect(() => {
+    setLocationLoading(true);
 
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const { latitude, longitude } = pos.coords;
-        setUserLocation({
-          lat: latitude,
-          lon: longitude
-        });
-        setLocationLoading(false);
-      },
-      async (error) => { 
-        setLocationError("Unable to get your location. Using default sorting." + error);
-        setLocationLoading(false);
-
-        // Fallback: Try to get location from IP
-        try {
-          const res = await axios.get("https://apiip.net/api/check", {
-            params: { accessKey: "81b33d70-9882-48f9-af27-15d9a757c561" }
-          });
-          
-          const data = res.data; 
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const { latitude, longitude } = pos.coords;
           setUserLocation({
-            lat: data.latitude, 
-            lon: data.longitude,
-            city: data.city,
-            region: data.region,
-            country: data.country_name
+            lat: latitude,
+            lon: longitude
           });
-        } catch (ipError) {
-        }
-      },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 600000 }
-    );
-  } else {
-    setLocationError("Geolocation is not supported by this browser.");
-    setLocationLoading(false);
-  }
-}, []);
+          setLocationLoading(false);
+        },
+        async (error) => {
+          setLocationError("Unable to get your location. Using default sorting. " + error.message);
+          setLocationLoading(false);
+
+          // Fallback: Try to get location from IP
+          try {
+            const res = await axios.get("https://apiip.net/api/check", {
+              params: { accessKey: "81b33d70-9882-48f9-af27-15d9a757c561" }
+            });
+
+            const data = res.data;
+            setUserLocation({
+              lat: data.latitude,
+              lon: data.longitude,
+              city: data.city,
+              region: data.region,
+              country: data.country_name
+            });
+          } catch (ipError) {
+            console.error('IP location error:', ipError);
+          }
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 600000 }
+      );
+    } else {
+      setLocationError("Geolocation is not supported by this browser.");
+      setLocationLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     if (user) {
@@ -257,6 +284,7 @@ useEffect(() => {
     setSelectedDistance(null);
     setSortByDistance(true);
   };
+
   const getFilteredCount = () => {
     return filteredHotels.length;
   };
@@ -432,8 +460,8 @@ useEffect(() => {
                   <button
                     onClick={() => setSortByDistance(!sortByDistance)}
                     className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${sortByDistance
-                        ? 'bg-amber-500 text-white'
-                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                      ? 'bg-amber-500 text-white'
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                       }`}
                   >
                     Distance {sortByDistance ? '✓' : ''}
@@ -468,86 +496,123 @@ useEffect(() => {
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8"
             variants={containerVariants}
           >
-            {filteredHotels.map((item, index) => (
-              <motion.div
-                key={item._id || index}
-                variants={cardVariants}
-                initial="hidden"
-                animate="visible"
-                whileHover="hover"
-                viewport={{ once: true, margin: "-50px" }}
-                className="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 border border-gray-100"
-              >
-                <div className="relative overflow-hidden">
-                  <motion.img
-                    src={item.profilepic || "https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"}
-                    alt={item.name}
-                    className="w-full h-52 sm:h-56 object-cover"
-                    whileHover={{ scale: 1.05 }}
-                    transition={{ duration: 0.4, ease: "easeOut" }}
-                  />
-                  <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/70 to-transparent p-4">
-                    <p className="text-amber-300 text-sm">{item.city}</p>
-                    {item.distance !== undefined && userLocation && (
-                      <div className="flex items-center mt-1">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-white mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                        </svg>
-                        <p className="text-white text-xs">
-                          {item.distance < 1
-                            ? `${(item.distance * 1000).toFixed(0)}m away`
-                            : `${item.distance.toFixed(1)}km away`
-                          }
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </div>
+            {filteredHotels.map((item, index) => {
+              const { fullStars, hasHalfStar, emptyStars } = renderStars(item.rating);
 
-                <div className="p-5">
-                  <h4 className="text-lg font-semibold text-black truncate">{item.name}</h4>
-                  <div className="flex items-center justify-between mb-3">
-                    <div onClick={() => navigate(`/rating/${item.userId}`)} className="flex items-center">
-                      {[...Array(5)].map((_, starIndex) => (
-                        <motion.svg
-                          key={starIndex}
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-4 w-4 sm:h-5 sm:w-5 text-amber-400"
-                          viewBox="0 0 20 20"
-                          fill="currentColor"
-                          whileHover={{ scale: 1.2, rotate: 10 }}
-                          transition={{ duration: 0.2, type: "spring" }}
-                        >
-                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                        </motion.svg>
-                      ))}
-                      <span className="text-xs text-gray-500 ml-1">(120 reviews)</span>
+              return (
+                <motion.div
+                  key={item._id || index}
+                  variants={cardVariants}
+                  initial="hidden"
+                  animate="visible"
+                  whileHover="hover"
+                  viewport={{ once: true, margin: "-50px" }}
+                  className="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 border border-gray-100"
+                >
+                  <div className="relative overflow-hidden">
+                    <motion.img
+                      src={item.profilepic || "https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"}
+                      alt={item.name}
+                      className="w-full h-52 sm:h-56 object-cover"
+                      whileHover={{ scale: 1.05 }}
+                      transition={{ duration: 0.4, ease: "easeOut" }}
+                    />
+                    <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/70 to-transparent p-4">
+                      <p className="text-amber-300 text-sm">{item.city}</p>
+                      {item.distance !== undefined && userLocation && (
+                        <div className="flex items-center mt-1">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-white mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                          </svg>
+                          <p className="text-white text-xs">
+                            {item.distance < 1
+                              ? `${(item.distance * 1000).toFixed(0)}m away`
+                              : `${item.distance.toFixed(1)}km away`
+                            }
+                          </p>
+                        </div>
+                      )}
                     </div>
                   </div>
 
-                  <div className="flex items-center text-sm text-gray-600 mb-4">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    <span className="truncate">{item.location.locationName}</span>
-                  </div>
+                  <div className="p-5">
+                    <h4 className="text-lg font-semibold text-black truncate">{item.name}</h4>
+                    <div className="flex items-center justify-between mb-3">
+                      <div onClick={() => navigate(`/rating/${item.userId}`)} className="flex items-center cursor-pointer gap-1">
+                        <div className="flex items-center">
+                          {[...Array(fullStars)].map((_, idx) => (
+                            <motion.svg
+                              key={`full-${idx}`}
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="h-4 w-4 sm:h-5 sm:w-5 text-amber-400"
+                              viewBox="0 0 20 20"
+                              fill="currentColor"
+                              whileHover={{ scale: 1.2, rotate: 10 }}
+                              transition={{ duration: 0.2, type: "spring" }}
+                            >
+                              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                            </motion.svg>
+                          ))}
 
-                  <motion.button
-                    onClick={() => navigate(`/explore-food/${item.userId}`)}
-                    whileHover={{
-                      scale: 1.03,
-                      boxShadow: "0 10px 25px -5px rgba(245, 158, 11, 0.4)",
-                      transition: { type: "spring", stiffness: 400, damping: 17 }
-                    }}
-                    whileTap={{ scale: 0.97 }}
-                    className="w-full bg-gradient-to-r from-amber-500 to-amber-600 text-white py-3 rounded-xl hover:from-amber-600 hover:to-amber-700 transition-all duration-300 font-medium shadow-md"
-                  >
-                    Explore Foods
-                  </motion.button>
-                </div>
-              </motion.div>
-            ))}
+                          {hasHalfStar && (
+                            <motion.svg
+                              key="half"
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="h-4 w-4 sm:h-5 sm:w-5"
+                              viewBox="0 0 20 20"
+                              whileHover={{ scale: 1.2, rotate: 10 }}
+                              transition={{ duration: 0.2, type: "spring" }}
+                            >
+                              <defs>
+                                <linearGradient id={`half-fill-${item.rating}`}>
+                                  <stop offset="50%" stopColor="#FBBF24" />
+                                  <stop offset="50%" stopColor="#D1D5DB" />
+                                </linearGradient>
+                              </defs>
+                              <path
+                                fill={`url(#half-fill-${item.rating})`}
+                                d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+                              />
+                            </motion.svg>
+                          )}
+
+                          {[...Array(emptyStars)].map((_, idx) => (
+                            <motion.svg
+                              key={`empty-${idx}`}
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="h-4 w-4 sm:h-5 sm:w-5 text-gray-300"
+                              viewBox="0 0 20 20"
+                              fill="CurrentColor"
+                              whileHover={{ scale: 1.2, rotate: 10 }}
+                              transition={{ duration: 0.2, type: "spring" }}
+                            >
+                              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                            </motion.svg>
+                          ))}
+                        </div>
+
+                        <div className="flex items-center gap-1 ml-1">
+                          <span className="text-sm text-gray-600 font-medium">({item.rating.toFixed(1)})</span>
+                          <span className="text-xs text-gray-500">({item.review.length} reviews)</span>
+                        </div>
+                      </div>
+                    </div>
+                    <motion.button
+                      onClick={() => navigate(`/explore-food/${item.userId}`)}
+                      whileHover={{
+                        scale: 1.03,
+                        boxShadow: "0 10px 25px -5px rgba(245, 158, 11, 0.4)",
+                        transition: { type: "spring", stiffness: 400, damping: 17 }
+                      }}
+                      whileTap={{ scale: 0.97 }}
+                      className="w-full bg-gradient-to-r from-amber-500 to-amber-600 text-white py-3 rounded-xl hover:from-amber-600 hover:to-amber-700 transition-all duration-300 font-medium shadow-md"
+                    >
+                      Explore Foods
+                    </motion.button>
+                  </div>
+                </motion.div>
+              );
+            })}
           </motion.div>
 
           {filteredHotels.length === 0 && (

@@ -10,4 +10,7 @@ export interface  IProfileController {
     ratingAndReview(req:Request,res:Response,next:NextFunction):Promise<void>
     likeAndUnlike(req:Request,res:Response,next:NextFunction):Promise<void>
     getWalletBalance(req:Request,res:Response,next:NextFunction):Promise<void>
+    getNotifications(req:Request,res:Response,next:NextFunction):Promise<void>
+    updateReviews(req:Request,res:Response,next:NextFunction):Promise<void>
+    deleteReviews(req:Request,res:Response,next:NextFunction):Promise<void>
 }

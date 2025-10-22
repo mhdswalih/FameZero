@@ -1,5 +1,6 @@
 import { Messages } from "../../constants/Messeges";
 import { IProfileRepositer } from "../../interfaces/user/profile/IProfileRepository";
+import Notifications, { INotification } from "../../models/notification/notificationModel";
 import { User } from "../../models/usermodel/userModel";
 import Profile, { IUserProfile } from "../../models/usermodel/userProfileModel";
 import Wallet, { IWallet } from "../../models/usermodel/walletModel";
@@ -63,5 +64,8 @@ export class ProfileRepository extends BaseRepository<IUserProfile> implements I
 }
 async getWalletBalance(userId: string): Promise<IWallet | null> {
   return await Wallet.findOne({userId : userId})
+}
+async getNotifications(userId: string): Promise<INotification[] | null> {
+  return await Notifications.find({orderId : userId})
 }
 }

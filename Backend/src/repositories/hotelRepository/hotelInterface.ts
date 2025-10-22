@@ -1,3 +1,4 @@
+import { IReview } from "../../models/hotelModel/hotelProfileModel";
 
 
 export interface IHotelFullProfile {
@@ -9,6 +10,8 @@ export interface IHotelFullProfile {
     phone:string;
     location:string;
     city:string;
+    rating:number;
+    review  : IReview[]
     profilepic:string;
     idProof:string;
 }

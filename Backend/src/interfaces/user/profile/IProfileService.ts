@@ -1,4 +1,5 @@
 import { IHotelProfile, IReview } from "../../../models/hotelModel/hotelProfileModel";
+import { INotification } from "../../../models/notification/notificationModel";
 import { IUserProfile } from "../../../models/usermodel/userProfileModel";
 import { IWallet } from "../../../models/usermodel/walletModel";
 import { IHotelFullProfile } from "../../../repositories/hotelRepository/hotelInterface";
@@ -13,4 +14,7 @@ export interface IProfileService {
    ratingAndReview(hotelId:string,review:IReview[]):Promise<IHotelProfile | undefined>
    likeAndUnlike(reviewId:string,userId:string,hotelId:string):Promise<{status:number,message:string}>
    getWalletBalance(userId:string):Promise<IWallet | null>
+   getNotifications(userId:string):Promise<INotification[] | null>
+   updateReviews(reviewId:string,hotelId:string,updateReviews:IReview[]):Promise<IReview | null> 
+   deleteReviews(reviewId:string,hotelId:string):Promise<{status : number,message :string}>
 }

@@ -18,6 +18,8 @@ export interface IProfileHotelRepositer extends IBaseRepository<IHotelProfile> {
      updatedOrderStatus(orderId:string,orderStatus:string):Promise<string | null>
      deleteProduct(productId:string):Promise<boolean | null>
      updateProducts(updatedProduct:IProductsDetails,productId:string,hotelId:string):Promise<Object | null>
+     updateRreviews(reviewId :string,hotelId:string,updateReviews:IReview[]):Promise<void>
+     deleteReviews(reviewId:string,hotelId:string):Promise<IReview[] | null>
 }
 
 

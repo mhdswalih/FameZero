@@ -162,10 +162,10 @@ const ProfilePage = () => {
   return (
     <>
     <UserCombinedLayout>
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen overflow-auto bg-gray-50">
       <div className="flex-1">
         <header className="bg-white shadow-sm border-b border-gray-100 px-4 sm:px-6">
-          <div className="flex items-center justify-between h-16">
+          <div className="flex items-center justify-between h-19.5 py-4">
             <h2 className="text-lg font-semibold text-gray-900">Profile</h2>
             <div className="flex items-center gap-2 rounded-full py-1 pr-3 pl-1">
               <img
