@@ -1,12 +1,16 @@
+// AdminAuth.tsx
 import { Routes, Route, Navigate } from 'react-router-dom';
-import AdminHomePage from '../Components/Admin/AdminHomePage';
-import UserTable from '../Components/Admin/tables/Users';
-import HotelsTable from '../Components/Admin/tables/Hotels&Resorts';
-import AdminLogin from '../Components/Admin/AdminLogin'; 
 import { useSelector } from 'react-redux';
 import { RootState } from '../Redux/store';
-import { ReactElement } from 'react';
-import DashBoard from '../Components/Admin/Pages/DashBoard';
+import { ReactElement, lazy, Suspense } from 'react';
+import Loader from '../Components/ui/Loader';
+
+// Lazy loaded components
+const AdminHomePage = lazy(() => import('../Components/Admin/AdminHomePage'));
+const UserTable = lazy(() => import('../Components/Admin/tables/Users'));
+const HotelsTable = lazy(() => import('../Components/Admin/tables/Hotels&Resorts'));
+const AdminLogin = lazy(() => import('../Components/Admin/AdminLogin'));
+const DashBoard = lazy(() => import('../Components/Admin/Pages/DashBoard'));
 
 const AdminAuth = () => {
   const ProtectedRouteAdmin = ({children} : {children: ReactElement}) => {
@@ -22,39 +26,35 @@ const AdminAuth = () => {
   }
 
   return (
-    <Routes>
-      {/* Public Routes */}
-      <Route path="/login" element={
-        <PublicRouteAdmin>
-          <AdminLogin />
-        </PublicRouteAdmin>
-      } />
-
-      {/* Protected Routes */}
-      <Route path="/" element={
-        <ProtectedRouteAdmin>
-          <AdminHomePage />
-        </ProtectedRouteAdmin>
-      } />
-      <Route path='/dashboard' element={
-        <ProtectedRouteAdmin>
-          <DashBoard />
-        </ProtectedRouteAdmin>
-      } />
-      <Route path="/user-table" element={
-        <ProtectedRouteAdmin>
-          <UserTable />
-        </ProtectedRouteAdmin>
-      } />
-      <Route path="/hotels-table" element={
-        <ProtectedRouteAdmin>
-          <HotelsTable />
-        </ProtectedRouteAdmin>
-      } />
-
-      {/* Catch all route */}
-      {/* <Route path="*" element={<Navigate to="" replace />} /> */}
-    </Routes>
+    <Suspense fallback={<Loader />}>
+      <Routes>
+        <Route path="/login" element={
+          <PublicRouteAdmin>
+            <AdminLogin />
+          </PublicRouteAdmin>
+        } />
+        <Route path="/" element={
+          <ProtectedRouteAdmin>
+            <AdminHomePage />
+          </ProtectedRouteAdmin>
+        } />
+        <Route path='/dashboard' element={
+          <ProtectedRouteAdmin>
+            <DashBoard />
+          </ProtectedRouteAdmin>
+        } />
+        <Route path="/user-table" element={
+          <ProtectedRouteAdmin>
+            <UserTable />
+          </ProtectedRouteAdmin>
+        } />
+        <Route path="/hotels-table" element={
+          <ProtectedRouteAdmin>
+            <HotelsTable />
+          </ProtectedRouteAdmin>
+        } />
+      </Routes>
+    </Suspense>
   );
 };
 

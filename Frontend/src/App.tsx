@@ -1,11 +1,13 @@
+// App.tsx
 import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import { Toaster } from 'react-hot-toast';
-import AuthRoutes from "./Routes/AuthRoutes";
-import { lazy, Suspense } from "react";
+import { Suspense, lazy } from "react";
 import Loader from "./Components/ui/Loader";
-import AdminAuth from "./Routes/AdminAuth";
-import HotelAuth from "./Routes/HotelAuth";
-const UserRoutes = lazy(() => import("./Routes/UserRoutes"));
+
+// Lazy loaded routes
+const AuthRoutes = lazy(() => import("./Routes/AuthRoutes"));
+const AdminAuth = lazy(() => import("./Routes/AdminAuth"));
+const HotelAuth = lazy(() => import("./Routes/HotelAuth"));
 
 function App() {
   return (
@@ -17,8 +19,6 @@ function App() {
       <Router>
         <Suspense fallback={<Loader />}>
           <Routes>
-            
-            <Route path="/user/*" element={<UserRoutes />} />
             <Route path="/hotel/*" element={<HotelAuth />} />
             <Route path="/admin/*" element={<AdminAuth />} />
             <Route path="/*" element={<AuthRoutes />} />
