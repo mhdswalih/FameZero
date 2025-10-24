@@ -1,9 +1,10 @@
+// Utils/socket-service.ts
 import io, { Socket } from 'socket.io-client';
 
 interface SocketOptions {
   role: 'admin' | 'hotel' | 'user';
   token: string | null;
-  id: string; // Make this required
+  id: string;
 }
 
 class SocketService {
@@ -30,9 +31,8 @@ class SocketService {
 
     this.currentRole = options.role;
     this.token = options.token;
-    this.id = options.id; // Store the ID
+    this.id = options.id;
 
-    // Validate required fields based on role
     if (options.role === 'user' && !options.id) {
       console.error("❌ User ID is required for user role");
       return;
@@ -40,7 +40,6 @@ class SocketService {
 
     if(this.token === null){
       console.log("token null");
-      
     }
 
     if (options.role === 'hotel' && !options.id) {
@@ -60,7 +59,7 @@ class SocketService {
       auth: {
         role: options.role,
         token: options.token,
-        id: options.id // ✅ CRITICAL: Include ID in auth
+        id: options.id
       }
     });
 
@@ -108,7 +107,6 @@ class SocketService {
         this.joinHotelRoom(this.id);
         break;
       case 'admin':
-        // Admin might join admin room or specific rooms
         this.socket.emit('join-admin-room');
         break;
     }
@@ -143,8 +141,6 @@ class SocketService {
         console.log('✅ User ID confirmed:', data.userId);
       }
     });
-  
-    
   }
 
   public disconnect(): void {

@@ -1,4 +1,5 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback,lazy, Suspense  } from 'react';
+import Loader from '../../Components/ui/Loader';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import {
@@ -19,7 +20,7 @@ import { addHotelProfile, removeHotelProfile } from '../../Redux/Slice/ProfileSl
 import { VerifiedIcon, InfoIcon } from 'lucide-react';
 import SocketService from '../../Utils/socket-service';
 import ProductModal from '../Modals/Hotel/Products/ProductModal';
-import HotelCombinedLayout from '../HotelNav&Footer/Sidebar';
+const HotelCombinedLayout = lazy(() => import('../HotelNav&Footer/Sidebar'));
 
 interface HotelProfile {
   _id: string;
@@ -223,6 +224,7 @@ const HotelProfilePage = () => {
 
   return (
     <>
+      <Suspense fallback={<Loader />}>
     <HotelCombinedLayout>
     <div className="min-h-screen bg-gray-50 flex">
       {/* Overlay for mobile sidebar */}
@@ -459,6 +461,7 @@ const HotelProfilePage = () => {
       />
     </div>
     </HotelCombinedLayout>
+    </Suspense>
         </>
   );
 };

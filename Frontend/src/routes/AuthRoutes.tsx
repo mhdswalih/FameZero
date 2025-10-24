@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux'
 import { RootState } from '../Redux/store'
 import { ReactElement, lazy, Suspense } from "react"
 import Loader from '../Components/ui/Loader'
+import { NotificationProvider } from '../Notifications/NotificationListner'
 
 // Lazy loaded components
 const Landing = lazy(() => import('../Components/Landing/Landing'))
@@ -38,8 +39,8 @@ const PublicRoute = ({ children }: { children: ReactElement }) => {
 
 const AuthRoutes = () => {
   return (
-    <Suspense fallback={<Loader />}>
-
+    <NotificationProvider>
+      <Suspense fallback={<Loader />}>
         <Routes>
           <Route path='/' element={<Landing />} />
           <Route path='signup' element={
@@ -75,7 +76,8 @@ const AuthRoutes = () => {
             </PublicRoute>
           } />
         </Routes>
-    </Suspense>
+      </Suspense>
+    </NotificationProvider>
   );
 }
 

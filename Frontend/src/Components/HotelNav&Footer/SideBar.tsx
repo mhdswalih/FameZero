@@ -1,3 +1,4 @@
+// HotelNav&Footer/Sidebar.tsx
 import { useState } from 'react';
 import {  Menu, X, ChevronDown, LogOut, Settings, User, ListOrderedIcon, InboxIcon } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';

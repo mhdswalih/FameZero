@@ -1,13 +1,14 @@
 import { Bell, RefreshCcw,  Trash } from "lucide-react";
+import {useState,lazy, Suspense  } from 'react';
+import Loader from '../../Components/ui/Loader';
 import { motion } from 'framer-motion';
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
 import ChangePasswordModal from "../Modals/User/PasswordChangeModal/PasswordChangeModal";
 import toast from "react-hot-toast";
 import { changePassword } from "../../Api/hotelApiCalls/hotelProfileApi";
 import { useSelector } from "react-redux";
 import { RootState } from "../../Redux/store";
-import HotelCombinedLayout from "../HotelNav&Footer/Sidebar";
+const HotelCombinedLayout = lazy(() => import('../HotelNav&Footer/Sidebar'));
 
 const HotelSettings = () => {
     const navigate = useNavigate();
@@ -47,6 +48,7 @@ const HotelSettings = () => {
     ];
     return (
         <>
+          <Suspense fallback={<Loader />}>
         <HotelCombinedLayout>
 
         <div className="min-h-screen bg-gray-50">
@@ -119,6 +121,7 @@ const HotelSettings = () => {
             />
         </div>
         </HotelCombinedLayout>
+        </Suspense>
         </>
     );
 };

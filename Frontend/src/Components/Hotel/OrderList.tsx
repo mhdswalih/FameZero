@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState,lazy, Suspense  } from 'react';
+import Loader from '../../Components/ui/Loader';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Clock,
@@ -23,8 +24,8 @@ import { getOrdersList, updateOrderStatus } from '../../Api/hotelApiCalls/hotelP
 import { IOrderResponse } from '../../Types/IOrderList';
 import PreviewModal from '../Modals/User/PreviewModal';
 import toast from 'react-hot-toast';
-import HotelCombinedLayout from '../HotelNav&Footer/Sidebar';
 import { useNavigate } from 'react-router-dom';
+const HotelCombinedLayout = lazy(() => import('../HotelNav&Footer/Sidebar'));
 interface OrderProduct {
   productId: string;
   category: string;
@@ -153,6 +154,7 @@ const OrderList = () => {
 
   return (
     <>
+      <Suspense fallback={<Loader />}>
       <HotelCombinedLayout>
         <header className="bg-white border-t border-orange-400  flex-shrink-0 shadow-sm border-b  px-4 sm:px-6 sticky top-0 z-10">
           <div className="flex items-center justify-between h-19.5">
@@ -452,6 +454,7 @@ const OrderList = () => {
           </div>
         </div>
       </HotelCombinedLayout>
+      </Suspense>
     </>
   );
 };
