@@ -5,9 +5,9 @@ import { Suspense, lazy } from "react";
 import Loader from "./Components/ui/Loader";
 
 // Lazy loaded routes
-const AuthRoutes = lazy(() => import("./Routes/AuthRoutes"));
-const AdminAuth = lazy(() => import("./Routes/AdminAuth"));
-const HotelAuth = lazy(() => import("./Routes/HotelAuth"));
+const AuthRoutes = lazy(() => import("./Routes/AuthRoutes.tsx"));
+const AdminAuth = lazy(() => import("./Routes/AdminAuth.tsx"));
+const HotelAuth = lazy(() => import("./Routes/HotelAuth.tsx"));
 
 function App() {
   return (

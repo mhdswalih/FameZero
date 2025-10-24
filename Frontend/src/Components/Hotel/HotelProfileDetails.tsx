@@ -18,7 +18,7 @@ import { addProducts, editHotelProfile, getHotels, reRequstOption } from '../../
 import HotelEditModal from '../Modals/Hotel/HotelEditModal';
 import { addHotelProfile, removeHotelProfile } from '../../Redux/Slice/ProfileSlice/hotelProfileSlice';
 import { VerifiedIcon, InfoIcon } from 'lucide-react';
-import SocketService from '../../Utils/socket-service';
+import SocketService from '../../Utils/socket-service'
 import ProductModal from '../Modals/Hotel/Products/ProductModal';
 const HotelCombinedLayout = lazy(() => import('../HotelNav&Footer/Sidebar'));
 

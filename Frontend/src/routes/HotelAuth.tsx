@@ -1,4 +1,4 @@
-// HotelAuth.tsx
+// Routes/HotelAuth.tsx
 import { Routes, Route } from 'react-router-dom'
 import { lazy, Suspense } from 'react'
 import Loader from '../Components/ui/Loader'
@@ -20,8 +20,9 @@ const HotelAuth = () => (
       <Route path='/settings' element={<Settings/>} />
       <Route path='/order-page' element={<OrderList />} />
       <Route path='/add-food' element={<AddFood />} />
+ 
     </Routes>
   </Suspense>
 )
 
-export default HotelAuth
+export default HotelAuth;

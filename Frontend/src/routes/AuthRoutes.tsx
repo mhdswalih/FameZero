@@ -1,4 +1,4 @@
-// AuthRoutes.tsx
+// Routes/AuthRoutes.tsx
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import { RootState } from '../Redux/store'
@@ -22,8 +22,8 @@ const CheckOutPage = lazy(() => import('../Components/User/CheckOutPage'))
 const OrderHistoryPage = lazy(() => import('../Components/User/OrderHistoryPage'))
 const InvoiceGenerator = lazy(() => import('../Components/User/InvoiceGenarator'))
 const RatingAndReview = lazy(() => import('../Components/User/RatingAndReview'))
-const Wallet = lazy(() => import('../../src/Components/User/Wallet'))
-const Inbox = lazy(() => import('../../src/Components/User/Inbox'))
+const Wallet = lazy(() => import('../Components/User/Wallet'))
+const Inbox = lazy(() => import('../Components/User/Inbox'))
 
 const ProtectedRoute = ({ children }: { children:ReactElement }) => {
   const user = useSelector((state: RootState) => state.user);
@@ -81,4 +81,4 @@ const AuthRoutes = () => {
   );
 }
 
-export default AuthRoutes
+export default AuthRoutes;

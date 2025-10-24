@@ -1,4 +1,4 @@
-// AdminAuth.tsx
+// Routes/AdminAuth.tsx
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { RootState } from '../Redux/store';
