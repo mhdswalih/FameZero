@@ -25,7 +25,7 @@ import { IOrderResponse } from '../../Types/IOrderList';
 import PreviewModal from '../Modals/User/PreviewModal';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
-const HotelCombinedLayout = lazy(() => import('../HotelNav&Footer/Sidebar'));
+const HotelCombinedLayout = lazy(() => import('../HotelNav&Footer/Sidebar.tsx'));
 interface OrderProduct {
   productId: string;
   category: string;

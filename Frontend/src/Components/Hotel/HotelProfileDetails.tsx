@@ -20,7 +20,7 @@ import { addHotelProfile, removeHotelProfile } from '../../Redux/Slice/ProfileSl
 import { VerifiedIcon, InfoIcon } from 'lucide-react';
 import SocketService from '../../utils/socket-service'
 import ProductModal from '../Modals/Hotel/Products/ProductModal';
-const HotelCombinedLayout = lazy(() => import('../HotelNav&Footer/Sidebar'));
+const HotelCombinedLayout = lazy(() => import('../HotelNav&Footer/Sidebar.tsx'));
 
 interface HotelProfile {
   _id: string;
