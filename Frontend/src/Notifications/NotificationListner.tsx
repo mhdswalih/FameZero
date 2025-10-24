@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, ReactNode } from "react";
 import { toast } from "react-hot-toast";
-import SocketService from "../Utils/socket-service";
+import SocketService from "../utils/socket-service";
 import { useSelector } from "react-redux";
 import { RootState } from "../Redux/store";
 

@@ -11,7 +11,7 @@ import UserEditModal from '../Modals/User/UserEditModal';
 import { getUserDetails, updateUser } from '../../Api/userApiCalls/profileApi';
 import { logoutUser } from '../../Api/userApiCalls/userApi';
 import PreviewModal from '../Modals/User/PreviewModal';
-import { checkGender } from '../../Utils/genderApi';
+import { checkGender } from '../../utils/genderApi';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import UserCombinedLayout from '../UserNav&Footer/SideBar';
 

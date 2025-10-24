@@ -8,7 +8,7 @@ import {
   unBlockHotel,
 } from '../../../Api/adminApiCalls/adminApi';
 import toast from 'react-hot-toast';
-import SocketService from '../../../Utils/socket-service';
+import SocketService from '../../../utils/socket-service';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../Redux/store';
 import CombinedLayout from '../sidesheet/AdminSideSheet';

@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { isDeepEqual } from '../../../Utils/is-equal';
+import { isDeepEqual } from '../../../utils/is-equal';
 import {
   Building2, Phone, MapPin, Save, X, Camera, Image, FileText, Hotel,
   Mail

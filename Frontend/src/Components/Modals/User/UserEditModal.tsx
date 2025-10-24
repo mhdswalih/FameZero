@@ -5,7 +5,7 @@ import {
   Mail,
 } from 'lucide-react';
 import React, { useState } from 'react';
-import { isDeepEqual } from '../../../Utils/is-equal';
+import { isDeepEqual } from '../../../utils/is-equal';
 import toast from 'react-hot-toast';
 import { isEmailVerified, verifyEmailOtp } from '../../../Api/userApiCalls/userApi';
 import { useSelector } from 'react-redux';
