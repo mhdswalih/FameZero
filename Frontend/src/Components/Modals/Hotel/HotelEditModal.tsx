@@ -60,7 +60,7 @@ const HotelEditModal = ({
   const [idProofPreviewUrl, setIdProofPreviewUrl] = useState<string>('');
   const [suggestions, setSuggestions] = useState<any[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [userLocation, setuserLocation] = useState<UserLocation>()
+  const [_userLocation, setuserLocation] = useState<UserLocation>()
   const hotel = useSelector((state: RootState) => state.user);
   const [formData, setFormData] = useState({
     emailVerificationCode: '',

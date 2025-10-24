@@ -2,7 +2,7 @@ import React, { useState, createContext, useContext, useEffect } from "react";
 import { motion, AnimatePresence, useScroll, useMotionValueEvent } from "framer-motion";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { HeartIcon, Menu, ShoppingCartIcon, Wallet, X } from "lucide-react";
+import { Menu, ShoppingCartIcon, Wallet, X } from "lucide-react";
 import { MenuItem, Avatar, Button, Typography } from "@material-tailwind/react";
 import { UserCircleIcon, Cog6ToothIcon, InboxArrowDownIcon, LifebuoyIcon, PowerIcon } from "@heroicons/react/24/solid";
 import { RootState } from "../../Redux/store";

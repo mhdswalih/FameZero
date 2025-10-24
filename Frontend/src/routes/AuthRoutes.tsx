@@ -13,7 +13,6 @@ import UserSettings from '../Components/User/Settings'
 import ResetPassword from '../Components/ForgetPassword/ResetPassword'
 import ProductPage from '../Components/User/HotelsDetailsPage'
 import CartPage from '../Components/User/CartPage'
-import WishListPage from '../Components/User/WishList'
 import CheckOutPage from '../Components/User/CheckOutPage'
 import OrderHistoryPage from '../Components/User/OrderHistoryPage'
 import InvoiceGenerator from '../Components/User/InvoiceGenarator'
@@ -57,7 +56,6 @@ const AuthRoutes = () => {
         <Route path='settings' element={<UserSettings />}/> 
         <Route path='reset-password' element={<ResetPassword />} />   
         <Route path='/cart' element={<CartPage />} />
-        <Route path='/wishlist' element={<WishListPage />} /> 
         <Route path='/checkout' element={<CheckOutPage />} />
         <Route path='/order-history' element={<OrderHistoryPage />} />
         <Route path='/get-invoice/:orderId' element={<InvoiceGenerator />} />

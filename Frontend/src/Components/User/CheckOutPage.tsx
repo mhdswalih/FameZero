@@ -506,7 +506,7 @@ const CheckOutPage = () => {
                                     }}
                                     disabled={isPending || !user.name || 
                                         (selectedDeliveryOption === "delivery" && !user.address)}
-                                    createOrder={async (data, actions) => {
+                                    createOrder={async (_data, actions) => {
                                         try {
                                             const orderResponse = await createOrder(
                                                 userId,

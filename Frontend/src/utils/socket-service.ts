@@ -38,6 +38,11 @@ class SocketService {
       return;
     }
 
+    if(this.token === null){
+      console.log("token null");
+      
+    }
+
     if (options.role === 'hotel' && !options.id) {
       console.error("❌ Hotel ID is required for hotel role");
       return;

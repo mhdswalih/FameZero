@@ -6,7 +6,6 @@ import {
   Settings, Bell, Shield, LogOut, Mail,
   TimerIcon,
   RefreshCcwIcon,
-  PlusSquareIcon,
   Plus,
  
 } from 'lucide-react';

@@ -126,7 +126,7 @@ const OrderHistoryPage = () => {
 
   const handleCanceOrder = async (orderId: string) => {
     try {
-      const response = await cancelOrder(orderId, userId)
+       await cancelOrder(orderId, userId)
       toast.success('asdasdasd')
     } catch (error) {
 

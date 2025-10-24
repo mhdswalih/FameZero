@@ -1,7 +1,6 @@
 export const getCustomResponse = (userText: string): string | null => {
   const lowerText = userText.toLowerCase().trim();
-  const upperText = userText.toUpperCase();
-  const mixedText = userText.charAt(0).toUpperCase() + userText.slice(1).toLowerCase();
+
 
   // Flame Zero branding - Greetings
   if (lowerText.includes('hello') || lowerText.includes('hi') || lowerText.includes('hey')) {

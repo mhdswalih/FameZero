@@ -162,7 +162,6 @@ const PhoneAuthModal = ({ isOpen, onClose }: PhoneAuthModalProps) => {
 
       onClose();
     } catch (error: any) {
-      console.error("Registration error:", error);
       toast.error(`Registration failed: ${error.message}`);
     } finally {
       setIsLoading(false);
@@ -211,11 +210,11 @@ const PhoneAuthModal = ({ isOpen, onClose }: PhoneAuthModalProps) => {
                 <div>
                   <label className="block text-sm text-gray-600 mb-1">Phone Number</label>
                   <div className="flex border border-gray-300 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-orange-400 focus-within:border-transparent transition-all">
-                    <span className="bg-gray-100 px-3 py-2">+</span>
+                    <span className="bg-gray-100 px-3 py-2">+91</span>
                     <input
                       type="tel"
                       value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
+                      onChange={(e) => setPhone('91'+ e.target.value)}
                       placeholder="1234567890"
                       className="flex-1 px-3 py-2 outline-none"
                       maxLength={15}

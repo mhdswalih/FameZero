@@ -1,6 +1,5 @@
 import React from "react";
 import { Typography } from "@material-tailwind/react";
-import footer_logo  from "../../img/Screenshot 2025-04-26 144600.png"
 
 interface FooterWithLogoProps {
   // You can add any props here if needed

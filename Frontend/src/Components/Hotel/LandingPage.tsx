@@ -1,13 +1,12 @@
 import { useState, useEffect } from 'react';
-import { ChefHat, Clock, Star, MapPin, Phone, Mail, ArrowRight, Menu, X } from 'lucide-react';
+import { ChefHat, Clock, Star, MapPin, Phone,  ArrowRight,} from 'lucide-react';
 import NavBar from '../HotelNav&Footer/NavBar';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../Redux/store';
 import { useNavigate } from 'react-router-dom';
 
 export default function RestaurantLanding() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [scrollY, setScrollY] = useState(0);
+  const [_scrollY, setScrollY] = useState(0);
   const navigate = useNavigate()
  const user = useSelector((state:RootState) => state.user)
   useEffect(() => {

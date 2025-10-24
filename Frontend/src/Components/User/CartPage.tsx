@@ -20,7 +20,7 @@ const CartPage = () => {
         cartQuantity: number;
     }
     const [cartItems, setCartItems] = useState<IProductsDetails[]>([])
-    const [cartQuantity, setCartQuantity] = useState(0)
+    const [_cartQuantity, setCartQuantity] = useState(0)
     const userId = useSelector((state: RootState) => state.userProfile._id)
 
     const handleFetchCartItems = async () => {

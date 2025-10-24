@@ -1,5 +1,5 @@
 import { AnimatePresence, useMotionValueEvent, useScroll } from "framer-motion";
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { RootState } from "../../Redux/store";
@@ -36,7 +36,7 @@ const NavBar = () => {
   
   const user = useSelector((state:RootState)=> state.user)
   const hotelprofile = useSelector((state:RootState)=> state.hotelProfile)
-  const [hotelProfile, setHotelProfile] = useState<HotelProfile>({
+  const [ _hotelProfile, setHotelProfile] = useState<HotelProfile>({
     _id:'',
     name: '',
     profilepic: "",

@@ -1,8 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Building, User, FileText, Phone, Mail, Download, Printer } from 'lucide-react';
 import { useParams } from 'react-router-dom';
 import { fetchOrderDetails } from '../../Api/userApiCalls/productApi';
-import { IOrderHistory } from './OrderHistoryPage';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../Redux/store';
 

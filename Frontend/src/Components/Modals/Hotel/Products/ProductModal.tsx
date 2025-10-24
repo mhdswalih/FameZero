@@ -26,7 +26,6 @@ const ProductModal = ({
     isProductModalOpen,
     setIsProductModalOpen,
     products,
-    setProducts,
     handleSaveProducts,
     isSubmitting = false
 }: ProductModalProps) => {

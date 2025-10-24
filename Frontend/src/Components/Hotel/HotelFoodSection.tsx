@@ -42,9 +42,7 @@ function HotelFoodSections() {
   },[])
   const { scrollYProgress } = useScroll();
 
-  const handleAddClick = () => {
-    
-  };
+ 
   
   return (
     <>

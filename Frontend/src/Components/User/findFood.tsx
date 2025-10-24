@@ -1,6 +1,5 @@
-import React from "react";
 import { motion, useScroll } from "framer-motion";
-import { ArrowBigLeft, ArrowBigRight } from "lucide-react";
+import {  ArrowBigRight } from "lucide-react";
 
 const CircleIndicator = () => {
   const { scrollYProgress } = useScroll();
