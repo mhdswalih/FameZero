@@ -19,7 +19,7 @@ import {
   Search,
   Filter
 } from 'lucide-react';
-import NavBar from '../HotelNav&Footer/NavBar';
+import NavBar from '../HotelNavAndFooter/NavBar';
 import { addProducts, deleteProducts, editProducts, getAllMenuList } from '../../Api/hotelApiCalls/hotelProfileApi';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../Redux/store';

@@ -1,6 +1,6 @@
 import {  motion, useScroll } from "framer-motion";
 import { useNavigate } from "react-router-dom"; 
-import Navbar from "../HotelNav&Footer/NavBar";
+import Navbar from "../HotelNavAndFooter/NavBar";
 import { useEffect, useState } from "react";
 import { fetchHotelProfiles } from "../../Api/userApiCalls/profileApi";
 import {} from 'react-icons'

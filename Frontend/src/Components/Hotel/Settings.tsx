@@ -8,7 +8,7 @@ import toast from "react-hot-toast";
 import { changePassword } from "../../Api/hotelApiCalls/hotelProfileApi";
 import { useSelector } from "react-redux";
 import { RootState } from "../../Redux/store";
-const HotelCombinedLayout = lazy(() => import('../HotelNav&Footer/Sidebar.tsx'));
+const HotelCombinedLayout = lazy(() => import('../HotelNavAndFooter/Sidebar'));
 
 const HotelSettings = () => {
     const navigate = useNavigate();

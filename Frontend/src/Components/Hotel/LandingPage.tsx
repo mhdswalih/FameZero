@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { ChefHat, Clock, Star, MapPin, Phone,  ArrowRight,} from 'lucide-react';
-import NavBar from '../HotelNav&Footer/NavBar';
+import NavBar from '../HotelNavAndFooter/NavBar';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../Redux/store';
 import { useNavigate } from 'react-router-dom';
