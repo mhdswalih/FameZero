@@ -287,8 +287,11 @@ const ProfileSheet = () => {
             size="lg"
             alt="User Avatar"
             className="border-2 border-gray-900 w-12 h-12 rounded-full object-cover"
-             onClick={() => setPreviewModal(true) }
+            onClick={() => setPreviewModal(true)}
             src={userprofile.profilepic || 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1480&q=80'}
+            placeholder={undefined}
+            onPointerEnterCapture={undefined}
+            onPointerLeaveCapture={undefined}
           />
           <div>
             <Typography variant="h6" className="font-semibold">
@@ -331,6 +334,9 @@ const ProfileSheet = () => {
                 <MenuItem
                   onClick={onClick}
                   className={`flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors duration-200 w-full text-left `}
+                  placeholder={undefined}
+                  onPointerEnterCapture={undefined}
+                  onPointerLeaveCapture={undefined}
                 >
                   <Icon className={`h-5 w-5 ${color || 'text-gray-700'}`} />
                   <Typography as="span" variant="small" className={`${color || 'text-gray-700'}`}>
@@ -476,8 +482,11 @@ const Navbar = () => {
                 variant="text"
                 className="focus:outline-none"
                 aria-label="Log in"
+                placeholder={undefined}
+                onPointerEnterCapture={undefined}
+                onPointerLeaveCapture={undefined}
               >
-                <span>Log In</span>
+                <span className="text-black">Log In</span>
               </Button>
             )}
             <ProfileSheet />

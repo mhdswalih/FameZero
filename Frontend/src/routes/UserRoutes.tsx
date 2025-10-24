@@ -1,6 +1,5 @@
-import { Routes,Route } from 'react-router-dom'
-import ProfilePage from '../Components/User/ProfileDetailPage'
-import NewspaperPage from '../Components/User/AboutPage'
+import { Routes } from 'react-router-dom'
+
 
 const UserRoutes = () => {
   return (

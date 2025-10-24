@@ -148,6 +148,9 @@ const NavBar = () => {
                 variant="text"
                 className="focus:outline-none"
                 aria-label="Log in"
+                placeholder={undefined}
+                onPointerEnterCapture={undefined}
+                onPointerLeaveCapture={undefined}
               >
                 <span>Log In</span>
               </Button>
