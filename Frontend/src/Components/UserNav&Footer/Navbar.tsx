@@ -255,7 +255,6 @@ const ProfileSheet = () => {
   }, [user.id])
 
 
-
   return (
     <Sheet>
       <SheetTrigger>

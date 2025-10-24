@@ -26,20 +26,44 @@ export class adminController implements IAdminController {
     }
     async getAllUsers(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
-            const users = await this._AdminService.getAllUsers()
-            res.status(HttpStatus.OK).json({ success: true, data: users })
+            const page = parseInt(req.query.page as string) || 1;
+            const limit = parseInt(req.query.limit as string) || 10;
+            const search = req.query.search as string || ""
+            const usersData = await this._AdminService.getAllUsers(page, limit,search);
+
+            res.status(200).json({
+                success: true,
+                data: usersData.users,
+                totalPages: usersData.totalPages,
+                currentPage: usersData.currentPage
+            });
         } catch (error) {
-            next(error)
+            next(error);
         }
     }
+
     async getAllHotels(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
-            const hotels = await this._AdminService.getAllHotels()
-            res.status(HttpStatus.OK).json({ success: true, data: hotels })
+            const page = parseInt(req.query.page as string) || 1;
+            const limit = parseInt(req.query.limit as string) || 10;
+            const search = req.query.search as string || ""
+
+            const { hotels, totalPages, currentPage,  } = await this._AdminService.getAllHotels(page, limit,search);
+
+            res.status(HttpStatus.OK).json({
+                success: true,
+                data: {
+                    hotels,
+                    totalPages,
+                    currentPage,
+                    search
+                },
+            });
         } catch (error) {
-            next(error)
+            next(error);
         }
     }
+
     async acceptRequst(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
             const { id } = req.params;
@@ -78,5 +102,13 @@ export class adminController implements IAdminController {
             next(error)
         }
     }
-
+    async unBlockHotel(req: Request, res: Response, next: NextFunction): Promise<void> {
+        try {
+            const { id } = req.params;
+            const status = await this._AdminService.unBlockHotel(id)
+            res.status(HttpStatus.OK).json(status)
+        } catch (error) {
+            next(error)
+        }
+    }
 }

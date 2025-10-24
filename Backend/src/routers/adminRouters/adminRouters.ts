@@ -5,6 +5,7 @@ import { adminController } from "../../controllers/admin/AdminController";
 import { UserRepository } from "../../repositories/userrepository/userRepository";
 import { HotelProfileRepository } from "../../repositories/hotelRepository/hotelProfileRepository";
 import { HotelRepository } from "../../repositories/hotelRepository/hotelRepository";
+import { authenticateToken } from "../../middleware/authMiddleware";
 
 const adminRoutes = Router()
 
@@ -21,6 +22,6 @@ adminRoutes.get('/get-hotels',AdminController.getAllHotels.bind(AdminController)
 adminRoutes.post('/accept-requst/:id',AdminController.acceptRequst.bind(AdminController))
 adminRoutes.post('/reject-requst/:id',AdminController.rejectRequst.bind(AdminController))
 adminRoutes.post('/block-hotel/:id',AdminController.blockHotel.bind(AdminController))
-
+adminRoutes.post('/unblock-hotel/:id',AdminController.unBlockHotel.bind(AdminController))
 
 export default adminRoutes

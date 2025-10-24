@@ -4,10 +4,11 @@ import { IHotelFullProfile } from "../../repositories/hotelRepository/hotelInter
 import { IBaseRepository } from "../baserepo/IbaseRepo";
 
 export interface IHotelRepository extends IBaseRepository<IUser> {
-    getAllHotels():Promise<IHotelFullProfile[]>;
+     getAllHotels( page: number,limit: number,search: string): Promise<{ hotels: IHotelFullProfile[]; totalHotels: number; currentPage: number; totalPages: number }>;
     getAllHotelsInUserSide():Promise<IHotelFullProfile[]>
     findByEmail(email: string): Promise<IUser | null>;
     acceptRequstHotel(id:string):Promise<IHotelFullProfile | null>
     rejectRequstHotel(id:string):Promise<IHotelFullProfile | null>
     blockHotel(id:string):Promise<IUser | null>
+    unBlockHotel(id:string):Promise<boolean>
 }   

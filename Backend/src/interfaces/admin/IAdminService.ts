@@ -12,10 +12,11 @@ export interface IAdminService  {
             email: string;
         }
     }>
-    getAllUsers():Promise<IUser[]>
-    getAllHotels():Promise<IHotelFullProfile[]>
+    getAllUsers(page : number, limit:number,search:string):Promise<{ users: IUser[]; totalPages: number; currentPage: number ,search:string}>
+    getAllHotels(page:number, limit : number,search : string):Promise<{ hotels: IHotelFullProfile[]; totalPages: number; currentPage: number,search:string }>
     acceptRequst(id:string):Promise<IHotelFullProfile | null>
     rejectRequst(id:string):Promise<IHotelFullProfile | null>
     blockHotel(id:string):Promise<IUser | null>;
+    unBlockHotel(id:string):Promise<boolean>
 
 }

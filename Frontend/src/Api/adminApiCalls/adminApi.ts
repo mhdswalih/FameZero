@@ -9,9 +9,9 @@ export const loginAdmin = async(email:string,password:string) =>{
     }
 }
 
-export const fetchUser = async()=>{
+export const fetchUser = async(pageNum:number,limit:number,search:string)=>{
     try {
-        const response = await axiosInstance.get('/admin/get-users') 
+        const response = await axiosInstance.get(`/admin/get-users?page=${pageNum}&limit=${limit}&search=${search}`) 
         return response.data
 
     } catch (error : any) {
@@ -19,9 +19,9 @@ export const fetchUser = async()=>{
   }
 }
 
-export const fetchHotels = async () =>{ 
+export const fetchHotels = async (page:number,limit:number,search:string) =>{ 
     try {
-        const response = await axiosInstance.get('/admin/get-hotels')    
+        const response = await axiosInstance.get(`/admin/get-hotels?page=${page}&limit=${limit}&search=${search}`)    
         return response.data
     } catch (error:any) {
        throw error.response?.data || 'failed to fetch Hotels '; 
@@ -54,4 +54,13 @@ export const blockHotel = async (id:string) =>{
   } catch (error:any) {
      throw error.response?.data || 'Failed to Block user'
   }
+}
+
+export const unBlockHotel = async (id:string) =>{
+    try {
+        const response = await axiosInstance.post(`/admin/unblock-hotel/${id}`)
+        return response.data
+    } catch (error) {
+        
+    }
 }

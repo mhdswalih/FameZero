@@ -42,7 +42,7 @@ export async function authenticateToken(
             return;
         }
 
-        let blockedUser = await isUserBlackListed(user.id);
+        let blockedUser = await isUserBlackListed(user.id);    
         if (blockedUser) {
             res.status(HttpStatus.FORBIDDEN).json({
                 success: false,

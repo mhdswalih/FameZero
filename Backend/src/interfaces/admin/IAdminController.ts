@@ -8,4 +8,5 @@ export interface IAdminController {
       acceptRequst(req:Request,res:Response,next:NextFunction):Promise<void>;
       rejectRequst(req:Request,res:Response,next:NextFunction):Promise<void>;
       blockHotel(req:Request,res:Response,next:NextFunction):Promise<void>
+      unBlockHotel(req:Request,res:Response,next:NextFunction):Promise<void>
 }

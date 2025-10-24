@@ -7,10 +7,11 @@ export async function blockUser(userId:string){
     
 }
 
-export async function isUserBlackListed(userId:string){
-    const isUserBlackListed = await redisClient.get(`blacklist${userId}`)
-    return isUserBlackListed === 'true'
+export async function isUserBlackListed(userId: string): Promise<boolean> {
+    const isMember = await redisClient.sIsMember("blacklisted_users", userId);
+    return isMember === 1; 
 }
+
 
 export async function unBlackListUser(userId:string) {
     await redisClient.del(`blacklist:${userId}`);
