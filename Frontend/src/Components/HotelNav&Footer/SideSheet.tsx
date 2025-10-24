@@ -8,7 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { ListOrderedIcon, X } from "lucide-react";
 import { UserCircleIcon, Cog6ToothIcon, InboxArrowDownIcon, LifebuoyIcon, PowerIcon } from "@heroicons/react/24/solid";
 import { RootState } from "../../Redux/store";
-import { Avatar, MenuItem, Typography } from "@material-tailwind/react";
+import { Avatar, Typography } from "@material-tailwind/react";
 import { Link } from "react-router-dom";
 import { editHotelProfile, getHotels } from "../../Api/hotelApiCalls/hotelProfileApi";
 import { addHotelProfile, removeHotelProfile } from "../../Redux/Slice/ProfileSlice/hotelProfileSlice";
@@ -123,55 +123,59 @@ const HotelProfileSheet = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-
   interface HotelProfile {
-    _id:string;
+    _id: string;
     name: string;
-    status:string;
-    email:string;
+    status: string;
+    email: string;
     idProof: string;
     profilepic: string;
     phone: string;
-      location: {
-    type: string;
-    coordinates: number[];
-    locationName : string;
-  };
+    location: {
+      type: string;
+      coordinates: number[];
+      locationName: string;
+    };
     city: string;
   }
+
   const [hotelProfile, setHotelProfile] = useState<HotelProfile>({
-    _id:'',
+    _id: '',
     name: '',
-    email:'',
+    email: '',
     idProof: '',
-    status:'',
+    status: '',
     profilepic: "",
     phone: '',
-      location: {
+    location: {
       type: 'Point',
       coordinates: [],
-      locationName : '',
+      locationName: '',
     },
     city: '',
   });
+
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editedProfile, setEditedProfile] = useState<HotelProfile>({ ...hotelProfile });
+
   const handleLogout = () => {
     dispatch(removeUser());
     dispatch(removeHotelProfile())
     navigate('/hotel/landing-page');
     toast.success('Logged out successfully');
   };
+
   const id = user.id
+
   const handleGetHotel = async () => {
     try {
       const response = await getHotels(id);
       if (response.data) {
         const updatedProfile = {
-          _id:response.data._id || '',
+          _id: response.data._id || '',
           name: response.data.name || '',
-          email:response.data.email || '',
-          status:response.data.status || '',
+          email: response.data.email || '',
+          status: response.data.status || '',
           profilepic: response.data.profilepic || '',
           idProof: response.data.idProof || '',
           phone: response.data.phone || '',
@@ -192,10 +196,10 @@ const HotelProfileSheet = () => {
       // Check the actual response structure
       if (response && response.success) {
         const updatedProfile = {
-          _id:response.data._id || editedProfile._id,
+          _id: response.data._id || editedProfile._id,
           name: response.name || editedProfile.name,
-          email:response.data.email || editedProfile.email,
-          status:response.status || editedProfile.status,
+          email: response.data.email || editedProfile.email,
+          status: response.status || editedProfile.status,
           profilepic: response.profilepic || editedProfile.profilepic,
           phone: response.phone || editedProfile.phone,
           location: response.location || editedProfile.location,
@@ -220,7 +224,7 @@ const HotelProfileSheet = () => {
     handleGetHotel()
   }, [])
 
-   useEffect(() => {
+  useEffect(() => {
     setEditedProfile({ ...hotelProfile });
   }, [hotelProfile]);
 
@@ -249,7 +253,7 @@ const HotelProfileSheet = () => {
         console.log("Open inbox");
       }
     },
-     {
+    {
       label: "Order",
       icon: ListOrderedIcon,
       path: '',
@@ -306,12 +310,15 @@ const HotelProfileSheet = () => {
             alt="User Avatar"
             className="border-2 border-gray-900 w-12 h-12 rounded-full object-cover"
             src={hotelprofile.profilepic ? hotelprofile.profilepic : 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1480&q=80'}
+            placeholder={undefined}
+            onPointerEnterCapture={undefined}
+            onPointerLeaveCapture={undefined}
           />
           <div>
-            <Typography variant="h6" className="font-semibold">
+            <Typography variant="h6" className="font-semibold" placeholder={undefined}>
               {hotelprofile.name}
             </Typography>
-            <Typography variant="small" color="gray">
+            <Typography variant="small" color="gray" placeholder={undefined}>
               {user.email}
             </Typography>
           </div>
@@ -324,7 +331,7 @@ const HotelProfileSheet = () => {
           transition={{ delay: 0.1, duration: 0.3 }}
           className="mt-4"
         >
-          <Typography variant="small" className="font-semibold text-gray-700 px-2 mb-2">
+          <Typography variant="small" className="font-semibold text-gray-700 px-2 mb-2" placeholder={undefined}>
             Profile Menu
           </Typography>
 
@@ -352,35 +359,35 @@ const HotelProfileSheet = () => {
                     onClick={onClick}
                     className="w-full text-left"
                   >
-                    <MenuItem className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors duration-200">
+                    <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors duration-200">
                       <Icon className="h-5 w-5 text-gray-700" />
-                      <Typography as="span" variant="small" className="font-medium">
+                      <Typography as="span" variant="small" className="font-medium" placeholder={undefined}>
                         {label}
                       </Typography>
-                    </MenuItem>
+                    </div>
                   </button>
                 ) : (
-                  <Link to={path}>
-                    <MenuItem className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors duration-200">
+                  <Link to={path} className="w-full">
+                    <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors duration-200">
                       <Icon className="h-5 w-5 text-gray-700" />
-                      <Typography as="span" variant="small" className="font-medium">
+                      <Typography as="span" variant="small" className="font-medium" placeholder={undefined}>
                         {label}
                       </Typography>
-                    </MenuItem>
+                    </div>
                   </Link>
                 )}
               </motion.li>
             ))}
           </ul>
         </motion.div>
-      <HotelEditModal
-        isEditModalOpen={isEditModalOpen}
-        setIsEditModalOpen={setIsEditModalOpen}
-        setHotelProfile={setHotelProfile}
-        hotelProfile={hotelProfile}
-        editedProfile={editedProfile}
-        setEditedProfile={setEditedProfile}
-        handleEditHotel={handleEditHotel}
+        <HotelEditModal
+          isEditModalOpen={isEditModalOpen}
+          setIsEditModalOpen={setIsEditModalOpen}
+          setHotelProfile={setHotelProfile}
+          hotelProfile={hotelProfile}
+          editedProfile={editedProfile}
+          setEditedProfile={setEditedProfile}
+          handleEditHotel={handleEditHotel}
         />
       </SheetContent>
     </Sheet>

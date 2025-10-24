@@ -1,16 +1,17 @@
 import { useDispatch } from "react-redux";
-import { removeUser} from "../../Redux/Slice/userSlice";
+import { removeUser } from "../../Redux/Slice/userSlice";
 import toast from "react-hot-toast";
 import React, { useState, createContext, useContext, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { X } from "lucide-react";
+import { ListOrderedIcon, X } from "lucide-react";
 import { UserCircleIcon, Cog6ToothIcon, InboxArrowDownIcon, LifebuoyIcon, PowerIcon } from "@heroicons/react/24/solid";
 import { RootState } from "../../Redux/store";
-import { Avatar, MenuItem, Typography } from "@material-tailwind/react";
 import { Link } from "react-router-dom";
-import { getUserDetails } from "../../Api/userApiCalls/profileApi";
+import { editHotelProfile, getHotels } from "../../Api/hotelApiCalls/hotelProfileApi";
+import { addHotelProfile, removeHotelProfile } from "../../Redux/Slice/ProfileSlice/hotelProfileSlice";
+import HotelEditModal from "../Modals/Hotel/HotelEditModal";
 
 // Simple Sheet Component
 const SheetContext = createContext<{
@@ -18,7 +19,7 @@ const SheetContext = createContext<{
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }>({
   open: false,
-  setOpen: () => {},
+  setOpen: () => { },
 });
 
 const Sheet = ({ children }: { children: React.ReactNode }) => {
@@ -51,7 +52,7 @@ const SheetContent = ({
   className?: string;
 }) => {
   const { open, setOpen } = useSheet();
-  
+
   useEffect(() => {
     if (open) {
       document.body.style.overflow = "hidden";
@@ -76,17 +77,17 @@ const SheetContent = ({
             className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
             onClick={() => setOpen(false)}
           />
-          
+
           {/* Sheet with highest z-index */}
           <motion.div
             initial={{ x: "100%" }}
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
-            transition={{ 
-              type: "spring", 
-              stiffness: 300, 
+            transition={{
+              type: "spring",
+              stiffness: 300,
               damping: 30,
-              duration: 0.3 
+              duration: 0.3
             }}
             className={`fixed top-0 right-0 h-full w-80 bg-white shadow-2xl z-[1000] ${className}`}
           >
@@ -115,66 +116,124 @@ interface ProfileMenuItem {
 }
 
 // Profile Sheet Component
-export const UserProfileSheet = () => {
+const HotelProfileSheet = () => {
   const user = useSelector((state: RootState) => state.user);
+  const hotelprofile = useSelector((state: RootState) => state.hotelProfile)
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  
-  
-  interface UserProfile {
+
+  interface HotelProfile {
+    _id: string;
     name: string;
+    status: string;
+    email: string;
+    idProof: string;
     profilepic: string;
     phone: string;
-    address: string;
+    location: {
+      type: string;
+      coordinates: number[];
+      locationName: string;
+    };
     city: string;
   }
-  
-  const [userProfile, setUserProfile] = useState<UserProfile>({
+
+  const [hotelProfile, setHotelProfile] = useState<HotelProfile>({
+    _id: '',
     name: '',
+    email: '',
+    idProof: '',
+    status: '',
     profilepic: "",
     phone: '',
-    address: '',
+    location: {
+      type: 'Point',
+      coordinates: [],
+      locationName: '',
+    },
     city: '',
   });
 
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editedProfile, setEditedProfile] = useState<HotelProfile>({ ...hotelProfile });
+
   const handleLogout = () => {
     dispatch(removeUser());
+    dispatch(removeHotelProfile())
     navigate('/hotel/landing-page');
     toast.success('Logged out successfully');
-    
-  
   };
+
   const id = user.id
-    const handleGetUser = async () => {
+
+  const handleGetHotel = async () => {
     try {
-      const response = await getUserDetails(id);
+      const response = await getHotels(id);
       if (response.data) {
         const updatedProfile = {
+          _id: response.data._id || '',
           name: response.data.name || '',
+          email: response.data.email || '',
+          status: response.data.status || '',
           profilepic: response.data.profilepic || '',
-          phone: response.data.phone || '' ,
-          address: response.data.address ||'',
+          idProof: response.data.idProof || '',
+          phone: response.data.phone || '',
+          location: response.data.location || '',
           city: response.data.city || '',
         };
-        setUserProfile(updatedProfile);
+        setHotelProfile(updatedProfile);
+        dispatch(addHotelProfile(updatedProfile))
       }
     } catch (error: any) {
       toast.error(error.error);
     }
   };
-  useEffect(()=>{
-    if(id){
-        handleGetUser
+
+  const handleEditHotel = async (selectedFile?: File, selectedIdProofFile?: File) => {
+    try {
+      const response = await editHotelProfile(id, editedProfile, selectedFile, selectedIdProofFile);
+      // Check the actual response structure
+      if (response && response.success) {
+        const updatedProfile = {
+          _id: response.data._id || editedProfile._id,
+          name: response.name || editedProfile.name,
+          email: response.data.email || editedProfile.email,
+          status: response.status || editedProfile.status,
+          profilepic: response.profilepic || editedProfile.profilepic,
+          phone: response.phone || editedProfile.phone,
+          location: response.location || editedProfile.location,
+          idProof: response.idProof || editedProfile.idProof,
+          city: response.city || editedProfile.city,
+        };
+
+        setHotelProfile(updatedProfile);
+        dispatch(addHotelProfile(updatedProfile));
+        setEditedProfile(updatedProfile);
+
+        toast.success('Profile updated successfully');
+        setIsEditModalOpen(false);
+      }
+    } catch (error: any) {
+      console.error('Error in handleEditHotel:', error);
+      toast.error(error.message || error.error || 'Failed to update profile');
     }
-  },[id])
+  };
+
+  useEffect(() => {
+    handleGetHotel()
+  }, [])
+
+  useEffect(() => {
+    setEditedProfile({ ...hotelProfile });
+  }, [hotelProfile]);
 
   const profileMenuItems: ProfileMenuItem[] = [
     {
       label: "My Profile",
       icon: UserCircleIcon,
-      path: "/profile-details",
+      path: "/hotel-profile-page",
       onClick: () => {
-        navigate("/profile-details");
+        navigate("/hotel/hotel-profile-page");
       }
     },
     {
@@ -182,7 +241,7 @@ export const UserProfileSheet = () => {
       icon: Cog6ToothIcon,
       path: '',
       onClick: () => {
-        console.log("Open edit profile");
+        setIsEditModalOpen(true)
       }
     },
     {
@@ -191,6 +250,14 @@ export const UserProfileSheet = () => {
       path: '',
       onClick: () => {
         console.log("Open inbox");
+      }
+    },
+    {
+      label: "Order",
+      icon: ListOrderedIcon,
+      path: '',
+      onClick: () => {
+        navigate('/hotel/order-page')
       }
     },
     {
@@ -210,108 +277,117 @@ export const UserProfileSheet = () => {
   ];
 
   return (
-   <Sheet>
-        <SheetTrigger>
-        <motion.button 
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="flex items-center gap-2 rounded-full py-2 px-3 hover:bg-gray-100 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-offset-2"
-              >
-                <img
-                  src="https://images.unsplash.com/photo-1633332755192-727a05c4013d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1480&q=80"
-                  alt="User Avatar"
-                  className="w-8 h-8 rounded-full object-cover border-2 border-gray-300"
-                />
-                <span className="hidden sm:block text-sm font-medium text-gray-700">
-                  Profile
-                </span>
-              </motion.button>
-        </SheetTrigger>
-  
-        <SheetContent className="bg-white p-4 w-72">
-          {/* Profile Header */}
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, ease: "easeOut" }}
-            className="flex items-center gap-4 pb-4 border-b border-gray-100"
-          >
-            <Avatar
-              variant="circular"
-              size="lg"
+    <Sheet>
+      <SheetTrigger>
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          className="flex items-center gap-2 rounded-full py-2 px-3 hover:bg-gray-100 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-offset-2"
+        >
+          <img
+            src={hotelprofile.profilepic}
+            alt="User Avatar"
+            className="w-8 h-8 rounded-full object-cover border-2 border-gray-300"
+          />
+          <span className="hidden sm:block text-sm font-medium text-gray-700">
+            Profile
+          </span>
+        </motion.button>
+      </SheetTrigger>
+
+      <SheetContent className="bg-white p-4 w-72">
+        {/* Profile Header */}
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, ease: "easeOut" }}
+          className="flex items-center gap-4 pb-4 border-b border-gray-100"
+        >
+          <div className="w-12 h-12 rounded-full border-2 border-gray-900 overflow-hidden">
+            <img
+              src={hotelprofile.profilepic ? hotelprofile.profilepic : 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1480&q=80'}
               alt="User Avatar"
-              className="border-2 border-gray-900 w-12 h-12 rounded-full object-cover"
-              src={userProfile.profilepic ? userProfile.profilepic : 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1480&q=80'}
+              className="w-full h-full object-cover"
             />
-            <div>
-              <Typography variant="h6" className="font-semibold">
-                {userProfile.name}
-              </Typography>
-              <Typography variant="small" color="gray">
-                {user.email}
-              </Typography>
-            </div>
-          </motion.div>
-  
-          {/* Menu Section */}
+          </div>
+          <div>
+            <h6 className="text-lg font-semibold text-gray-900">
+              {hotelprofile.name}
+            </h6>
+            <p className="text-sm text-gray-600">
+              {user.email}
+            </p>
+          </div>
+        </motion.div>
+
+        {/* Menu Section */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.1, duration: 0.3 }}
+          className="mt-4"
+        >
+          <p className="text-xs font-semibold text-gray-700 px-2 mb-2 uppercase tracking-wide">
+            Profile Menu
+          </p>
+
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.1, duration: 0.3 }}
-            className="mt-4"
-          >
-            <Typography variant="small" className="font-semibold text-gray-700 px-2 mb-2">
-              Profile Menu
-            </Typography>
-  
-            <motion.div
-              initial={{ scaleX: 0 }}
-              animate={{ scaleX: 1 }}
-              transition={{ duration: 0.3, delay: 0.15 }}
-              className="h-px bg-orange-400 mb-3"
-            />
-            <ul className="space-y-1">
-              {profileMenuItems.map(({ label, icon: Icon, path, onClick }, index) => (
-                <motion.li
-                  key={label}
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{
-                    delay: 0.05 * index + 0.2,
-                    type: "spring",
-                    stiffness: 500,
-                    damping: 20
-                  }}
-                >
-                  {onClick ? (
-                    <button
-                      onClick={onClick}
-                      className="w-full text-left"
-                    >
-                      <MenuItem className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors duration-200">
-                        <Icon className="h-5 w-5 text-gray-700" />
-                        <Typography as="span" variant="small" className="font-medium">
-                          {label}
-                        </Typography>
-                      </MenuItem>
-                    </button>
-                  ) : (
-                    <Link to={path}>
-                      <MenuItem className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors duration-200">
-                        <Icon className="h-5 w-5 text-gray-700" />
-                        <Typography as="span" variant="small" className="font-medium">
-                          {label}
-                        </Typography>
-                      </MenuItem>
-                    </Link>
-                  )}
-                </motion.li>
-              ))}
-            </ul>
-          </motion.div>
-        </SheetContent>
-      </Sheet>
+            initial={{ scaleX: 0 }}
+            animate={{ scaleX: 1 }}
+            transition={{ duration: 0.3, delay: 0.15 }}
+            className="h-px bg-orange-400 mb-3"
+          />
+          <ul className="space-y-1">
+            {profileMenuItems.map(({ label, icon: Icon, path, onClick }, index) => (
+              <motion.li
+                key={label}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{
+                  delay: 0.05 * index + 0.2,
+                  type: "spring",
+                  stiffness: 500,
+                  damping: 20
+                }}
+              >
+                {onClick ? (
+                  <button
+                    onClick={onClick}
+                    className="w-full text-left"
+                  >
+                    <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors duration-200 group">
+                      <Icon className="h-5 w-5 text-gray-700 group-hover:text-orange-500 transition-colors duration-200" />
+                      <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900">
+                        {label}
+                      </span>
+                    </div>
+                  </button>
+                ) : (
+                  <Link to={path} className="w-full block">
+                    <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors duration-200 group">
+                      <Icon className="h-5 w-5 text-gray-700 group-hover:text-orange-500 transition-colors duration-200" />
+                      <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900">
+                        {label}
+                      </span>
+                    </div>
+                  </Link>
+                )}
+              </motion.li>
+            ))}
+          </ul>
+        </motion.div>
+        <HotelEditModal
+          isEditModalOpen={isEditModalOpen}
+          setIsEditModalOpen={setIsEditModalOpen}
+          setHotelProfile={setHotelProfile}
+          hotelProfile={hotelProfile}
+          editedProfile={editedProfile}
+          setEditedProfile={setEditedProfile}
+          handleEditHotel={handleEditHotel}
+        />
+      </SheetContent>
+    </Sheet>
   );
 };
 
-export default UserProfileSheet;
+export default HotelProfileSheet;
