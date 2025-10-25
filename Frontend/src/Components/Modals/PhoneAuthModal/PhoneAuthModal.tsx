@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { ConfirmationResult, RecaptchaVerifier, signInWithPhoneNumber } from 'firebase/auth';
 import { auth } from "../../../FireBase/config";
 import toast from "react-hot-toast";
-import {phoneAuth} from "../../../Api/userApiCalls/userApi";
+import { phoneAuth } from "../../../Api/userApiCalls/userApi";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { addUser } from "../../../Redux/Slice/userSlice";
@@ -72,16 +72,38 @@ const PhoneAuthModal = ({ isOpen, onClose }: PhoneAuthModalProps) => {
     };
   }, [isOpen]);
 
+  // Function to format phone number with country code
+  const formatPhoneNumber = (input: string): string => {
+    // Remove all non-digit characters
+    const digitsOnly = input.replace(/\D/g, '');
+    
+    // If input starts with 91, remove it and use our own +91
+    let cleanNumber = digitsOnly;
+    if (digitsOnly.startsWith('91') && digitsOnly.length > 10) {
+      cleanNumber = digitsOnly.substring(2);
+    }
+    
+    // Limit to 10 digits for Indian numbers
+    return cleanNumber.substring(0, 10);
+  };
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const input = e.target.value;
+    const formattedPhone = formatPhoneNumber(input);
+    setPhone(formattedPhone);
+  };
+
   const handleSendOtp = async () => {
-    if (!phone) {
-      toast.error('Please enter a phone number');
+    if (!phone || phone.length !== 10) {
+      toast.error('Please enter a valid 10-digit phone number');
       return;
     }
 
     setIsLoading(true);
     try {
-      const formattedPhone = `+${phone.replace(/\D/g, '')}`;
-      setPhone(formattedPhone)
+      // Always use +91 for Indian numbers
+      const formattedPhone = `+91${phone}`;
+      
       const confirmationResult = await signInWithPhoneNumber(
         auth,
         formattedPhone,
@@ -118,26 +140,32 @@ const PhoneAuthModal = ({ isOpen, onClose }: PhoneAuthModalProps) => {
   };
 
   const handleSubmitDetails = async () => {
-    if (!formData.name ) {
+    if (!formData.name) {
       toast.error('Please fill all required fields');
       return;
     }
-    const contryCodeCombainedPhone = `+91${phone}`
+
     setIsLoading(true);
     try {
-      const response = await phoneAuth(formData.name, contryCodeCombainedPhone,formData.role);
+      // Use the phone number with country code for the API call
+      const phoneWithCountryCode = `+91${phone.replace(/\D/g, "")}`;
+      
+      const response = await phoneAuth(formData.name, phoneWithCountryCode, formData.role);
+      
       dispatch(addUser({
         id: response.user?.id || '',
         email: response.user?.email || '',
         role: response.user?.role || '',
         token: response?.accessToken || null
       }))
+      
       dispatch(addUserProfile({
         profilepic: response.user?.profilepic || '',
         phone: response.user?.phone || '',
         address: response.user?.address || '',
         city: response.user?.city || ''
       }))
+      
       dispatch(addHotelProfile({
         profilepic: response.user?.prifilepic || '',
         role: response.user?.role || '',
@@ -175,7 +203,7 @@ const PhoneAuthModal = ({ isOpen, onClose }: PhoneAuthModalProps) => {
       [name]: value
     }));
   };
- 
+
   if (!isOpen) return null;
 
   return (
@@ -210,20 +238,24 @@ const PhoneAuthModal = ({ isOpen, onClose }: PhoneAuthModalProps) => {
                 <div>
                   <label className="block text-sm text-gray-600 mb-1">Phone Number</label>
                   <div className="flex border border-gray-300 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-orange-400 focus-within:border-transparent transition-all">
-                    <span className="bg-gray-100 px-3 py-2">+91</span>
+                    <span className="bg-gray-100 px-3 py-2 border-r border-gray-300">+91</span>
                     <input
                       type="tel"
                       value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
+                      onChange={handlePhoneChange}
                       placeholder="1234567890"
                       className="flex-1 px-3 py-2 outline-none"
-                      maxLength={15}
+                      maxLength={10}
+                      inputMode="numeric"
                     />
                   </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Enter 10-digit mobile number
+                  </p>
                 </div>
                 <motion.button
                   onClick={handleSendOtp}
-                  disabled={isLoading}
+                  disabled={isLoading || phone.length !== 10}
                   className="w-full bg-orange-400 text-white py-2 rounded-lg hover:bg-orange-500 disabled:opacity-50 transition-colors duration-500 font-medium"
                   whileTap={{ scale: 0.98 }}
                 >
@@ -236,20 +268,24 @@ const PhoneAuthModal = ({ isOpen, onClose }: PhoneAuthModalProps) => {
             {currentStep === 'otp' && (
               <div className="space-y-4">
                 <h2 className="text-xl font-bold text-center">Enter OTP</h2>
+                <p className="text-sm text-gray-600 text-center">
+                  Sent to +91{phone}
+                </p>
                 <div>
                   <label className="block text-sm text-gray-600 mb-1">6-digit Code</label>
                   <input
-                    type="number"
+                    type="text"
                     value={otp}
-                    onChange={(e) => setOtp(e.target.value)}
+                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').substring(0, 6))}
                     placeholder="123456"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-400 focus:border-transparent transition-all"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-400 focus:border-transparent transition-all text-center text-lg font-semibold"
                     maxLength={6}
+                    inputMode="numeric"
                   />
                 </div>
                 <motion.button
                   onClick={verifyOtp}
-                  disabled={isLoading}
+                  disabled={isLoading || otp.length !== 6}
                   className="w-full bg-orange-400 text-white py-2 rounded-lg hover:bg-orange-500 disabled:opacity-50 transition-colors duration-500 font-medium"
                   whileTap={{ scale: 0.98 }}
                 >
@@ -262,6 +298,9 @@ const PhoneAuthModal = ({ isOpen, onClose }: PhoneAuthModalProps) => {
             {currentStep === 'details' && (
               <div className="space-y-4">
                 <h2 className="text-xl font-bold text-center">Complete Your Profile</h2>
+                <p className="text-sm text-gray-600 text-center">
+                  Verified: +91{phone}
+                </p>
 
                 <div>
                   <label className="block text-sm text-gray-600 mb-1">Full Name *</label>
@@ -285,7 +324,7 @@ const PhoneAuthModal = ({ isOpen, onClose }: PhoneAuthModalProps) => {
                         value="user"
                         checked={formData.role === 'user'}
                         onChange={handleInputChange}
-                         className="h-4 w-4 text-orange-400 focus:ring-orange-400 border-gray-300"
+                        className="h-4 w-4 text-orange-400 focus:ring-orange-400 border-gray-300"
                       />
                       <span className="ml-2 text-gray-700">User</span>
                     </label>
@@ -305,7 +344,7 @@ const PhoneAuthModal = ({ isOpen, onClose }: PhoneAuthModalProps) => {
 
                 <motion.button
                   onClick={handleSubmitDetails}
-                  disabled={isLoading} 
+                  disabled={isLoading}
                   className="w-full bg-orange-400 text-white py-2 rounded-lg hover:bg-orange-500 disabled:opacity-50 transition-colors duration-500 font-medium mt-4"
                   whileTap={{ scale: 0.98 }}
                 >
