@@ -122,10 +122,10 @@ const PhoneAuthModal = ({ isOpen, onClose }: PhoneAuthModalProps) => {
       toast.error('Please fill all required fields');
       return;
     }
-
+    const contryCodeCombainedPhone = `+91${phone}`
     setIsLoading(true);
     try {
-      const response = await phoneAuth(formData.name, phone,formData.role);
+      const response = await phoneAuth(formData.name, contryCodeCombainedPhone,formData.role);
       dispatch(addUser({
         id: response.user?.id || '',
         email: response.user?.email || '',
@@ -214,7 +214,7 @@ const PhoneAuthModal = ({ isOpen, onClose }: PhoneAuthModalProps) => {
                     <input
                       type="tel"
                       value={phone}
-                      onChange={(e) => setPhone('91'+ e.target.value)}
+                      onChange={(e) => setPhone(e.target.value)}
                       placeholder="1234567890"
                       className="flex-1 px-3 py-2 outline-none"
                       maxLength={15}
